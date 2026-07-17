@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>DiscordBot</RootNamespace>
@@ -10,14 +10,14 @@
 
   <ItemGroup>
     <!-- Core Discord library -->
-    <PackageReference Include="Discord.Net" Version="3.13.0" />
+    <PackageReference Include="Discord.Net" Version="3.20.1" />
     <PackageReference Include="DotNetEnv" Version="3.2.0" />
-    <PackageReference Include="Lavalink4NET.Discord.Net" Version="4.0.0" />
+    <PackageReference Include="Lavalink4NET.Discord.Net" Version="4.2.2" />
 
     <!-- DI / Config / Logging -->
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.0" />
 
     <!-- Lightweight embedded DB for honeypot config + modmail ticket mapping -->
     <PackageReference Include="LiteDB" Version="5.0.21" />
