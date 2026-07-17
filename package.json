@@ -1,0 +1,12 @@
+{
+  "name": "discord-bot",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "dotnet watch run --environment Development",
+    "build": "dotnet build",
+    "start": "dotnet run --environment Production",
+    "publish": "dotnet publish -c Release -o dist"
+  },
+  "packageManager": "yarn@4.3.1"
+}

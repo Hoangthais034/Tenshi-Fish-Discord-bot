@@ -1,0 +1,45 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.sln.docstates
+*.userprefs
+*.csproj.user
+.vs/
+
+# Node / Yarn
+node_modules/
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.yarn/build-state.yml
+.yarn/cache/
+.yarn/unplugged/
+
+# Env files (chứa token thật)
+appsettings.Development.json
+.env
+.env.local
+.env.production
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# LiteDB
+*.db
+*.db-lock
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
