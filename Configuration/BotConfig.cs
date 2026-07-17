@@ -12,19 +12,6 @@ public sealed class LavalinkConfig
     public string Password { get; set; } = "youshallnotpass";
 }
 
-public enum HoneypotAction
-{
-    Kick,
-    Ban,
-    Disabled
-}
-
-public sealed class HoneypotConfig
-{
-    public ulong LogChannelId { get; set; }
-    public HoneypotAction Action { get; set; } = HoneypotAction.Kick;
-}
-
 public sealed class ModmailConfig
 {
     public ulong GuildId { get; set; }

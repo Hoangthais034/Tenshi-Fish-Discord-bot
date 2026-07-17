@@ -120,10 +120,114 @@ MusicService
 - [ ] `dotnet build` sạch (0 errors, 0 warnings)
 - [ ] Update `README.md` cho Phase 2
 
-## 4. Phase 3 — Honeypot (kế hoạch sơ bộ)
+## 4. Phase 3 — Honeypot (kế hoạch chi tiết)
 
-(Kế hoạch chi tiết sau Phase 2)
+### Khảo sát source gốc (RiskyMH/honeypot)
+
+Source gốc có các features:
+- Trap channel + action (kick/ban/softban/disabled)
+- Multi-channel (nhiều channel bẫy/guild)
+- Experiments: timeout-first, no-dm, no-warning-msg, ensure-msg-delete, channel-warmer, random-channel-name, recreate-channel, forward-message, reinvite, only-recent-delete
+- Custom DM/warning/log messages
+- Warning message trong trap channel (đếm số lần trigger)
+- Permission skip cho admin/owner
+- Rate limiting
+
+### Hiện trạng
+
+- ✅ `/honeypot setup <trap> <log> [action]` — đã có
+- ✅ `/honeypot disable` — đã có
+- ✅ HoneypotService cơ bản (OnMessageReceived, kick/ban, log)
+- ❌ Chỉ 1 trap channel/guild
+- ❌ Thiếu softban action
+- ❌ Thiếu custom messages
+- ❌ Thiếu experiments (timeout-first, no-dm, random-channel-name)
+- ❌ Thiếu warning message trong channel
+
+### Danh sách thay đổi Phase 3
+
+| # | Feature | Mô tả |
+|---|---------|-------|
+| 1 | Multi-honeypot | Chuyển từ `TrapChannelId` (ulong) → `TrapChannels` (List) |
+| 2 | Softban action | Ban + unban ngay (kick + xoá message) |
+| 3 | Experiments flag | Enum flags: TimeoutFirst, NoDm, NoWarningMsg, RandomChannelName |
+| 4 | `/honeypot messages` | Custom DM message + warning message |
+| 5 | `/honeypot experiment` | Bật/tắt experiments |
+| 6 | Random channel name | `IHostedService` timer đổi tên channel mỗi giờ |
+| 7 | Warning message | Bot post + update warning trong trap channel |
+| 8 | Permission skip | Không ban admin/owner, log riêng |
+
+### Files cần sửa / tạo
+
+| File | Action | Mô tả |
+|------|--------|-------|
+| `Services/HoneypotModels.cs` | ✨ Tạo mới | Models cho settings + experiments |
+| `Services/HoneypotService.cs` | ✏️ Rewrite | Multi-channel, experiments, custom messages, warning |
+| `Modules/HoneypotModule.cs` | ✏️ Rewrite | Thêm `/messages`, `/experiment` commands |
+| `Services/HoneypotHostedService.cs` | ✨ Tạo mới | `IHostedService` timer cho random channel name |
+| `Program.cs` | ✏️ Edit | Add `HoneypotHostedService` |
+| `README.md` | ✏️ Edit | Update command list |
+
+### HoneypotGuildSettings model
+
+```
+HoneypotGuildSettings
+├── GuildId
+├── TrapChannels (List<HoneypotChannelInfo>)  ← multi channel
+├── LogChannelId
+├── Action (Kick / Ban / Softban / Disabled)
+├── Experiments (HoneypotExperiment flags)
+├── DmMessage (custom DM)
+├── WarningMessage (custom warning)
+└── WarningMessageId (message ID trong trap channel)
+```
+
+### HoneypotExperiments enum
+
+```
+[Flags]
+HoneypotExperiments:
+  None = 0
+  TimeoutFirst = 1
+  NoDm = 2
+  NoWarningMsg = 4
+  RandomChannelName = 8
+```
+
+### Definition of Done
+
+- [x] `dotnet build` sạch (0 errors, 0 warnings)
+- [x] Multi-honeypot hoạt động (test với 2+ channels)
+- [x] `/honeypot messages` cho phép set custom DM + warning text
+- [x] `/honeypot experiment` bật/tắt từng experiment
+- [x] Random channel name chạy background timer
+- [x] Update `README.md`
 
 ## 5. Phase 4 — Hardening
 
-(Kế hoạch chi tiết sau Phase 3)
+### Mục tiêu
+Xử lý lỗi toàn cục, rate limiting, shutdown graceful.
+
+### Danh sách thay đổi
+
+| # | Feature | Mô tả |
+|---|---------|-------|
+| 1 | Global error handler | Bắt exception từ tất cả slash command, log + reply ephemeral |
+| 2 | Rate limit (cooldown) | Custom `[Cooldown]` attribute, per-user per-command, dùng `IMemoryCache` |
+| 3 | Graceful shutdown | Disconnect Lavalink, log cleanup, cancellation token propagation |
+
+### Files cần sửa / tạo
+
+| File | Action | Mô tả |
+|------|--------|-------|
+| `Services/RateLimitService.cs` | ✨ Tạo mới | Rate limit logic + `CooldownAttribute` |
+| `Program.cs` | ✏️ Edit | Hook `InteractionExecuted` + rate limit DI + shutdown handling |
+| `BotWorker.cs` | ✏️ Tách file | Tách BotWorker ra file riêng, thêm `StopAsync` cleanup |
+| `Modules/ModmailModule.cs` | ✏️ Edit | Thêm `[Cooldown]` attribute |
+| `Modules/HoneypotModule.cs` | ✏️ Edit | Thêm `[Cooldown]` attribute |
+
+### Definition of Done
+
+- [ ] Global error handler bắt + log mọi exception từ interaction
+- [ ] Rate limit: `/modmail reply` + `/modmail close` + `/honeypot setup` có cooldown 5s
+- [ ] `dotnet build` sạch (0 errors, 0 warnings)

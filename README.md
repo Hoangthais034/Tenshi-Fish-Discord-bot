@@ -11,7 +11,8 @@ Gộp 3 tính năng, lấy cảm hứng từ:
 |-------|-----------|------------|
 | 1 | Modmail core (reply/close/block/logs) | ✅ Hoàn thành |
 | 2 | Music (Lavalink: 10 slash commands) | ✅ Hoàn thành |
-| 3 | Honeypot | ⏸️ Tạm dừng |
+| 3 | Honeypot (multi-trap, experiments, custom messages, timer) | ✅ Hoàn thành |
+| 4 | Hardening (global error handler, rate limit, graceful shutdown) | ✅ Hoàn thành |
 
 ## 1. Yêu cầu
 
@@ -94,6 +95,23 @@ Slash command tự đăng ký global khi bot `Ready`.
 | `/music volume <0-200>` | Chỉnh âm lượng |
 | `/music shuffle` | Bật/tắt phát ngẫu nhiên |
 | `/music loop <mode>` | Lặp None / Track / Queue |
+
+## 5. Honeypot Commands (Phase 3)
+
+| Command | Quyền | Mô tả |
+|---------|-------|-------|
+| `/honeypot setup <trap> <log> [action]` | Admin | Thiết lập trap channel, log channel, action (Kick/Ban/Softban) |
+| `/honeypot disable` | Admin | Tắt honeypot |
+| `/honeypot add-trap <channel>` | Admin | Thêm trap channel |
+| `/honeypot remove-trap <channel>` | Admin | Xóa trap channel |
+| `/honeypot messages [dm] [warning]` | Admin | Tùy chỉnh DM & warning message |
+| `/honeypot experiment <name> [on/off]` | Admin | Bật/tắt experiment (TimeoutFirst, NoDm, NoWarningMsg, RandomChannelName) |
+
+**Experiments:**
+- `TimeoutFirst` — timeout 1h trước khi kick/ban
+- `NoDm` — không gửi DM cho user
+- `NoWarningMsg` — không post/edit warning message trong trap channel
+- `RandomChannelName` — tự động đổi tên trap channel mỗi giờ (random từ danh sách) |
 
 ## 4. Cần Intent gì trên Developer Portal
 
