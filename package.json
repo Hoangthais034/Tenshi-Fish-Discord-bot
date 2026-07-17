@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "predev": "docker start lavalink 2>/dev/null || docker run -d --name lavalink -p 2333:2333 -e SERVER_PORT=2333 -e LAVALINK_SERVER_PASSWORD=youshallnotpass ghcr.io/lavalink-devs/lavalink:4",
+    "predev": "docker rm -f lavalink 2>/dev/null; docker run -d --name lavalink -p 2333:2333 -e SERVER_PORT=2333 -e LAVALINK_SERVER_PASSWORD=youshallnotpass ghcr.io/lavalink-devs/lavalink:4",
     "dev": "dotnet watch run --environment Development",
     "build": "dotnet build",
     "start": "dotnet run --environment Production",
