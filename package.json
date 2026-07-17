@@ -8,6 +8,5 @@
     "build": "dotnet build",
     "start": "dotnet run --environment Production",
     "publish": "dotnet publish -c Release -o dist"
-  },
-  "packageManager": "yarn@4.3.1"
+  }
 }
