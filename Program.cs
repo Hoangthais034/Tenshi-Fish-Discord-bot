@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using DiscordBot.Configuration;
 using DiscordBot.Services;
 using DotNetEnv;
+using Lavalink4NET;
 using Lavalink4NET.Extensions;
 using LiteDB;
 using Microsoft.Extensions.Configuration;
@@ -41,6 +42,16 @@ builder.Services.AddSingleton(sp =>
     new InteractionService(sp.GetRequiredService<DiscordSocketClient>()));
 
 builder.Services.AddLavalink();
+builder.Services.ConfigureLavalink(options =>
+{
+    var lavalinkSection = builder.Configuration.GetSection("Lavalink");
+    var baseAddress = lavalinkSection["BaseAddress"];
+    if (!string.IsNullOrEmpty(baseAddress))
+        options.BaseAddress = new Uri(baseAddress);
+    var password = lavalinkSection["Password"];
+    if (!string.IsNullOrEmpty(password))
+        options.Passphrase = password;
+});
 builder.Services.AddSingleton<LiteDatabase>(_ => new LiteDatabase("/data/bot-data.db"));
 
 builder.Services.AddMemoryCache();
