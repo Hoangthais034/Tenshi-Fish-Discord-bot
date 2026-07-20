@@ -8,6 +8,7 @@ RUN dotnet publish -c Release -o /app
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app .
-RUN mkdir -p /data && chown -R app:app /data
+COPY entrypoint.sh /entrypoint.sh
+RUN mkdir -p /data && chown -R app:app /data && chmod +x /entrypoint.sh
 USER app
-ENTRYPOINT ["dotnet", "DiscordBot.dll"]
+ENTRYPOINT ["/entrypoint.sh"]

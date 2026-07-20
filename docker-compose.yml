@@ -25,8 +25,7 @@ services:
       - Modmail__GuildId=${MODMAIL_GUILD_ID:?err}
       - Modmail__CategoryId=${MODMAIL_CATEGORY_ID:-0}
     volumes:
-      - bot-data:/data/bot-data.db
+      - ./data:/data
 
 volumes:
-  bot-data:
   lavalink-data:

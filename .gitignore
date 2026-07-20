@@ -37,6 +37,7 @@ docker-compose.override.yml
 # LiteDB
 *.db
 *.db-lock
+/data/
 
 # Lavalink plugins (auto-downloaded)
 plugins/
