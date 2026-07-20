@@ -16,10 +16,12 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         _music = music;
     }
 
-    [SlashCommand("play", "Phát nhạc từ tên bài hoặc URL YouTube", runMode: RunMode.Async)]
+    [SlashCommand("play", "Phát nhạc từ tên bài hoặc URL YouTube")]
     public async Task Play(
         [Summary(description: "Tên bài hát hoặc URL YouTube")] string query)
     {
+        await DeferAsync();
+
         var user = Context.User as SocketGuildUser;
         var voiceChannel = user?.VoiceState?.VoiceChannel;
         if (voiceChannel is null)
@@ -28,7 +30,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             return;
         }
 
-        var result = await _music.PlayAsync(Context.Guild.Id, voiceChannel.Id, query);
+        var result = await Task.Run(() => _music.PlayAsync(Context.Guild.Id, voiceChannel.Id, query));
         await FollowupAsync(result);
     }
 

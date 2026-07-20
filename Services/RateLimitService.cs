@@ -60,7 +60,7 @@ public sealed class CooldownAttribute : PreconditionAttribute
         if (rateLimit.IsRateLimited(context.User.Id, key, _seconds))
         {
             var remaining = rateLimit.GetRemainingSeconds(context.User.Id, key);
-            await context.Interaction.FollowupAsync(
+            await context.Interaction.RespondAsync(
                 $"⏳ Vui lòng đợi {remaining}s trước khi dùng lại lệnh này.",
                 ephemeral: true);
             return PreconditionResult.FromError("Rate limited");
