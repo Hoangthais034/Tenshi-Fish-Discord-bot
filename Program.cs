@@ -157,6 +157,7 @@ public sealed class BotWorker : IHostedService
         {
             try
             {
+                await interaction.DeferAsync();
                 var ctx = new SocketInteractionContext(_client, interaction);
                 var result = await _interactions.ExecuteCommandAsync(ctx, _services);
 
