@@ -20,6 +20,7 @@ services:
       - DOTNET_ENVIRONMENT=Production
       - Discord__Token=${DISCORD_TOKEN:?err}
       - Discord__OwnerId=${DISCORD_OWNER_ID:-0}
+      - Discord__DevGuildId=${DISCORD_DEV_GUILD_ID:-0}
       - Lavalink__BaseAddress=http://lavalink:2333
       - Lavalink__Password=${LAVALINK_PASSWORD:-youshallnotpass}
       - Modmail__GuildId=${MODMAIL_GUILD_ID:?err}
