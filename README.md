@@ -140,4 +140,66 @@ Dùng trong ticket channel (sau khi user gửi DM):
 - Honeypot: re-enable command + setup flow
 - Nên tách LiteDB → Postgres/SQLite qua EF Core nếu multi-guild
 
+## 7. Deploy lên VPS (Oracle Linux 9)
+
+### Cài đặt
+
+```bash
+# 1. Cài .NET 10 SDK
+sudo dnf install -y dotnet-sdk-10.0
+
+# 2. Cài Docker
+sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+sudo dnf install -y docker-ce docker-ce-cli containerd.io
+sudo systemctl enable --now docker
+sudo usermod -aG docker $USER
+# Logout rồi login lại (hoặc chạy: newgrp docker)
+
+# 3. Cài Docker Compose plugin
+sudo dnf install -y docker-compose-plugin
+
+# 4. Clone code
+git clone <repo-url> && cd DiscordBot
+
+# 5. Tạo file .env với token thật
+cp .env.example .env
+nano .env
+# Điền DISCORD_TOKEN, DISCORD_OWNER_ID, DISCORD_DEV_GUILD_ID, MODMAIL_GUILD_ID, ...
+```
+
+### Chạy
+
+```bash
+# Build + start bot + lavalink
+docker compose up -d --build
+
+# Xem log
+docker compose logs -f
+
+# Dừng
+docker compose down
+```
+
+### Hoặc chạy không Docker (direct)
+
+```bash
+# Chạy Lavalink bằng Docker riêng
+docker run -d --name lavalink -p 2333:2333 \
+  -v "$(pwd)/application.yml:/opt/Lavalink/application.yml" \
+  ghcr.io/lavalink-devs/lavalink:4
+
+# Build bot
+dotnet publish -c Release -o dist
+
+# Chạy
+DOTNET_ENVIRONMENT=Production dotnet dist/DiscordBot.dll
+```
+
+### Cập nhật code mới
+
+```bash
+git pull
+docker compose up -d --build
+```
+
 Xem thêm: `docs/FEATURE_MATRIX.md`
