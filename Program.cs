@@ -45,7 +45,9 @@ builder.Services.AddLavalink();
 builder.Services.ConfigureLavalink(options =>
 {
     options.BaseAddress = new Uri("http://lavalink:2333");
-    options.Passphrase = "youshallnotpass";
+    options.Passphrase = builder.Configuration["Lavalink:Passphrase"]
+        ?? builder.Configuration["Lavalink:Password"]
+        ?? "youshallnotpass";
 });
 builder.Services.AddSingleton<LiteDatabase>(_ => new LiteDatabase("/data/bot-data.db"));
 
