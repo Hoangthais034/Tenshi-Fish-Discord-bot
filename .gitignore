@@ -38,6 +38,9 @@ docker-compose.override.yml
 *.db
 *.db-lock
 
+# Lavalink plugins (auto-downloaded)
+plugins/
+
 # IDE
 .idea/
 *.swp

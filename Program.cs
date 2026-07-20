@@ -12,12 +12,18 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-// Load .env file trước khi build config (chứa token, secret — an toàn, đã trong .gitignore)
 Env.Load();
 
 var builder = Host.CreateApplicationBuilder(args);
 
-// appsettings.{env}.json + env vars tự động load
+// Map DISCORD_TOKEN -> Discord:Token (DotNetEnv load thành env var, nhưng config cần key dạng Section:Key)
+var discordToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
+if (!string.IsNullOrEmpty(discordToken))
+    builder.Configuration["Discord:Token"] = discordToken;
+
+var devGuildId = Environment.GetEnvironmentVariable("DISCORD_DEV_GUILD_ID");
+if (!string.IsNullOrEmpty(devGuildId))
+    builder.Configuration["Discord:DevGuildId"] = devGuildId;
 
 builder.Services.Configure<DiscordBot.Configuration.DiscordConfig>(builder.Configuration.GetSection("Discord"));
 builder.Services.Configure<LavalinkConfig>(builder.Configuration.GetSection("Lavalink"));
@@ -60,6 +66,7 @@ public sealed class BotWorker : IHostedService
     private readonly HoneypotService _honeypot;
     private readonly ModmailService _modmail;
     private readonly ILogger<BotWorker> _logger;
+    private bool _registered;
 
     public BotWorker(
         DiscordSocketClient client,
@@ -107,30 +114,32 @@ public sealed class BotWorker : IHostedService
 
         _client.Ready += async () =>
         {
+            if (_registered) return;
+            _registered = true;
+
             try
             {
-                // Xoá toàn bộ commands cũ (global + guild-specific)
-                await _client.Rest.BulkOverwriteGlobalCommands(Array.Empty<ApplicationCommandProperties>());
-                _logger.LogInformation("Đã xoá global commands cũ");
-
-                foreach (var guild in _client.Guilds)
+                var devId = _config.Value.DevGuildId;
+                if (devId == 0)
                 {
-                    await _client.Rest.BulkOverwriteGuildCommands(Array.Empty<ApplicationCommandProperties>(), guild.Id);
-                    _logger.LogInformation("Đã xoá guild commands cho {Guild}", guild.Id);
+                    _logger.LogWarning("DevGuildId chưa được set, bỏ qua register commands");
+                    return;
                 }
+
+                await _client.Rest.BulkOverwriteGlobalCommands(Array.Empty<ApplicationCommandProperties>());
+                foreach (var guild in _client.Guilds)
+                    await _client.Rest.BulkOverwriteGuildCommands(Array.Empty<ApplicationCommandProperties>(), guild.Id);
 
                 await _interactions.AddModulesAsync(typeof(Program).Assembly, _services);
                 _logger.LogInformation("Đã load {Count} modules", _interactions.Modules.Count);
 
-                await _interactions.RegisterCommandsGloballyAsync();
-                _logger.LogInformation("Đã register slash commands global");
+                await _interactions.RegisterCommandsToGuildAsync(devId);
+                _logger.LogInformation("Đã register guild commands cho {Guild}", devId);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Lỗi khi register slash commands");
             }
-
-            _logger.LogInformation("Bot ready: {User}", _client.CurrentUser);
         };
 
         _interactions.InteractionExecuted += HandleInteractionErrorAsync;

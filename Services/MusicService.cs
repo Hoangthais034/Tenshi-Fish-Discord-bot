@@ -1,5 +1,6 @@
 using Discord.WebSocket;
 using Lavalink4NET;
+using Lavalink4NET.Extensions;
 using Lavalink4NET.Players;
 using Lavalink4NET.Players.Queued;
 using Lavalink4NET.Rest.Entities.Tracks;
@@ -53,16 +54,61 @@ public sealed class MusicService
 
     public async Task<string> PlayAsync(ulong guildId, ulong voiceChannelId, string query)
     {
-        var player = await GetOrCreatePlayerAsync(guildId, voiceChannelId);
+        query = CleanUrl(query);
 
-        var track = await _audio.Tracks.LoadTrackAsync(query, TrackSearchMode.YouTube);
+        QueuedLavalinkPlayer player;
+        try
+        {
+            player = await GetOrCreatePlayerAsync(guildId, voiceChannelId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Không thể kết nối Lavalink");
+            return "Không thể kết nối tới Lavalink server. Vui lòng thử lại sau.";
+        }
+
+        TrackLoadResult result;
+        try
+        {
+            result = await _audio.Tracks.LoadTracksAsync(query, TrackSearchMode.YouTube);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi tải track: {Query}", query);
+            return $"Lỗi khi tải track: `{query}`.";
+        }
+
+        if (result.IsFailed)
+            return $"Lỗi khi tải track: `{query}`.";
+
+        if (!result.HasMatches)
+            return $"Không tìm thấy kết quả cho `{query}`.";
+
+        if (result.IsPlaylist)
+        {
+            var playlist = result.Playlist;
+            var tracks = result.Tracks;
+
+            if (tracks.IsDefaultOrEmpty)
+                return $"Playlist trống: **{playlist?.Name ?? query}**.";
+
+            var enqueue = player.State is PlayerState.Playing or PlayerState.Paused;
+            await player.PlayAsync(result);
+
+            var count = tracks.Length;
+            return enqueue
+                ? $"Đã thêm playlist **{playlist?.Name ?? "Unknown"}** ({count} bài) vào hàng đợi."
+                : $"Đang phát playlist **{playlist?.Name ?? "Unknown"}** ({count} bài).";
+        }
+
+        var track = result.Track;
         if (track is null)
             return $"Không tìm thấy kết quả cho `{query}`.";
 
-        var enqueue = player.State is PlayerState.Playing or PlayerState.Paused;
-        await player.PlayAsync(track, enqueue: enqueue);
+        var enqueueSingle = player.State is PlayerState.Playing or PlayerState.Paused;
+        await player.PlayAsync(track, enqueue: enqueueSingle);
 
-        if (enqueue)
+        if (enqueueSingle)
             return $"Đã thêm vào hàng đợi: **{track.Title}**";
         else
             return $"Đang phát: **{track.Title}**";
@@ -199,6 +245,24 @@ public sealed class MusicService
             return "Hàng đợi trống.";
 
         return string.Join('\n', lines);
+    }
+
+    private static string CleanUrl(string query)
+    {
+        if (!Uri.TryCreate(query, UriKind.Absolute, out var uri))
+            return query;
+
+        if (!uri.Host.Contains("youtube.com") && uri.Host != "youtu.be")
+            return query;
+
+        var parts = uri.Query.TrimStart('?')
+            .Split('&', StringSplitOptions.RemoveEmptyEntries)
+            .Where(p => !p.StartsWith("si=") && !p.StartsWith("feature="))
+            .ToArray();
+
+        var cleanQuery = parts.Length > 0 ? "?" + string.Join("&", parts) : "";
+        var clean = uri.GetLeftPart(UriPartial.Path) + cleanQuery;
+        return clean;
     }
 
     private static string FormatTime(TimeSpan t)
