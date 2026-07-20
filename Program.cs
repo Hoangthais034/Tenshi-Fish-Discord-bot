@@ -44,13 +44,8 @@ builder.Services.AddSingleton(sp =>
 builder.Services.AddLavalink();
 builder.Services.ConfigureLavalink(options =>
 {
-    var lavalinkSection = builder.Configuration.GetSection("Lavalink");
-    var baseAddress = lavalinkSection["BaseAddress"];
-    if (!string.IsNullOrEmpty(baseAddress))
-        options.BaseAddress = new Uri(baseAddress);
-    var password = lavalinkSection["Password"];
-    if (!string.IsNullOrEmpty(password))
-        options.Passphrase = password;
+    options.BaseAddress = new Uri("http://lavalink:2333");
+    options.Passphrase = "youshallnotpass";
 });
 builder.Services.AddSingleton<LiteDatabase>(_ => new LiteDatabase("/data/bot-data.db"));
 
