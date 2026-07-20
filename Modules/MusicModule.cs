@@ -16,7 +16,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         _music = music;
     }
 
-    [SlashCommand("play", "Phát nhạc từ tên bài hoặc URL YouTube")]
+    [SlashCommand("play", "Phát nhạc từ tên bài hoặc URL YouTube", runMode: RunMode.Async)]
     public async Task Play(
         [Summary(description: "Tên bài hát hoặc URL YouTube")] string query)
     {
