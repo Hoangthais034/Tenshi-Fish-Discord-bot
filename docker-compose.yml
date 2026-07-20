@@ -8,7 +8,7 @@ services:
       - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD:-youshallnotpass}
     volumes:
       - ./application.yml:/opt/Lavalink/application.yml
-      - ./plugins/:/opt/Lavalink/plugins/
+      - ./plugins/:/opt/Lavalink/plugins/:Z
 
   bot:
     build: .
