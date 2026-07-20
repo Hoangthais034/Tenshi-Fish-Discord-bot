@@ -25,7 +25,7 @@ services:
       - Modmail__GuildId=${MODMAIL_GUILD_ID:?err}
       - Modmail__CategoryId=${MODMAIL_CATEGORY_ID:-0}
     volumes:
-      - bot-data:/app/bot-data.db
+      - bot-data:/data/bot-data.db
 
 volumes:
   bot-data:

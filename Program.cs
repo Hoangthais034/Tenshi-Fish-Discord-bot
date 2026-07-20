@@ -41,7 +41,7 @@ builder.Services.AddSingleton(sp =>
     new InteractionService(sp.GetRequiredService<DiscordSocketClient>()));
 
 builder.Services.AddLavalink();
-builder.Services.AddSingleton<LiteDatabase>(_ => new LiteDatabase("bot-data.db"));
+builder.Services.AddSingleton<LiteDatabase>(_ => new LiteDatabase("/data/bot-data.db"));
 
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<RateLimitService>();
