@@ -1,3 +1,3 @@
 #!/bin/sh
-chown app:app /data 2>/dev/null || true
-exec dotnet DiscordBot.dll
+chown -R app:app /data
+exec su -s /bin/sh app -c "cd /app && exec dotnet DiscordBot.dll"

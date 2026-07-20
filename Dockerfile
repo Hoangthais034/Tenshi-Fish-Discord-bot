@@ -10,5 +10,5 @@ WORKDIR /app
 COPY --from=build /app .
 COPY entrypoint.sh /entrypoint.sh
 RUN mkdir -p /data && chown -R app:app /data && chmod +x /entrypoint.sh
-USER app
+USER root
 ENTRYPOINT ["/entrypoint.sh"]
