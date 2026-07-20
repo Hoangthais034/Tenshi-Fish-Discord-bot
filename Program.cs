@@ -34,7 +34,8 @@ builder.Services.AddSingleton(new DiscordSocketConfig
 {
     GatewayIntents = GatewayIntents.AllUnprivileged
         | GatewayIntents.MessageContent
-        | GatewayIntents.GuildMembers,
+        | GatewayIntents.GuildMembers
+        | GatewayIntents.GuildVoiceStates,
     AlwaysDownloadUsers = true
 });
 builder.Services.AddSingleton<DiscordSocketClient>();
