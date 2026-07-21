@@ -1,40 +1,32 @@
 services:
-  lavalink:
-    image: ghcr.io/lavalink-devs/lavalink:4
-    container_name: lavalink
+  nodelink:
+    image: performanc/nodelink:latest
+    container_name: nodelink
     restart: unless-stopped
     environment:
-      - SERVER_PORT=2333
-      - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD:-youshallnotpass}
-      - JAVA_OPTS=-Xmx512M -Xms256M -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+UseStringDeduplication
+      - NODELINK_SERVER_PASSWORD=${LAVALINK_PASSWORD:-youshallnotpass}
     healthcheck:
-      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/2333'"]
-      interval: 5s
-      timeout: 5s
-      retries: 15
-      start_period: 30s
-    volumes:
-      - ./application.yml:/opt/Lavalink/application.yml
-      - ./plugins/:/opt/Lavalink/plugins/:Z
+      test: ["CMD", "curl", "-f", "http://localhost:2333/version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   bot:
     build: .
     container_name: discord-bot
     restart: unless-stopped
     depends_on:
-      lavalink:
+      nodelink:
         condition: service_healthy
     environment:
       - DOTNET_ENVIRONMENT=Production
       - Discord__Token=${DISCORD_TOKEN:?err}
       - Discord__OwnerId=${DISCORD_OWNER_ID:-0}
       - Discord__DevGuildId=${DISCORD_DEV_GUILD_ID:-0}
-      - Lavalink__BaseAddress=http://lavalink:2333
+      - Lavalink__BaseAddress=http://nodelink:2333
       - Lavalink__Password=${LAVALINK_PASSWORD:-youshallnotpass}
       - Modmail__GuildId=${MODMAIL_GUILD_ID:?err}
       - Modmail__CategoryId=${MODMAIL_CATEGORY_ID:-0}
     volumes:
       - ./data:/data:Z
-
-volumes:
-  lavalink-data:

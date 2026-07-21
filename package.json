@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "predev": "docker rm -f lavalink & docker run -d --name lavalink -p 2333:2333 -v \"$(pwd)/application.yml:/opt/Lavalink/application.yml\" ghcr.io/lavalink-devs/lavalink:4",
+    "predev": "docker rm -f nodelink & docker run -d --name nodelink -p 2333:2333 performanc/nodelink:latest",
     "dev": "dotnet watch run --environment Development",
     "build": "dotnet build",
     "start": "dotnet run --environment Production",
