@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "predev": "docker rm -f lavalink & docker run -d --name lavalink -p 2333:2333 -v \"%CD%\\application.yml:/opt/Lavalink/application.yml\" ghcr.io/lavalink-devs/lavalink:4",
-    "dev": "dotnet watch run --environment Development",
+    "predev": "docker rm -f lavalink & docker run -d --name lavalink -p 2333:2333 -v \"$(pwd)/application.yml:/opt/Lavalink/application.yml\" ghcr.io/lavalink-devs/lavalink:4",    "dev": "dotnet watch run --environment Development",
     "build": "dotnet build",
     "start": "dotnet run --environment Production",
     "publish": "dotnet publish -c Release -o dist"
