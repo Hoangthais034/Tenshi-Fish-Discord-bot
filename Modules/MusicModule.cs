@@ -7,7 +7,6 @@ using Lavalink4NET.Players.Queued;
 namespace DiscordBot.Modules;
 
 [Group("music", "Lệnh điều khiển nhạc")]
-[RunMode(RunMode.Async)]
 public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext>
 {
     private readonly MusicService _music;
