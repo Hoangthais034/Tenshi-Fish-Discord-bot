@@ -1,4 +1,4 @@
-using Discord.WebSocket;
+using Discord;
 using Lavalink4NET;
 using Lavalink4NET.DiscordNet;
 using Lavalink4NET.Players;
@@ -39,7 +39,7 @@ public sealed class MusicService
         return await _audio.Players.GetPlayerAsync<QueuedLavalinkPlayer>(guildId);
     }
 
-    private async ValueTask<QueuedLavalinkPlayer?> GetOrCreatePlayerAsync(SocketInteractionContext context)
+    private async ValueTask<QueuedLavalinkPlayer?> GetOrCreatePlayerAsync(IInteractionContext context)
     {
         var retrieveOptions = new PlayerRetrieveOptions(
             ChannelBehavior: PlayerChannelBehavior.Join);
@@ -57,7 +57,7 @@ public sealed class MusicService
         return result.Player;
     }
 
-    public async Task<string> PlayAsync(SocketInteractionContext context, string query)
+    public async Task<string> PlayAsync(IInteractionContext context, string query)
     {
         query = CleanUrl(query);
 
