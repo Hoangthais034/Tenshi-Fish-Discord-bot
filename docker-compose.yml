@@ -7,6 +7,12 @@ services:
       - SERVER_PORT=2333
       - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD:-youshallnotpass}
       - JAVA_OPTS=-Xmx512M -Xms256M -XX:+UseG1GC -XX:MaxGCPauseMillis=100 -XX:+UseStringDeduplication
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/127.0.0.1/2333'"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
     volumes:
       - ./application.yml:/opt/Lavalink/application.yml
       - ./plugins/:/opt/Lavalink/plugins/:Z
@@ -16,7 +22,8 @@ services:
     container_name: discord-bot
     restart: unless-stopped
     depends_on:
-      - lavalink
+      lavalink:
+        condition: service_healthy
     environment:
       - DOTNET_ENVIRONMENT=Production
       - Discord__Token=${DISCORD_TOKEN:?err}

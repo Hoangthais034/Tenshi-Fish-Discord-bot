@@ -46,11 +46,22 @@ public sealed class MusicService
         if (existing is not null)
             return existing;
 
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-        var player = await _audio.Players.JoinAsync<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
-            guildId, voiceChannelId, PlayerFactory, PlayerOptions, cancellationToken: cts.Token);
-
-        return player;
+        const int maxRetries = 3;
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                return await _audio.Players.JoinAsync<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
+                    guildId, voiceChannelId, PlayerFactory, PlayerOptions, cancellationToken: cts.Token);
+            }
+            catch (Exception ex) when (attempt < maxRetries)
+            {
+                _logger.LogWarning(ex,
+                    "JoinAsync attempt {Attempt}/{MaxRetries} failed, retrying...", attempt, maxRetries);
+                await Task.Delay(TimeSpan.FromSeconds(2));
+            }
+        }
     }
 
     public async Task<string> PlayAsync(ulong guildId, ulong voiceChannelId, string query)
