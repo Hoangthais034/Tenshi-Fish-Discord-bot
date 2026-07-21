@@ -40,7 +40,10 @@ builder.Services.AddSingleton(new DiscordSocketConfig
 });
 builder.Services.AddSingleton<DiscordSocketClient>();
 builder.Services.AddSingleton(sp =>
-    new InteractionService(sp.GetRequiredService<DiscordSocketClient>()));
+    new InteractionService(sp.GetRequiredService<DiscordSocketClient>(), new InteractionServiceConfig
+    {
+        DefaultRunMode = RunMode.Async
+    }));
 
 builder.Services.AddLavalink();
 builder.Services.ConfigureLavalink(options =>
