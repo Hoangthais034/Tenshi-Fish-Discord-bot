@@ -46,8 +46,9 @@ public sealed class MusicService
         if (existing is not null)
             return existing;
 
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         var player = await _audio.Players.JoinAsync<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
-            guildId, voiceChannelId, PlayerFactory, PlayerOptions);
+            guildId, voiceChannelId, PlayerFactory, PlayerOptions, cancellationToken: cts.Token);
 
         return player;
     }
