@@ -30,7 +30,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             return;
         }
 
-        var result = await _music.PlayAsync(Context, query);
+        var result = await _music.PlayAsync(Context.Guild.Id, voiceChannel.Id, query);
         await FollowupAsync(result);
     }
 

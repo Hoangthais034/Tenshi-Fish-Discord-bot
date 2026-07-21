@@ -1,9 +1,10 @@
-using Discord;
+using Discord.WebSocket;
 using Lavalink4NET;
-using Lavalink4NET.DiscordNet;
+using Lavalink4NET.Extensions;
 using Lavalink4NET.Players;
 using Lavalink4NET.Players.Queued;
 using Lavalink4NET.Rest.Entities.Tracks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -18,6 +19,10 @@ public sealed class MusicService
     {
         _audio = audio;
         _logger = logger;
+    }
+
+    public void RegisterHandlers(DiscordSocketClient client)
+    {
     }
 
     private static readonly PlayerFactory<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions> PlayerFactory =
@@ -39,13 +44,19 @@ public sealed class MusicService
         return await _audio.Players.GetPlayerAsync<QueuedLavalinkPlayer>(guildId);
     }
 
-    private async ValueTask<QueuedLavalinkPlayer?> GetOrCreatePlayerAsync(IInteractionContext context)
+    private async ValueTask<QueuedLavalinkPlayer?> GetOrCreatePlayerAsync(
+        ulong guildId, ulong voiceChannelId)
     {
+        var existing = await _audio.Players.GetPlayerAsync<QueuedLavalinkPlayer>(guildId);
+        if (existing is not null)
+            return existing;
+
         var retrieveOptions = new PlayerRetrieveOptions(
             ChannelBehavior: PlayerChannelBehavior.Join);
 
         var result = await _audio.Players
-            .RetrieveAsync(context, PlayerFactory, retrieveOptions, PlayerOptions)
+            .RetrieveAsync<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
+                guildId, voiceChannelId, PlayerFactory, PlayerOptions, retrieveOptions)
             .ConfigureAwait(false);
 
         if (!result.IsSuccess)
@@ -57,11 +68,21 @@ public sealed class MusicService
         return result.Player;
     }
 
-    public async Task<string> PlayAsync(IInteractionContext context, string query)
+    public async Task<string> PlayAsync(ulong guildId, ulong voiceChannelId, string query)
     {
         query = CleanUrl(query);
 
-        var player = await GetOrCreatePlayerAsync(context);
+        QueuedLavalinkPlayer? player;
+        try
+        {
+            player = await GetOrCreatePlayerAsync(guildId, voiceChannelId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Không thể kết nối Lavalink");
+            return "Không thể kết nối tới Lavalink server. Vui lòng thử lại sau.";
+        }
+
         if (player is null)
             return "Không thể kết nối tới voice channel.";
 
