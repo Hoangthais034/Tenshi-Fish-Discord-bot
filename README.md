@@ -1,7 +1,7 @@
 # Discord Bot (C# / Discord.Net) — Music + Honeypot + Modmail
 
 Gộp 3 tính năng, lấy cảm hứng từ:
-- Music: [jagrosh/MusicBot](https://github.com/jagrosh/MusicBot) (Java) → viết lại bằng Discord.Net + Lavalink4NET
+- Music: [jagrosh/MusicBot](https://github.com/jagrosh/MusicBot) (Java) → viết lại bằng Discord.Net + NodeLink
 - Honeypot: [RiskyMH/honeypot](https://github.com/RiskyMH/honeypot) (TS/Bun) → viết lại logic kick/ban theo channel bẫy
 - Modmail: [modmail-dev/Modmail](https://github.com/modmail-dev/Modmail) (Python) → viết lại DM↔ticket-channel forwarding
 
@@ -10,23 +10,23 @@ Gộp 3 tính năng, lấy cảm hứng từ:
 | Phase | Tính năng | Trạng thái |
 |-------|-----------|------------|
 | 1 | Modmail core (reply/close/block/logs) | ✅ Hoàn thành |
-| 2 | Music (Lavalink: 10 slash commands) | ✅ Hoàn thành |
+| 2 | Music (NodeLink: 10 slash commands) | ✅ Hoàn thành |
 | 3 | Honeypot (multi-trap, experiments, custom messages, timer) | ✅ Hoàn thành |
 | 4 | Hardening (global error handler, rate limit, graceful shutdown) | ✅ Hoàn thành |
 
 ## 1. Yêu cầu
 
 - .NET 6 SDK
-- Một server **Lavalink** đang chạy (bắt buộc cho Music)
+- Một server **NodeLink** đang chạy (bắt buộc cho Music, API-compatible với Lavalink v4)
 - Node.js + **Yarn 4** (dùng làm task runner)
 
-### Chạy Lavalink local
+### Chạy NodeLink local
 
 ```bash
-docker run -d --name lavalink -p 2333:2333 \
-  -e SERVER_PORT=2333 \
-  -e LAVALINK_SERVER_PASSWORD=youshallnotpass \
-  ghcr.io/lavalink-devs/lavalink:4
+docker rm -f nodelink & docker run -d --name nodelink -p 2333:2333 \
+  -e NODELINK_SERVER_PORT=2333 \
+  -e NODELINK_SERVER_PASSWORD=youshallnotpass \
+  performanc/nodelink:latest
 ```
 
 ## 2. Cấu hình
@@ -39,7 +39,7 @@ Copy `appsettings.Development.json` và điền token thật:
 # appsettings.Development.json (đã có trong .gitignore)
 {
   "Discord": { "Token": "NDc...", "OwnerId": 123456789012345678 },
-  "Lavalink": { "BaseAddress": "http://localhost:2333", "Password": "youshallnotpass" },
+  "NodeLink": { "BaseAddress": "http://localhost:2333", "Password": "youshallnotpass" },
   "Modmail": { "GuildId": 123456789012345678, "CategoryId": 0 }
 }
 ```
@@ -51,7 +51,7 @@ Dùng file `.env` hoặc set trực tiếp trong docker-compose:
 ```bash
 DISCORD_TOKEN=NDc...
 DISCORD_OWNER_ID=123456789012345678
-LAVALINK_PASSWORD=youshallnotpass
+NODELINK_PASSWORD=youshallnotpass
 MODMAIL_GUILD_ID=123456789012345678
 MODMAIL_CATEGORY_ID=0
 ```
@@ -136,7 +136,7 @@ Dùng trong ticket channel (sau khi user gửi DM):
 ## 6. Việc còn thiếu / gợi ý mở rộng
 
 - Modmail: webhook forwarding (hiện tại đang fallback text plain), attachment forwarding, canned responses, log channel riêng
-- Music: re-enable Lavalink4NET + `/play`, `/skip`, `/stop`, `/queue`
+- Music: `/play`, `/skip`, `/stop`, `/queue`
 - Honeypot: re-enable command + setup flow
 - Nên tách LiteDB → Postgres/SQLite qua EF Core nếu multi-guild
 
@@ -170,7 +170,7 @@ nano .env
 ### Chạy
 
 ```bash
-# Build + start bot + lavalink
+# Build + start bot + nodelink
 docker compose up -d --build
 
 # Xem log
@@ -183,10 +183,11 @@ docker compose down
 ### Hoặc chạy không Docker (direct)
 
 ```bash
-# Chạy Lavalink bằng Docker riêng
-docker run -d --name lavalink -p 2333:2333 \
-  -v "$(pwd)/application.yml:/opt/Lavalink/application.yml" \
-  ghcr.io/lavalink-devs/lavalink:4
+# Chạy NodeLink bằng Docker riêng
+docker run -d --name nodelink -p 2333:2333 \
+  -e NODELINK_SERVER_PORT=2333 \
+  -e NODELINK_SERVER_PASSWORD=youshallnotpass \
+  performanc/nodelink:latest
 
 # Build bot
 dotnet publish -c Release -o dist
