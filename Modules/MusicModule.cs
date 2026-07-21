@@ -16,7 +16,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         _music = music;
     }
 
-    [SlashCommand("play", "Phát nhạc từ tên bài hoặc URL YouTube")]
+    [SlashCommand("play", "Phát nhạc từ tên bài hoặc URL YouTube", runMode: RunMode.Async)]
     public async Task Play(
         [Summary(description: "Tên bài hát hoặc URL YouTube")] string query)
     {
@@ -30,11 +30,11 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             return;
         }
 
-        var result = await _music.PlayAsync(Context.Guild.Id, voiceChannel.Id, query);
+        var result = await _music.PlayAsync(Context, query);
         await FollowupAsync(result);
     }
 
-    [SlashCommand("skip", "Bỏ qua bài đang phát")]
+    [SlashCommand("skip", "Bỏ qua bài đang phát", runMode: RunMode.Async)]
     public async Task Skip()
     {
         await DeferAsync();
@@ -42,7 +42,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         await FollowupAsync(result);
     }
 
-    [SlashCommand("stop", "Dừng phát nhạc và rời voice channel")]
+    [SlashCommand("stop", "Dừng phát nhạc và rời voice channel", runMode: RunMode.Async)]
     public async Task Stop()
     {
         await DeferAsync();
@@ -50,7 +50,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         await FollowupAsync(result);
     }
 
-    [SlashCommand("queue", "Xem hàng đợi hiện tại")]
+    [SlashCommand("queue", "Xem hàng đợi hiện tại", runMode: RunMode.Async)]
     public async Task Queue()
     {
         await DeferAsync();
@@ -61,7 +61,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             .Build());
     }
 
-    [SlashCommand("pause", "Tạm dừng phát nhạc")]
+    [SlashCommand("pause", "Tạm dừng phát nhạc", runMode: RunMode.Async)]
     public async Task Pause()
     {
         await DeferAsync();
@@ -69,7 +69,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         await FollowupAsync(result);
     }
 
-    [SlashCommand("resume", "Tiếp tục phát nhạc")]
+    [SlashCommand("resume", "Tiếp tục phát nhạc", runMode: RunMode.Async)]
     public async Task Resume()
     {
         await DeferAsync();
@@ -77,7 +77,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         await FollowupAsync(result);
     }
 
-    [SlashCommand("nowplaying", "Xem bài đang phát")]
+    [SlashCommand("nowplaying", "Xem bài đang phát", runMode: RunMode.Async)]
     public async Task NowPlaying()
     {
         await DeferAsync();
@@ -85,7 +85,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         await FollowupAsync(result);
     }
 
-    [SlashCommand("volume", "Chỉnh âm lượng (0-200)")]
+    [SlashCommand("volume", "Chỉnh âm lượng (0-200)", runMode: RunMode.Async)]
     public async Task Volume(
         [Summary(description: "Âm lượng từ 0 đến 200")] float volume)
     {
@@ -94,7 +94,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         await FollowupAsync(result);
     }
 
-    [SlashCommand("shuffle", "Bật/tắt phát ngẫu nhiên")]
+    [SlashCommand("shuffle", "Bật/tắt phát ngẫu nhiên", runMode: RunMode.Async)]
     public async Task Shuffle()
     {
         await DeferAsync();
@@ -102,7 +102,7 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
         await FollowupAsync(result);
     }
 
-    [SlashCommand("loop", "Chọn chế độ lặp lại")]
+    [SlashCommand("loop", "Chọn chế độ lặp lại", runMode: RunMode.Async)]
     public async Task Loop(
         [Summary(description: "Chế độ lặp")] LoopMode mode)
     {

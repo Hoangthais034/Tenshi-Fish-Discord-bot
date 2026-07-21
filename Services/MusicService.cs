@@ -1,10 +1,9 @@
 using Discord.WebSocket;
 using Lavalink4NET;
-using Lavalink4NET.Extensions;
+using Lavalink4NET.DiscordNet;
 using Lavalink4NET.Players;
 using Lavalink4NET.Players.Queued;
 using Lavalink4NET.Rest.Entities.Tracks;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -21,10 +20,6 @@ public sealed class MusicService
         _logger = logger;
     }
 
-    public void RegisterHandlers(DiscordSocketClient client)
-    {
-    }
-
     private static readonly PlayerFactory<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions> PlayerFactory =
         Lavalink4NET.Players.PlayerFactory.Create<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
             static props => new QueuedLavalinkPlayer(props));
@@ -39,45 +34,36 @@ public sealed class MusicService
     private static readonly IOptions<QueuedLavalinkPlayerOptions> PlayerOptions =
         Options.Create(DefaultOptions);
 
-    private async ValueTask<QueuedLavalinkPlayer> GetOrCreatePlayerAsync(
-        ulong guildId, ulong voiceChannelId)
+    private async ValueTask<QueuedLavalinkPlayer?> GetPlayerAsync(ulong guildId)
     {
-        var existing = await _audio.Players.GetPlayerAsync<QueuedLavalinkPlayer>(guildId);
-        if (existing is not null)
-            return existing;
-
-        const int maxRetries = 3;
-        for (var attempt = 1; ; attempt++)
-        {
-            try
-            {
-                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-                return await _audio.Players.JoinAsync<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
-                    guildId, voiceChannelId, PlayerFactory, PlayerOptions, cancellationToken: cts.Token);
-            }
-            catch (Exception ex) when (attempt < maxRetries)
-            {
-                _logger.LogWarning(ex,
-                    "JoinAsync attempt {Attempt}/{MaxRetries} failed, retrying...", attempt, maxRetries);
-                await Task.Delay(TimeSpan.FromSeconds(2));
-            }
-        }
+        return await _audio.Players.GetPlayerAsync<QueuedLavalinkPlayer>(guildId);
     }
 
-    public async Task<string> PlayAsync(ulong guildId, ulong voiceChannelId, string query)
+    private async ValueTask<QueuedLavalinkPlayer?> GetOrCreatePlayerAsync(SocketInteractionContext context)
+    {
+        var retrieveOptions = new PlayerRetrieveOptions(
+            ChannelBehavior: PlayerChannelBehavior.Join);
+
+        var result = await _audio.Players
+            .RetrieveAsync(context, PlayerFactory, retrieveOptions, PlayerOptions)
+            .ConfigureAwait(false);
+
+        if (!result.IsSuccess)
+        {
+            _logger.LogWarning("Không thể lấy player: {Status}", result.Status);
+            return null;
+        }
+
+        return result.Player;
+    }
+
+    public async Task<string> PlayAsync(SocketInteractionContext context, string query)
     {
         query = CleanUrl(query);
 
-        QueuedLavalinkPlayer player;
-        try
-        {
-            player = await GetOrCreatePlayerAsync(guildId, voiceChannelId);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Không thể kết nối Lavalink");
-            return "Không thể kết nối tới Lavalink server. Vui lòng thử lại sau.";
-        }
+        var player = await GetOrCreatePlayerAsync(context);
+        if (player is null)
+            return "Không thể kết nối tới voice channel.";
 
         TrackLoadResult result;
         try
@@ -128,7 +114,7 @@ public sealed class MusicService
 
     public async Task<string> SkipAsync(ulong guildId)
     {
-        var player = await _audio.Players.GetPlayerAsync<QueuedLavalinkPlayer>(guildId);
+        var player = await GetPlayerAsync(guildId);
         if (player is null)
             return "Bot không ở trong voice channel nào.";
 
@@ -141,7 +127,7 @@ public sealed class MusicService
 
     public async Task<string> StopAsync(ulong guildId)
     {
-        var player = await _audio.Players.GetPlayerAsync<QueuedLavalinkPlayer>(guildId);
+        var player = await GetPlayerAsync(guildId);
         if (player is null)
             return "Bot không ở trong voice channel nào.";
 
@@ -152,7 +138,7 @@ public sealed class MusicService
 
     public async Task<string> PauseAsync(ulong guildId)
     {
-        var player = await _audio.Players.GetPlayerAsync<QueuedLavalinkPlayer>(guildId);
+        var player = await GetPlayerAsync(guildId);
         if (player is null)
             return "Bot không ở trong voice channel nào.";
 
@@ -165,7 +151,7 @@ public sealed class MusicService
 
     public async Task<string> ResumeAsync(ulong guildId)
     {
-        var player = await _audio.Players.GetPlayerAsync<QueuedLavalinkPlayer>(guildId);
+        var player = await GetPlayerAsync(guildId);
         if (player is null)
             return "Bot không ở trong voice channel nào.";
 
@@ -178,7 +164,7 @@ public sealed class MusicService
 
     public async Task<string> SetVolumeAsync(ulong guildId, float volume)
     {
-        var player = await _audio.Players.GetPlayerAsync<QueuedLavalinkPlayer>(guildId);
+        var player = await GetPlayerAsync(guildId);
         if (player is null)
             return "Bot không ở trong voice channel nào.";
 
@@ -189,7 +175,7 @@ public sealed class MusicService
 
     public async Task<string> ToggleShuffleAsync(ulong guildId)
     {
-        var player = await _audio.Players.GetPlayerAsync<QueuedLavalinkPlayer>(guildId);
+        var player = await GetPlayerAsync(guildId);
         if (player is null)
             return "Bot không ở trong voice channel nào.";
 
@@ -199,7 +185,7 @@ public sealed class MusicService
 
     public async Task<string> SetLoopModeAsync(ulong guildId, TrackRepeatMode mode)
     {
-        var player = await _audio.Players.GetPlayerAsync<QueuedLavalinkPlayer>(guildId);
+        var player = await GetPlayerAsync(guildId);
         if (player is null)
             return "Bot không ở trong voice channel nào.";
 
@@ -215,7 +201,7 @@ public sealed class MusicService
 
     public async Task<string> GetNowPlayingAsync(ulong guildId)
     {
-        var player = await _audio.Players.GetPlayerAsync<QueuedLavalinkPlayer>(guildId);
+        var player = await GetPlayerAsync(guildId);
         if (player?.CurrentTrack is null)
             return "Không có bài nào đang phát.";
 
@@ -230,7 +216,7 @@ public sealed class MusicService
 
     public async Task<string> GetQueueAsync(ulong guildId)
     {
-        var player = await _audio.Players.GetPlayerAsync<QueuedLavalinkPlayer>(guildId);
+        var player = await GetPlayerAsync(guildId);
         if (player is null || player.Queue is null)
             return "Hàng đợi trống.";
 
