@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "predev": "docker rm -f nodelink & docker run -d --name nodelink -p 2333:2333 performanc/nodelink:latest",
+    "predev": "docker rm -f nodelink & docker run -d --name nodelink -p 2333:2333 -e NODELINK_SERVER_PORT=2333 -e NODELINK_SERVER_PASSWORD=${LAVALINK_PASSWORD:-youshallnotpass} performanc/nodelink:latest",
     "dev": "dotnet watch run --environment Development",
     "build": "dotnet build",
     "start": "dotnet run --environment Production",
