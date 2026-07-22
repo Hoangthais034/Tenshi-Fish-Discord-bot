@@ -173,48 +173,46 @@ public sealed class BotWorker : IHostedService
 
         _interactions.InteractionExecuted += HandleInteractionErrorAsync;
 
-        _client.InteractionCreated += interaction =>
+        _client.InteractionCreated += async interaction =>
         {
-            _ = Task.Run(async () =>
+            try
             {
-                try
+                if (interaction is SocketSlashCommand { HasResponded: false })
+                    await interaction.DeferAsync();
+
+                var ctx = new SocketInteractionContext(_client, interaction);
+                var result = await _interactions.ExecuteCommandAsync(ctx, _services);
+
+                if (!result.IsSuccess)
                 {
-                    if (interaction is SocketSlashCommand { HasResponded: false })
-                        await interaction.DeferAsync();
-
-                    var ctx = new SocketInteractionContext(_client, interaction);
-                    var result = await _interactions.ExecuteCommandAsync(ctx, _services);
-
-                    if (!result.IsSuccess)
+                    var cmdName = interaction switch
                     {
-                        var cmdName = interaction switch
-                        {
-                            SocketSlashCommand s => s.CommandName,
-                            SocketAutocompleteInteraction a => a.Data.CommandName,
-                            SocketMessageCommand m => m.CommandName,
-                            SocketUserCommand u => u.CommandName,
-                            _ => "?",
-                        };
+                        SocketSlashCommand s => s.CommandName,
+                        SocketAutocompleteInteraction a => a.Data.CommandName,
+                        SocketMessageCommand m => m.CommandName,
+                        SocketUserCommand u => u.CommandName,
+                        _ => "?",
+                    };
 
-                        _logger.LogWarning(
-                            "Không tìm thấy handler: /{Name} | Type: {Type} | User: {User} | Guild: {Guild}",
-                            cmdName, interaction.Type, interaction.User.Id, interaction.GuildId);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Lỗi xử lý interaction /{Name} from {User}",
-                        interaction switch
-                        {
-                            SocketSlashCommand s => s.CommandName,
-                            SocketAutocompleteInteraction a => a.Data.CommandName,
-                            _ => "?",
-                        },
-                        interaction.User.Id);
-                }
-            });
+                    _logger.LogWarning(
+                        "Không tìm thấy handler: /{Name} | Type: {Type} | User: {User} | Guild: {Guild}",
+                        cmdName, interaction.Type, interaction.User.Id, interaction.GuildId);
 
-            return Task.CompletedTask;
+                    if (!interaction.HasResponded)
+                        await interaction.RespondAsync("❌ Lệnh không tồn tại.", ephemeral: true);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Lỗi xử lý interaction /{Name} from {User}",
+                    interaction switch
+                    {
+                        SocketSlashCommand s => s.CommandName,
+                        SocketAutocompleteInteraction a => a.Data.CommandName,
+                        _ => "?",
+                    },
+                    interaction.User.Id);
+            }
         };
 
         _honeypot.RegisterHandlers(_client);
