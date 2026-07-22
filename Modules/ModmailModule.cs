@@ -28,7 +28,6 @@ public sealed class ModmailModule : InteractionModuleBase<SocketInteractionConte
             await RespondAsync("Lệnh này chỉ dùng được trong text channel.", ephemeral: true);
             return;
         }
-        await DeferAsync(ephemeral: true);
         var result = await _modmail.ReplyAsync(channel, (SocketGuildUser)Context.User, message);
         await FollowupAsync(result, ephemeral: true);
     }
@@ -43,7 +42,6 @@ public sealed class ModmailModule : InteractionModuleBase<SocketInteractionConte
             await RespondAsync("Lệnh này chỉ dùng được trong text channel.", ephemeral: true);
             return;
         }
-        await DeferAsync(ephemeral: true);
         var result = await _modmail.PlainReplyAsync(channel, (SocketGuildUser)Context.User, message);
         await FollowupAsync(result, ephemeral: true);
     }
@@ -58,7 +56,6 @@ public sealed class ModmailModule : InteractionModuleBase<SocketInteractionConte
             await RespondAsync("Lệnh này chỉ dùng được trong text channel.", ephemeral: true);
             return;
         }
-        await DeferAsync(ephemeral: true);
         var result = await _modmail.AnonymousReplyAsync(channel, message);
         await FollowupAsync(result, ephemeral: true);
     }
@@ -73,7 +70,6 @@ public sealed class ModmailModule : InteractionModuleBase<SocketInteractionConte
             await RespondAsync("Lệnh này chỉ dùng được trong text channel.", ephemeral: true);
             return;
         }
-        await DeferAsync(ephemeral: true);
         var result = await _modmail.PlainAnonymousReplyAsync(channel, message);
         await FollowupAsync(result, ephemeral: true);
     }
@@ -92,7 +88,6 @@ public sealed class ModmailModule : InteractionModuleBase<SocketInteractionConte
             await RespondAsync("Lệnh này chỉ dùng được trong text channel.", ephemeral: true);
             return;
         }
-        await DeferAsync(ephemeral: true);
         var result = await _modmail.CloseTicketAsync(channel, (SocketGuildUser)Context.User, reason, silent);
         await FollowupAsync(result, ephemeral: true);
     }
@@ -113,7 +108,6 @@ public sealed class ModmailModule : InteractionModuleBase<SocketInteractionConte
             await RespondAsync("ID không hợp lệ.", ephemeral: true);
             return;
         }
-        await DeferAsync(ephemeral: true);
         var result = await _modmail.EditReplyAsync(channel, id, newContent);
         await FollowupAsync(result, ephemeral: true);
     }
@@ -133,7 +127,6 @@ public sealed class ModmailModule : InteractionModuleBase<SocketInteractionConte
             await RespondAsync("ID không hợp lệ.", ephemeral: true);
             return;
         }
-        await DeferAsync(ephemeral: true);
         var result = await _modmail.DeleteReplyAsync(channel, id);
         await FollowupAsync(result, ephemeral: true);
     }
@@ -148,7 +141,6 @@ public sealed class ModmailModule : InteractionModuleBase<SocketInteractionConte
             await RespondAsync("Lệnh này chỉ dùng được trong text channel.", ephemeral: true);
             return;
         }
-        await DeferAsync(ephemeral: true);
         var result = await _modmail.MoveTicketAsync(channel, category.Id);
         await FollowupAsync(result, ephemeral: true);
     }
@@ -166,12 +158,10 @@ public sealed class ModmailModule : InteractionModuleBase<SocketInteractionConte
         }
         if (persistent)
         {
-            await DeferAsync(ephemeral: true);
-            var presult = await _modmail.PersistentNoteAsync(channel, (SocketGuildUser)Context.User, message);
+                var presult = await _modmail.PersistentNoteAsync(channel, (SocketGuildUser)Context.User, message);
             await FollowupAsync(presult, ephemeral: true);
             return;
         }
-        await DeferAsync(ephemeral: true);
         var result = await _modmail.NoteAsync(channel, (SocketGuildUser)Context.User, message);
         await FollowupAsync(result, ephemeral: true);
     }
@@ -200,8 +190,7 @@ public sealed class ModmailModule : InteractionModuleBase<SocketInteractionConte
                 await RespondAsync("Lệnh này chỉ dùng được trong text channel.", ephemeral: true);
                 return;
             }
-            await DeferAsync(ephemeral: true);
-            var result = await _modmail.ReplyWithSnippetAsync(channel, (SocketGuildUser)Context.User, name);
+                var result = await _modmail.ReplyWithSnippetAsync(channel, (SocketGuildUser)Context.User, name);
             await FollowupAsync(result, ephemeral: true);
         }
 
@@ -314,8 +303,7 @@ public sealed class ModmailModule : InteractionModuleBase<SocketInteractionConte
         public async Task User(
             [Summary(description: "Người dùng")] IUser user)
         {
-            await DeferAsync(ephemeral: true);
-            var result = await _modmail.GetLogsAsync(Context.Guild, user.Id);
+                var result = await _modmail.GetLogsAsync(Context.Guild, user.Id);
             await FollowupAsync(embed: new EmbedBuilder()
                 .WithTitle($"Lịch sử — {user.Username}")
                 .WithDescription(result)
@@ -432,8 +420,7 @@ public sealed class ModmailModule : InteractionModuleBase<SocketInteractionConte
         public async Task Contact(
             [Summary(description: "Người dùng")] IUser user)
         {
-            await DeferAsync(ephemeral: true);
-            var result = await _modmail.ContactAsync(Context.Guild.Id, user);
+                var result = await _modmail.ContactAsync(Context.Guild.Id, user);
             await FollowupAsync(result, ephemeral: true);
         }
 
@@ -442,8 +429,7 @@ public sealed class ModmailModule : InteractionModuleBase<SocketInteractionConte
         public async Task SelfContact(
             [Summary(description: "Người dùng")] IUser user)
         {
-            await DeferAsync(ephemeral: true);
-            var result = await _modmail.SelfContactAsync((SocketGuildUser)Context.User, user);
+                var result = await _modmail.SelfContactAsync((SocketGuildUser)Context.User, user);
             await FollowupAsync(result, ephemeral: true);
         }
 
@@ -505,8 +491,7 @@ public sealed class ModmailModule : InteractionModuleBase<SocketInteractionConte
                 await RespondAsync("Lệnh này chỉ dùng được trong text channel.", ephemeral: true);
                 return;
             }
-            await DeferAsync(ephemeral: true);
-            var result = await _modmail.SetTicketTitleAsync(channel, (SocketGuildUser)Context.User, title);
+                var result = await _modmail.SetTicketTitleAsync(channel, (SocketGuildUser)Context.User, title);
             await FollowupAsync(result, ephemeral: true);
         }
 
@@ -519,8 +504,7 @@ public sealed class ModmailModule : InteractionModuleBase<SocketInteractionConte
                 await RespondAsync("Lệnh này chỉ dùng được trong text channel.", ephemeral: true);
                 return;
             }
-            await DeferAsync(ephemeral: true);
-            var result = await _modmail.AddUserToTicketAsync(channel, user);
+                var result = await _modmail.AddUserToTicketAsync(channel, user);
             await FollowupAsync(result, ephemeral: true);
         }
 
@@ -533,8 +517,7 @@ public sealed class ModmailModule : InteractionModuleBase<SocketInteractionConte
                 await RespondAsync("Lệnh này chỉ dùng được trong text channel.", ephemeral: true);
                 return;
             }
-            await DeferAsync(ephemeral: true);
-            var result = await _modmail.RemoveUserFromTicketAsync(channel, user);
+                var result = await _modmail.RemoveUserFromTicketAsync(channel, user);
             await FollowupAsync(result, ephemeral: true);
         }
 
@@ -546,8 +529,7 @@ public sealed class ModmailModule : InteractionModuleBase<SocketInteractionConte
                 await RespondAsync("Lệnh này chỉ dùng được trong text channel.", ephemeral: true);
                 return;
             }
-            await DeferAsync(ephemeral: true);
-            var result = await _modmail.RepairTicketAsync(channel);
+                var result = await _modmail.RepairTicketAsync(channel);
             await FollowupAsync(result, ephemeral: true);
         }
 
@@ -560,8 +542,7 @@ public sealed class ModmailModule : InteractionModuleBase<SocketInteractionConte
                 await RespondAsync("Lệnh này chỉ dùng được trong text channel.", ephemeral: true);
                 return;
             }
-            await DeferAsync(ephemeral: true);
-            var result = await _modmail.SnoozeTicketAsync(channel, TimeSpan.FromMinutes(minutes));
+                var result = await _modmail.SnoozeTicketAsync(channel, TimeSpan.FromMinutes(minutes));
             await FollowupAsync(result, ephemeral: true);
         }
 
@@ -573,16 +554,14 @@ public sealed class ModmailModule : InteractionModuleBase<SocketInteractionConte
                 await RespondAsync("Lệnh này chỉ dùng được trong text channel.", ephemeral: true);
                 return;
             }
-            await DeferAsync(ephemeral: true);
-            var result = await _modmail.UnsnoozeTicketAsync(channel);
+                var result = await _modmail.UnsnoozeTicketAsync(channel);
             await FollowupAsync(result, ephemeral: true);
         }
 
         [SlashCommand("snoozed", "Danh sách ticket đang gác")]
         public async Task Snoozed()
         {
-            await DeferAsync(ephemeral: true);
-            var result = await _modmail.GetSnoozedTicketsAsync(Context.Guild);
+                var result = await _modmail.GetSnoozedTicketsAsync(Context.Guild);
             await FollowupAsync(result, ephemeral: true);
         }
 
@@ -601,8 +580,7 @@ public sealed class ModmailModule : InteractionModuleBase<SocketInteractionConte
                 await RespondAsync("Lệnh này chỉ dùng được trong text channel.", ephemeral: true);
                 return;
             }
-            await DeferAsync(ephemeral: true);
-            var result = await _modmail.SetNsfwAsync(channel);
+                var result = await _modmail.SetNsfwAsync(channel);
             await FollowupAsync(result, ephemeral: true);
         }
 
@@ -614,8 +592,7 @@ public sealed class ModmailModule : InteractionModuleBase<SocketInteractionConte
                 await RespondAsync("Lệnh này chỉ dùng được trong text channel.", ephemeral: true);
                 return;
             }
-            await DeferAsync(ephemeral: true);
-            var result = await _modmail.SetSfwAsync(channel);
+                var result = await _modmail.SetSfwAsync(channel);
             await FollowupAsync(result, ephemeral: true);
         }
 
