@@ -1,6 +1,6 @@
 services:
   lavalink:
-    image: ghcr.io/lavalink-devs/lavalink:4
+    build: ./lavalink
     container_name: lavalink
     restart: unless-stopped
     environment:
@@ -8,13 +8,20 @@ services:
       - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD:?err}
     volumes:
       - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:2333/v4/info"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
 
   bot:
     build: .
     container_name: discord-bot
     restart: unless-stopped
     depends_on:
-      - lavalink
+      lavalink:
+        condition: service_healthy
     environment:
       - DOTNET_ENVIRONMENT=Production
       - Discord__Token=${DISCORD_TOKEN:?err}
