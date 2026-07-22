@@ -1,0 +1,95 @@
+diff --git a/src/typings/api/stats.types.ts b/src/typings/api/stats.types.ts
+index ec7e298..ba56d6a 100644
+--- a/src/typings/api/stats.types.ts
++++ b/src/typings/api/stats.types.ts
+@@ -101,6 +101,8 @@ export interface CpuStats {
+   systemLoad?: number
+   /** Average NodeLink CPU load. */
+   nodelinkLoad?: number
++  /** Lavalink-compatible CPU load (alias for nodelinkLoad). */
++  lavalinkLoad?: number
+ }
+ 
+ /**
+@@ -152,6 +154,8 @@ export interface WorkerStatsPayload {
+   cpu?: {
+     /** Average NodeLink CPU load. */
+     nodelinkLoad?: number
++    /** Lavalink-compatible CPU load (alias for nodelinkLoad). */
++    lavalinkLoad?: number
+   }
+   /** Memory usage snapshot for the worker. */
+   memory?: {
+diff --git a/src/typings/index.types.ts b/src/typings/index.types.ts
+index f0fa8ff..06d70bd 100644
+--- a/src/typings/index.types.ts
++++ b/src/typings/index.types.ts
+@@ -1216,6 +1216,7 @@ export interface WorkerMetrics {
+    */
+   cpu?: {
+     nodelinkLoad: number
++    lavalinkLoad: number
+   }
+ }
+ 
+diff --git a/src/typings/shared.types.ts b/src/typings/shared.types.ts
+index b08dc1a..a5cb176 100644
+--- a/src/typings/shared.types.ts
++++ b/src/typings/shared.types.ts
+@@ -53,6 +53,7 @@ export type IPCMessage =
+         }
+         cpu?: {
+           nodelinkLoad: number
++          lavalinkLoad: number
+         }
+         frameStats?: {
+           sent: number
+diff --git a/src/typings/utils.types.ts b/src/typings/utils.types.ts
+index c73c0f9..c23abe9 100644
+--- a/src/typings/utils.types.ts
++++ b/src/typings/utils.types.ts
+@@ -274,6 +274,8 @@ export interface WorkerStatsSnapshot {
+   cpu?: {
+     /** Average NodeLink CPU load. */
+     nodelinkLoad?: number
++    /** Lavalink-compatible CPU load (alias for nodelinkLoad). */
++    lavalinkLoad?: number
+   }
+   /** Frame statistics for the worker. */
+   frameStats?: {
+@@ -458,6 +460,8 @@ export interface ServerCpuStats {
+   systemLoad: number
+   /** Average NodeLink CPU load. */
+   nodelinkLoad: number
++  /** Lavalink-compatible CPU load (alias for nodelinkLoad). */
++  lavalinkLoad: number
+ }
+ 
+ /**
+diff --git a/src/utils.ts b/src/utils.ts
+index 79ce29b..72fce6d 100644
+--- a/src/utils.ts
++++ b/src/utils.ts
+@@ -741,7 +741,8 @@ function getStats(nodelink: NodelinkRuntime): ServerStatsPayload {
+   const cpu = {
+     cores,
+     systemLoad: load,
+-    nodelinkLoad: Number.parseFloat((aggregatedNodelinkLoad / cores).toFixed(2))
++    nodelinkLoad: Number.parseFloat((aggregatedNodelinkLoad / cores).toFixed(2)),
++    lavalinkLoad: Number.parseFloat((aggregatedNodelinkLoad / cores).toFixed(2))
+   }
+ 
+   if (nodelink.routePlanner && nodelink.statsManager) {
+diff --git a/src/workers/main.ts b/src/workers/main.ts
+index c047388..0b5a2fa 100644
+--- a/src/workers/main.ts
++++ b/src/workers/main.ts
+@@ -1713,7 +1713,7 @@ function startTimers(hibernating = false): void {
+           (acc, curr) => acc + getHeadQueueLength(curr.queue),
+           0
+         ),
+-        cpu: { nodelinkLoad },
++        cpu: { nodelinkLoad, lavalinkLoad: nodelinkLoad },
+         eventLoopLag: eluP50,
+         eventLoopLagP95: eluP95,
+         eventLoopLagP99: eluP99,

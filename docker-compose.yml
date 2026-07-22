@@ -1,6 +1,6 @@
 services:
   nodelink:
-    image: performanc/nodelink:latest
+    build: ./nodelink-src
     container_name: nodelink
     restart: unless-stopped
     environment:

@@ -39,6 +39,9 @@ docker-compose.override.yml
 *.db-lock
 /data/
 
+# NodeLink source (cloned for custom build)
+nodelink-src/
+
 # Lavalink plugins (auto-downloaded)
 plugins/
 
