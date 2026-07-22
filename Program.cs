@@ -136,34 +136,39 @@ public sealed class BotWorker : IHostedService
     {
         _client.Log += msg => { _logger.LogInformation("{Source}: {Message}", msg.Source, msg.Message); return Task.CompletedTask; };
 
-        _client.Ready += async () =>
+        _client.Ready += () =>
         {
-            if (_registered) return;
+            if (_registered) return Task.CompletedTask;
             _registered = true;
 
-            try
+            _ = Task.Run(async () =>
             {
-                var devId = _config.Value.DevGuildId;
-                if (devId == 0)
+                try
                 {
-                    _logger.LogWarning("DevGuildId chưa được set, bỏ qua register commands");
-                    return;
+                    var devId = _config.Value.DevGuildId;
+                    if (devId == 0)
+                    {
+                        _logger.LogWarning("DevGuildId chưa được set, bỏ qua register commands");
+                        return;
+                    }
+
+                    await _client.Rest.BulkOverwriteGlobalCommands(Array.Empty<ApplicationCommandProperties>());
+                    foreach (var guild in _client.Guilds)
+                        await _client.Rest.BulkOverwriteGuildCommands(Array.Empty<ApplicationCommandProperties>(), guild.Id);
+
+                    await _interactions.AddModulesAsync(typeof(Program).Assembly, _services);
+                    _logger.LogInformation("Đã load {Count} modules", _interactions.Modules.Count);
+
+                    await _interactions.RegisterCommandsToGuildAsync(devId);
+                    _logger.LogInformation("Đã register guild commands cho {Guild}", devId);
                 }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Lỗi khi register slash commands");
+                }
+            });
 
-                await _client.Rest.BulkOverwriteGlobalCommands(Array.Empty<ApplicationCommandProperties>());
-                foreach (var guild in _client.Guilds)
-                    await _client.Rest.BulkOverwriteGuildCommands(Array.Empty<ApplicationCommandProperties>(), guild.Id);
-
-                await _interactions.AddModulesAsync(typeof(Program).Assembly, _services);
-                _logger.LogInformation("Đã load {Count} modules", _interactions.Modules.Count);
-
-                await _interactions.RegisterCommandsToGuildAsync(devId);
-                _logger.LogInformation("Đã register guild commands cho {Guild}", devId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Lỗi khi register slash commands");
-            }
+            return Task.CompletedTask;
         };
 
         _interactions.InteractionExecuted += HandleInteractionErrorAsync;
