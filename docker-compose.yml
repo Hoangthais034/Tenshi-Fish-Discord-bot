@@ -1,32 +1,34 @@
 services:
-  nodelink:
-    build: ./nodelink-src
-    container_name: nodelink
+  lavalink:
+    image: ghcr.io/lavalink-devs/lavalink:4
+    container_name: lavalink
     restart: unless-stopped
     environment:
-      - NODELINK_SERVER_PASSWORD=${NODELINK_PASSWORD:-youshallnotpass}
-      - NODELINK_SERVER_PORT=2333
+      - _JAVA_OPTIONS=-Xmx256m
+      - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD:?err}
+    volumes:
+      - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
     healthcheck:
-      test: ["CMD-SHELL", "node -e \"require('net').createConnection(2333,'localhost').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))\""]
+      test: ["CMD-SHELL", "curl -sf http://localhost:2333/v4/info > /dev/null || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 5
-      start_period: 60s
+      start_period: 30s
 
   bot:
     build: .
     container_name: discord-bot
     restart: unless-stopped
     depends_on:
-      nodelink:
+      lavalink:
         condition: service_healthy
     environment:
       - DOTNET_ENVIRONMENT=Production
       - Discord__Token=${DISCORD_TOKEN:?err}
       - Discord__OwnerId=${DISCORD_OWNER_ID:-0}
       - Discord__DevGuildId=${DISCORD_DEV_GUILD_ID:-0}
-      - NodeLink__BaseAddress=http://nodelink:2333
-      - NodeLink__Password=${NODELINK_PASSWORD:-youshallnotpass}
+      - Lavalink__BaseAddress=http://lavalink:2333
+      - Lavalink__Password=${LAVALINK_PASSWORD:?err}
       - Modmail__GuildId=${MODMAIL_GUILD_ID:?err}
       - Modmail__CategoryId=${MODMAIL_CATEGORY_ID:-0}
     volumes:

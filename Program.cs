@@ -27,7 +27,7 @@ if (!string.IsNullOrEmpty(devGuildId))
     builder.Configuration["Discord:DevGuildId"] = devGuildId;
 
 builder.Services.Configure<DiscordBot.Configuration.DiscordConfig>(builder.Configuration.GetSection("Discord"));
-builder.Services.Configure<NodeLinkConfig>(builder.Configuration.GetSection("NodeLink"));
+builder.Services.Configure<LavalinkConfig>(builder.Configuration.GetSection("Lavalink"));
 builder.Services.Configure<ModmailConfig>(builder.Configuration.GetSection("Modmail"));
 
 builder.Services.AddSingleton(new DiscordSocketConfig
@@ -48,12 +48,10 @@ builder.Services.AddSingleton(sp =>
 builder.Services.AddLavalink();
 builder.Services.ConfigureLavalink(options =>
 {
-    var nodeLinkSection = builder.Configuration.GetSection("NodeLink");
-    var baseAddress = nodeLinkSection["BaseAddress"] ?? "http://localhost:2333";
+    var lavalinkSection = builder.Configuration.GetSection("Lavalink");
+    var baseAddress = lavalinkSection["BaseAddress"] ?? "http://localhost:2333";
     options.BaseAddress = new Uri(baseAddress);
-    options.Passphrase = nodeLinkSection["Passphrase"]
-        ?? nodeLinkSection["Password"]
-        ?? "youshallnotpass";
+    options.Passphrase = lavalinkSection["Password"] ?? "youshallnotpass";
 });
 builder.Services.AddSingleton<LiteDatabase>(_ => new LiteDatabase("/data/bot-data.db"));
 

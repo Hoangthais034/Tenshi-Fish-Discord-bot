@@ -7,7 +7,7 @@ public sealed class DiscordConfig
     public ulong DevGuildId { get; set; }
 }
 
-public sealed class NodeLinkConfig
+public sealed class LavalinkConfig
 {
     public string BaseAddress { get; set; } = "http://localhost:2333";
     public string Password { get; set; } = "youshallnotpass";

@@ -80,7 +80,7 @@ public sealed class MusicService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Không thể kết nối NodeLink");
-            return "Không thể kết nối tới NodeLink server. Vui lòng thử lại sau.";
+            return "Không thể kết nối tới Lavalink server. Vui lòng thử lại sau.";
         }
 
         if (player is null)
