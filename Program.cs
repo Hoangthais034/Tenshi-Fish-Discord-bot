@@ -120,6 +120,11 @@ public sealed class BotWorker : IHostedService
             await context.Interaction.RespondAsync(
                 "❌ Có lỗi xảy ra khi thực thi lệnh.", ephemeral: true);
         }
+        else
+        {
+            await context.Interaction.FollowupAsync(
+                "❌ Có lỗi xảy ra khi thực thi lệnh.", ephemeral: true);
+        }
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -162,6 +167,9 @@ public sealed class BotWorker : IHostedService
         {
             try
             {
+                if (interaction is SocketSlashCommand { HasResponded: false })
+                    await interaction.DeferAsync();
+
                 var ctx = new SocketInteractionContext(_client, interaction);
                 var result = await _interactions.ExecuteCommandAsync(ctx, _services);
 
