@@ -9,7 +9,7 @@ services:
     volumes:
       - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:2333/v4/info"]
+      test: ["CMD", "curl", "-sf", "http://localhost:2333/version"]
       interval: 15s
       timeout: 10s
       retries: 10

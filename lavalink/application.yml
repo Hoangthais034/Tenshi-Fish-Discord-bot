@@ -9,17 +9,15 @@ plugins:
     allowDirectVideoIds: true
     allowDirectPlaylistIds: true
     clients:
-      - M_WEB
       - WEB
       - MUSIC
       - WEBEMBEDDED
       - ANDROID_VR
-      - TV
-      - TVHTML5EMBEDDED
+      - TVHTML5
 
 lavalink:
   plugins:
-    - dependency: "dev.lavalink.youtube:youtube-plugin:1.11.4"
+    - dependency: "dev.lavalink.youtube:youtube-plugin:1.18.1"
       snapshot: false
   server:
     password: "${LAVALINK_SERVER_PASSWORD}"
