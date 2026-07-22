@@ -9,7 +9,7 @@ services:
     volumes:
       - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:2333/v4/info > /dev/null || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:2333/v4/info > /dev/null || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 5
