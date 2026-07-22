@@ -13,7 +13,6 @@ plugins:
       - MUSIC
       - WEBEMBEDDED
       - ANDROID_VR
-      - TVHTML5
 
 lavalink:
   plugins:
