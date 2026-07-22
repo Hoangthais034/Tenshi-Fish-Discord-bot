@@ -104,11 +104,18 @@ public sealed class BotWorker : IHostedService
     {
         if (result.IsSuccess) return;
 
-        _logger.LogError("Command {Command} error: {Error} | User: {User} | Guild: {Guild}",
-            command?.Name ?? "?",
-            result.ErrorReason,
-            context.User.Id,
-            context.Guild?.Id);
+        if (result is ExecuteResult { Exception: not null } er)
+            _logger.LogError(er.Exception, "Command {Command} error: {Error} | User: {User} | Guild: {Guild}",
+                command?.Name ?? "?",
+                result.ErrorReason,
+                context.User.Id,
+                context.Guild?.Id);
+        else
+            _logger.LogError("Command {Command} error: {Error} | User: {User} | Guild: {Guild}",
+                command?.Name ?? "?",
+                result.ErrorReason,
+                context.User.Id,
+                context.Guild?.Id);
 
         if (context.Interaction.Type == InteractionType.ApplicationCommandAutocomplete)
             return;
