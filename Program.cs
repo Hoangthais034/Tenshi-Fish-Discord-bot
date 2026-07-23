@@ -182,6 +182,8 @@ public sealed class BotWorker : IHostedService
             if (interaction is SocketSlashCommand cmd && !cmd.HasResponded)
                 _ = DeferOrFallbackAsync(cmd);
 
+            await Task.Delay(200);
+
             var ctx = new SocketInteractionContext(_client, interaction);
             var result = await _interactions.ExecuteCommandAsync(ctx, _services);
 
@@ -214,7 +216,7 @@ public sealed class BotWorker : IHostedService
     {
         try
         {
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2.5));
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
             await cmd.DeferAsync(options: new RequestOptions { CancelToken = cts.Token });
         }
         catch (OperationCanceledException)

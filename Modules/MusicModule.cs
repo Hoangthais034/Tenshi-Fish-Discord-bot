@@ -25,7 +25,11 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
             if (!Context.Interaction.HasResponded)
             {
                 try { await Context.Interaction.DeferAsync(); }
-                catch { /* already responded by fire-and-forget defer */ }
+                catch
+                {
+                    try { await Context.Interaction.RespondAsync("⏳ Đang xử lý...", ephemeral: true); }
+                    catch { }
+                }
             }
 
             var user = Context.User as SocketGuildUser;

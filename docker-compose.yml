@@ -4,7 +4,7 @@ services:
     container_name: lavalink
     restart: unless-stopped
     environment:
-      - _JAVA_OPTIONS=-Xmx512m
+      - _JAVA_OPTIONS=-Xmx1024m
       - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD:?err}
     volumes:
       - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
@@ -13,7 +13,7 @@ services:
       interval: 15s
       timeout: 10s
       retries: 10
-      start_period: 60s
+      start_period: 90s
 
   bot:
     build: .

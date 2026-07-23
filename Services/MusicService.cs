@@ -54,58 +54,45 @@ public sealed class MusicService
         var retrieveOptions = new PlayerRetrieveOptions(
             ChannelBehavior: PlayerChannelBehavior.Join);
 
-        // RetrieveAsync has a hardcoded 10s timeout internally. On slow Lavalink hosts
-        // (PATCH takes 20-40s), it throws TimeoutException and unregisters the player.
-        // Retry up to 3 times; poll GetPlayerAsync between attempts in case the
-        // background PATCH from a previous attempt completes late.
-        const int maxAttempts = 3;
-        for (int attempt = 1; attempt <= maxAttempts; attempt++)
+        // RetrieveAsync has a hardcoded 10s timeout. On slow hosts the PATCH may take
+        // longer, but the background request will still complete. Send ONE request and
+        // poll for the result — never retry RetrieveAsync because each retry sends a
+        // duplicate PATCH that also takes 10-40s.
+        try
         {
-            try
-            {
-                var result = await _audio.Players
-                    .RetrieveAsync<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
-                        guildId, voiceChannelId, PlayerFactory, PlayerOptions, retrieveOptions)
-                    .ConfigureAwait(false);
+            var result = await _audio.Players
+                .RetrieveAsync<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
+                    guildId, voiceChannelId, PlayerFactory, PlayerOptions, retrieveOptions)
+                .ConfigureAwait(false);
 
-                if (result.IsSuccess)
-                    return result.Player;
+            if (result.IsSuccess)
+                return result.Player;
+        }
+        catch (TimeoutException)
+        {
+            _logger.LogWarning("RetrieveAsync timeout, poll chờ player nền...");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "RetrieveAsync error, poll chờ player nền...");
+        }
 
-                _logger.LogWarning("RetrieveAsync attempt {Attempt}/{Max} failed: {Status}",
-                    attempt, maxAttempts, result.Status);
-            }
-            catch (TimeoutException)
+        // Poll: the background PATCH from RetrieveAsync should finish within ~15-20s.
+        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(15);
+        while (DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(1000).ConfigureAwait(false);
+            var player = await _audio.Players
+                .GetPlayerAsync<QueuedLavalinkPlayer>(guildId)
+                .ConfigureAwait(false);
+            if (player is not null)
             {
-                _logger.LogWarning("RetrieveAsync attempt {Attempt}/{Max} timeout, chờ nền...",
-                    attempt, maxAttempts);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "RetrieveAsync attempt {Attempt}/{Max} error",
-                    attempt, maxAttempts);
-            }
-
-            // Poll GetPlayerAsync in case a background PATCH from a prior attempt completes
-            if (attempt < maxAttempts)
-            {
-                var pollDeadline = DateTime.UtcNow + TimeSpan.FromSeconds(15);
-                while (DateTime.UtcNow < pollDeadline)
-                {
-                    await Task.Delay(2000).ConfigureAwait(false);
-                    var player = await _audio.Players
-                        .GetPlayerAsync<QueuedLavalinkPlayer>(guildId)
-                        .ConfigureAwait(false);
-                    if (player is not null)
-                    {
-                        _logger.LogInformation("Player nền xuất hiện cho guild {GuildId}", guildId);
-                        return player;
-                    }
-                }
+                _logger.LogInformation("Player nền xuất hiện cho guild {GuildId}", guildId);
+                return player;
             }
         }
 
-        _logger.LogWarning("Không lấy được player sau {Max} attempts cho guild {GuildId}",
-            maxAttempts, guildId);
+        _logger.LogWarning("Không lấy được player sau 25s cho guild {GuildId}", guildId);
         return null;
     }
 
@@ -130,7 +117,13 @@ public sealed class MusicService
         TrackLoadResult result;
         try
         {
-            result = await _audio.Tracks.LoadTracksAsync(query, TrackSearchMode.YouTube);
+            using var loadCts = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+            result = await _audio.Tracks.LoadTracksAsync(query, TrackSearchMode.YouTube, loadCts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("Tải track timeout sau 45s: {Query}", query);
+            return $"Tải track timeout, vui lòng thử lại. (`{query}`)";
         }
         catch (Exception ex)
         {
