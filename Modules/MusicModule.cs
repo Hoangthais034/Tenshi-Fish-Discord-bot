@@ -20,16 +20,36 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     public async Task Play(
         [Summary(description: "Tên bài hát hoặc URL YouTube")] string query)
     {
-        var user = Context.User as SocketGuildUser;
-        var voiceChannel = user?.VoiceState?.VoiceChannel;
-        if (voiceChannel is null)
+        try
         {
-            await FollowupAsync("Bạn cần vào voice channel trước.");
-            return;
-        }
+            if (!Context.Interaction.HasResponded)
+            {
+                try { await Context.Interaction.DeferAsync(); }
+                catch { /* already responded by fire-and-forget defer */ }
+            }
 
-        var result = await _music.PlayAsync(Context.Guild.Id, voiceChannel.Id, query);
-        await FollowupAsync(result);
+            var user = Context.User as SocketGuildUser;
+            var voiceChannel = user?.VoiceState?.VoiceChannel;
+            if (voiceChannel is null)
+            {
+                await Context.Interaction.FollowupAsync("Bạn cần vào voice channel trước.");
+                return;
+            }
+
+            var result = await _music.PlayAsync(Context.Guild.Id, voiceChannel.Id, query);
+            await Context.Interaction.FollowupAsync(result);
+        }
+        catch (Exception)
+        {
+            try
+            {
+                if (!Context.Interaction.HasResponded)
+                    await Context.Interaction.RespondAsync("❌ Lỗi khi phát nhạc.", ephemeral: true);
+                else
+                    await Context.Interaction.FollowupAsync("❌ Lỗi khi phát nhạc.", ephemeral: true);
+            }
+            catch { }
+        }
     }
 
     [SlashCommand("skip", "Bỏ qua bài đang phát", runMode: RunMode.Async)]

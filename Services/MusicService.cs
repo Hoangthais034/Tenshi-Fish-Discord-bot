@@ -54,18 +54,52 @@ public sealed class MusicService
         var retrieveOptions = new PlayerRetrieveOptions(
             ChannelBehavior: PlayerChannelBehavior.Join);
 
-        var result = await _audio.Players
-            .RetrieveAsync<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
-                guildId, voiceChannelId, PlayerFactory, PlayerOptions, retrieveOptions)
-            .ConfigureAwait(false);
-
-        if (!result.IsSuccess)
+        try
         {
-            _logger.LogWarning("Không thể lấy player: {Status}", result.Status);
-            return null;
+            var result = await _audio.Players
+                .RetrieveAsync<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
+                    guildId, voiceChannelId, PlayerFactory, PlayerOptions, retrieveOptions)
+                .ConfigureAwait(false);
+
+            if (!result.IsSuccess)
+            {
+                _logger.LogWarning("Không thể lấy player: {Status}", result.Status);
+                return null;
+            }
+
+            return result.Player;
+        }
+        catch (TimeoutException)
+        {
+            _logger.LogWarning("Lavalink RetrieveAsync timeout, chờ player kết nối nền...");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "RetrieveAsync lỗi, chờ player kết nối nền...");
         }
 
-        return result.Player;
+        // Lavalink server takes >10s on slow hosts; player may connect in the background.
+        // Poll GetPlayerAsync until the player appears (max ~45s).
+        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(45);
+        var delay = TimeSpan.FromSeconds(2);
+
+        while (DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(delay).ConfigureAwait(false);
+
+            var player = await _audio.Players
+                .GetPlayerAsync<QueuedLavalinkPlayer>(guildId)
+                .ConfigureAwait(false);
+
+            if (player is not null)
+            {
+                _logger.LogInformation("Player đã kết nối nền cho guild {GuildId}", guildId);
+                return player;
+            }
+        }
+
+        _logger.LogWarning("Không lấy được player sau 45s poll cho guild {GuildId}", guildId);
+        return null;
     }
 
     public async Task<string> PlayAsync(ulong guildId, ulong voiceChannelId, string query)

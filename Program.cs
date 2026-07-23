@@ -121,15 +121,22 @@ public sealed class BotWorker : IHostedService
         if (context.Interaction.Type == InteractionType.ApplicationCommandAutocomplete)
             return;
 
-        if (!context.Interaction.HasResponded)
+        try
         {
-            await context.Interaction.RespondAsync(
-                "❌ Có lỗi xảy ra khi thực thi lệnh.", ephemeral: true);
+            if (!context.Interaction.HasResponded)
+            {
+                await context.Interaction.RespondAsync(
+                    "❌ Có lỗi xảy ra khi thực thi lệnh.", ephemeral: true);
+            }
+            else
+            {
+                await context.Interaction.FollowupAsync(
+                    "❌ Có lỗi xảy ra khi thực thi lệnh.", ephemeral: true);
+            }
         }
-        else
+        catch
         {
-            await context.Interaction.FollowupAsync(
-                "❌ Có lỗi xảy ra khi thực thi lệnh.", ephemeral: true);
+            // Interaction may have expired or become invalid; nothing we can do
         }
     }
 
