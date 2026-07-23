@@ -39,7 +39,11 @@ public sealed class ModmailService
 
     public void RegisterHandlers(DiscordSocketClient _)
     {
-        _client.MessageReceived += OnMessageReceivedAsync;
+        _client.MessageReceived += msg =>
+        {
+            _ = Task.Run(() => OnMessageReceivedAsync(msg));
+            return Task.CompletedTask;
+        };
     }
 
     private async Task OnMessageReceivedAsync(SocketMessage message)

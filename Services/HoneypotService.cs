@@ -23,7 +23,11 @@ public sealed class HoneypotService
 
     public void RegisterHandlers(DiscordSocketClient _)
     {
-        _client.MessageReceived += OnMessageReceivedAsync;
+        _client.MessageReceived += msg =>
+        {
+            _ = Task.Run(() => OnMessageReceivedAsync(msg));
+            return Task.CompletedTask;
+        };
     }
 
     public HoneypotGuildSettings GetOrCreate(ulong guildId)
