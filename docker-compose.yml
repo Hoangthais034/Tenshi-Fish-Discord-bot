@@ -8,12 +8,24 @@ services:
       - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD:?err}
     volumes:
       - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
+      - lavalink-data:/opt/Lavalink/data
     healthcheck:
-      test: "curl -sf -H \"Authorization: $$LAVALINK_SERVER_PASSWORD\" http://localhost:2333/v4/info || exit 1"
-      interval: 15s
-      timeout: 10s
-      retries: 10
-      start_period: 90s
+      test: ["CMD", "curl", "-sf", "http://localhost:2333/v4/info"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 80s
+    deploy:
+      resources:
+        limits:
+          memory: 1536M
+    networks:
+      - botnet
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   bot:
     build: .
@@ -32,4 +44,19 @@ services:
       - Modmail__GuildId=${MODMAIL_GUILD_ID:?err}
       - Modmail__CategoryId=${MODMAIL_CATEGORY_ID:-0}
     volumes:
-      - ./data:/data:Z
+      - bot-data:/data
+    networks:
+      - botnet
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  botnet:
+    driver: bridge
+
+volumes:
+  lavalink-data:
+  bot-data:

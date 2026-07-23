@@ -1,3 +1,3 @@
 #!/bin/sh
-chown -R app:app /data
-exec su -s /bin/sh app -c "cd /app && exec dotnet DiscordBot.dll"
+chown -R bot:bot /data
+exec su -s /bin/sh bot -c "cd /app && exec dotnet DiscordBot.dll"

@@ -1,11 +1,15 @@
 bin/
 obj/
 node_modules/
-.git
+.git/
 .gitignore
 *.md
 docs/
 .dockerignore
-nodelink-src/
 .env
 appsettings.Development.json
+data/
+lavalink-data/
+package.json
+yarn.lock
+PLAN.md
