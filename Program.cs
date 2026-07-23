@@ -54,7 +54,10 @@ builder.Services.ConfigureLavalink(options =>
     options.BaseAddress = new Uri(baseAddress);
     options.Passphrase = lavalinkSection["Password"] ?? "youshallnotpass";
 });
-builder.Services.AddSingleton<LiteDatabase>(_ => new LiteDatabase("/data/bot-data.db"));
+var dataPath = Environment.GetEnvironmentVariable("DATA_PATH")
+    ?? Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".data", "bot-data.db");
+Directory.CreateDirectory(Path.GetDirectoryName(dataPath)!);
+builder.Services.AddSingleton<LiteDatabase>(_ => new LiteDatabase(dataPath));
 
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<RateLimitService>();

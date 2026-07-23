@@ -41,6 +41,7 @@ services:
       - Lavalink__Password=${LAVALINK_PASSWORD:?err}
       - Modmail__GuildId=${MODMAIL_GUILD_ID:?err}
       - Modmail__CategoryId=${MODMAIL_CATEGORY_ID:-0}
+      - DATA_PATH=/data/bot-data.db
     volumes:
       - bot-data:/data
     networks:

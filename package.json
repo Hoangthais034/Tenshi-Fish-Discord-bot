@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "predev": "mkdir -p /data && docker compose up -d lavalink",
+    "predev": "mkdir -p .data && docker compose up -d lavalink",
     "dev": "dotnet watch run --environment Development",
     "build": "dotnet build",
     "start": "dotnet run --environment Production",
