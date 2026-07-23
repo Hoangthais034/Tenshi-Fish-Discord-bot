@@ -225,7 +225,7 @@ public sealed class BotWorker : IHostedService
                 catch { /* interaction may have expired */ }
             }
         }
-        catch (Exception ex)
+        catch
         {
             if (!cmd.HasResponded)
             {
