@@ -54,51 +54,58 @@ public sealed class MusicService
         var retrieveOptions = new PlayerRetrieveOptions(
             ChannelBehavior: PlayerChannelBehavior.Join);
 
-        try
+        // RetrieveAsync has a hardcoded 10s timeout internally. On slow Lavalink hosts
+        // (PATCH takes 20-40s), it throws TimeoutException and unregisters the player.
+        // Retry up to 3 times; poll GetPlayerAsync between attempts in case the
+        // background PATCH from a previous attempt completes late.
+        const int maxAttempts = 3;
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
         {
-            var result = await _audio.Players
-                .RetrieveAsync<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
-                    guildId, voiceChannelId, PlayerFactory, PlayerOptions, retrieveOptions)
-                .ConfigureAwait(false);
-
-            if (!result.IsSuccess)
+            try
             {
-                _logger.LogWarning("Không thể lấy player: {Status}", result.Status);
-                return null;
+                var result = await _audio.Players
+                    .RetrieveAsync<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
+                        guildId, voiceChannelId, PlayerFactory, PlayerOptions, retrieveOptions)
+                    .ConfigureAwait(false);
+
+                if (result.IsSuccess)
+                    return result.Player;
+
+                _logger.LogWarning("RetrieveAsync attempt {Attempt}/{Max} failed: {Status}",
+                    attempt, maxAttempts, result.Status);
+            }
+            catch (TimeoutException)
+            {
+                _logger.LogWarning("RetrieveAsync attempt {Attempt}/{Max} timeout, chờ nền...",
+                    attempt, maxAttempts);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "RetrieveAsync attempt {Attempt}/{Max} error",
+                    attempt, maxAttempts);
             }
 
-            return result.Player;
-        }
-        catch (TimeoutException)
-        {
-            _logger.LogWarning("Lavalink RetrieveAsync timeout, chờ player kết nối nền...");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "RetrieveAsync lỗi, chờ player kết nối nền...");
-        }
-
-        // Lavalink server takes >10s on slow hosts; player may connect in the background.
-        // Poll GetPlayerAsync until the player appears (max ~45s).
-        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(45);
-        var delay = TimeSpan.FromSeconds(2);
-
-        while (DateTime.UtcNow < deadline)
-        {
-            await Task.Delay(delay).ConfigureAwait(false);
-
-            var player = await _audio.Players
-                .GetPlayerAsync<QueuedLavalinkPlayer>(guildId)
-                .ConfigureAwait(false);
-
-            if (player is not null)
+            // Poll GetPlayerAsync in case a background PATCH from a prior attempt completes
+            if (attempt < maxAttempts)
             {
-                _logger.LogInformation("Player đã kết nối nền cho guild {GuildId}", guildId);
-                return player;
+                var pollDeadline = DateTime.UtcNow + TimeSpan.FromSeconds(15);
+                while (DateTime.UtcNow < pollDeadline)
+                {
+                    await Task.Delay(2000).ConfigureAwait(false);
+                    var player = await _audio.Players
+                        .GetPlayerAsync<QueuedLavalinkPlayer>(guildId)
+                        .ConfigureAwait(false);
+                    if (player is not null)
+                    {
+                        _logger.LogInformation("Player nền xuất hiện cho guild {GuildId}", guildId);
+                        return player;
+                    }
+                }
             }
         }
 
-        _logger.LogWarning("Không lấy được player sau 45s poll cho guild {GuildId}", guildId);
+        _logger.LogWarning("Không lấy được player sau {Max} attempts cho guild {GuildId}",
+            maxAttempts, guildId);
         return null;
     }
 
