@@ -11,11 +11,11 @@ services:
       - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
       - lavalink-data:/opt/Lavalink/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf -H \"Authorization: $$LAVALINK_SERVER_PASSWORD\" http://localhost:2333/v4/info"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:2333/v4/info"]
       interval: 15s
-      timeout: 5s
-      retries: 10
-      start_period: 90s
+      timeout: 10s
+      retries: 15
+      start_period: 120s
     networks:
       - botnet
     logging:

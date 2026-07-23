@@ -77,8 +77,8 @@ public sealed class MusicService
             _logger.LogWarning(ex, "RetrieveAsync error, poll chờ player nền...");
         }
 
-        // Poll: the background PATCH from RetrieveAsync should finish within ~15-20s.
-        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(15);
+        // Poll: the background PATCH from RetrieveAsync should finish within ~30-40s.
+        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(30);
         while (DateTime.UtcNow < deadline)
         {
             await Task.Delay(1000).ConfigureAwait(false);
@@ -92,7 +92,7 @@ public sealed class MusicService
             }
         }
 
-        _logger.LogWarning("Không lấy được player sau 25s cho guild {GuildId}", guildId);
+        _logger.LogWarning("Không lấy được player sau 40s cho guild {GuildId}", guildId);
         return null;
     }
 
