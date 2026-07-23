@@ -4,14 +4,13 @@ services:
     container_name: lavalink
     restart: unless-stopped
     environment:
-      - _JAVA_OPTIONS=-Xmx1024m
+      - _JAVA_OPTIONS=-Xmx384m
       - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD:?err}
     volumes:
       - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
       - lavalink-data:/opt/Lavalink/data
-    mem_limit: 3g
     healthcheck:
-      test: ["CMD", "curl", "-sf", "http://localhost:2333/v4/info"]
+      test: ["CMD", "curl", "-sf", "-H", "Authorization: ${LAVALINK_SERVER_PASSWORD}", "http://localhost:2333/v4/info"]
       interval: 15s
       timeout: 5s
       retries: 10
