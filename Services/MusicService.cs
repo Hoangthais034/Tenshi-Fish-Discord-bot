@@ -117,13 +117,15 @@ public sealed class MusicService
         TrackLoadResult result;
         try
         {
-            using var loadCts = new CancellationTokenSource(TimeSpan.FromSeconds(45));
-            result = await _audio.Tracks.LoadTracksAsync(query, TrackSearchMode.YouTube, loadCts.Token);
-        }
-        catch (OperationCanceledException)
-        {
-            _logger.LogWarning("Tải track timeout sau 45s: {Query}", query);
-            return $"Tải track timeout, vui lòng thử lại. (`{query}`)";
+            var loadTask = _audio.Tracks.LoadTracksAsync(query, TrackSearchMode.YouTube).AsTask();
+            var timeoutTask = Task.Delay(TimeSpan.FromSeconds(45));
+            var completed = await Task.WhenAny(loadTask, timeoutTask).ConfigureAwait(false);
+            if (completed != loadTask)
+            {
+                _logger.LogWarning("Tải track timeout sau 45s: {Query}", query);
+                return $"Tải track timeout, vui lòng thử lại. (`{query}`)";
+            }
+            result = await loadTask.ConfigureAwait(false);
         }
         catch (Exception ex)
         {
