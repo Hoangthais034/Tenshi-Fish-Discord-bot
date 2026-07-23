@@ -1,6 +1,7 @@
 services:
   lavalink:
     build: ./lavalink
+    image: tenshi-lavalink
     container_name: lavalink
     restart: unless-stopped
     environment:
@@ -25,6 +26,7 @@ services:
 
   bot:
     build: .
+    image: tenshi-bot
     container_name: discord-bot
     restart: unless-stopped
     depends_on:

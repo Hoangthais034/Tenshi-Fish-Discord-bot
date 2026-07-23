@@ -9,13 +9,13 @@ VPS="${1:-oracle-vps}"
 REMOTE_DIR="~/apps/Tenshi-Fish-Discord-bot"
 IMAGE_DIR="/tmp/docker-images"
 
-echo "=== Building images locally ==="
-docker compose build
+echo "=== Building images locally (linux/amd64 for VPS) ==="
+DOCKER_DEFAULT_PLATFORM=linux/amd64 docker compose build --no-cache
 
 echo "=== Exporting images ==="
 mkdir -p "$IMAGE_DIR"
-docker save tenshi-fish-discord-bot-bot:latest | gzip > "$IMAGE_DIR/bot.tar.gz"
-docker save tenshi-fish-discord-bot-lavalink:latest | gzip > "$IMAGE_DIR/lavalink.tar.gz"
+docker save tenshi-bot:latest | gzip > "$IMAGE_DIR/bot.tar.gz"
+docker save tenshi-lavalink:latest | gzip > "$IMAGE_DIR/lavalink.tar.gz"
 echo "Bot:     $(du -h "$IMAGE_DIR/bot.tar.gz" | cut -f1)"
 echo "Lavalink: $(du -h "$IMAGE_DIR/lavalink.tar.gz" | cut -f1)"
 
