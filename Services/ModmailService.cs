@@ -37,7 +37,7 @@ public sealed class ModmailService
     private ILiteCollection<ModmailNotification> Notifications => _db.GetCollection<ModmailNotification>("modmail_notifications");
     private ILiteCollection<ModmailPersistentNote> PersistentNotes => _db.GetCollection<ModmailPersistentNote>("modmail_persistent_notes");
 
-    public void RegisterHandlers(DiscordSocketClient _)
+    public void RegisterHandlers(DiscordSocketClient client)
     {
         _client.MessageReceived += msg =>
         {

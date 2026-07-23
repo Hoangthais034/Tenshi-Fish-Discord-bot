@@ -21,7 +21,7 @@ public sealed class HoneypotService
     private ILiteCollection<HoneypotGuildSettings> Settings =>
         _db.GetCollection<HoneypotGuildSettings>("honeypot_settings");
 
-    public void RegisterHandlers(DiscordSocketClient _)
+    public void RegisterHandlers(DiscordSocketClient client)
     {
         _client.MessageReceived += msg =>
         {
