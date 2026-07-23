@@ -36,7 +36,8 @@ builder.Services.AddSingleton(new DiscordSocketConfig
         | GatewayIntents.MessageContent
         | GatewayIntents.GuildMembers
         | GatewayIntents.GuildVoiceStates,
-    AlwaysDownloadUsers = true
+    AlwaysDownloadUsers = true,
+    ResponseInternalTimeCheck = false
 });
 builder.Services.AddSingleton<DiscordSocketClient>();
 builder.Services.AddSingleton(sp =>
@@ -152,10 +153,6 @@ public sealed class BotWorker : IHostedService
                         return;
                     }
 
-                    await _client.Rest.BulkOverwriteGlobalCommands(Array.Empty<ApplicationCommandProperties>());
-                    foreach (var guild in _client.Guilds)
-                        await _client.Rest.BulkOverwriteGuildCommands(Array.Empty<ApplicationCommandProperties>(), guild.Id);
-
                     await _interactions.AddModulesAsync(typeof(Program).Assembly, _services);
                     _logger.LogInformation("Đã load {Count} modules", _interactions.Modules.Count);
 
@@ -175,43 +172,26 @@ public sealed class BotWorker : IHostedService
 
         _client.InteractionCreated += async interaction =>
         {
-            try
+            if (interaction is SocketSlashCommand cmd && !cmd.HasResponded)
+                _ = DeferOrFallbackAsync(cmd);
+
+            var ctx = new SocketInteractionContext(_client, interaction);
+            var result = await _interactions.ExecuteCommandAsync(ctx, _services);
+
+            if (!result.IsSuccess)
             {
-                if (interaction is SocketSlashCommand { HasResponded: false })
-                    await interaction.DeferAsync();
-
-                var ctx = new SocketInteractionContext(_client, interaction);
-                var result = await _interactions.ExecuteCommandAsync(ctx, _services);
-
-                if (!result.IsSuccess)
+                var cmdName = interaction switch
                 {
-                    var cmdName = interaction switch
-                    {
-                        SocketSlashCommand s => s.CommandName,
-                        SocketAutocompleteInteraction a => a.Data.CommandName,
-                        SocketMessageCommand m => m.CommandName,
-                        SocketUserCommand u => u.CommandName,
-                        _ => "?",
-                    };
+                    SocketSlashCommand s => s.CommandName,
+                    SocketAutocompleteInteraction a => a.Data.CommandName,
+                    SocketMessageCommand m => m.CommandName,
+                    SocketUserCommand u => u.CommandName,
+                    _ => "?",
+                };
 
-                    _logger.LogWarning(
-                        "Không tìm thấy handler: /{Name} | Type: {Type} | User: {User} | Guild: {Guild}",
-                        cmdName, interaction.Type, interaction.User.Id, interaction.GuildId);
-
-                    if (!interaction.HasResponded)
-                        await interaction.RespondAsync("❌ Lệnh không tồn tại.", ephemeral: true);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Lỗi xử lý interaction /{Name} from {User}",
-                    interaction switch
-                    {
-                        SocketSlashCommand s => s.CommandName,
-                        SocketAutocompleteInteraction a => a.Data.CommandName,
-                        _ => "?",
-                    },
-                    interaction.User.Id);
+                _logger.LogWarning(
+                    "Không tìm thấy handler: /{Name} | Type: {Type} | User: {User} | Guild: {Guild}",
+                    cmdName, interaction.Type, interaction.User.Id, interaction.GuildId);
             }
         };
 
@@ -221,6 +201,31 @@ public sealed class BotWorker : IHostedService
 
         await _client.LoginAsync(TokenType.Bot, _config.Value.Token);
         await _client.StartAsync();
+    }
+
+    private static async Task DeferOrFallbackAsync(SocketSlashCommand cmd)
+    {
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2.5));
+            await cmd.DeferAsync(options: new RequestOptions { CancelToken = cts.Token });
+        }
+        catch (OperationCanceledException)
+        {
+            if (!cmd.HasResponded)
+            {
+                try { await cmd.RespondAsync("⏳ Đang xử lý...", ephemeral: true); }
+                catch { /* interaction may have expired */ }
+            }
+        }
+        catch (Exception ex)
+        {
+            if (!cmd.HasResponded)
+            {
+                try { await cmd.RespondAsync("⏳ Đang xử lý...", ephemeral: true); }
+                catch { }
+            }
+        }
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
