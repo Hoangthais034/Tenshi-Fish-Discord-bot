@@ -9,4 +9,4 @@ dist
 *.md
 deploy.sh
 docker-compose.yml
-tsconfig.json
+
