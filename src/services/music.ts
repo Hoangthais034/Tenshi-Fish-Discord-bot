@@ -6,6 +6,20 @@ import { config } from '../config.js';
 
 Structure.extend('Node', (NodeClass) => {
   return class NodeLinkNode extends NodeClass {
+    constructor(options: any) {
+      super(options);
+      const origMessage = (this as any).message.bind(this);
+      (this as any).message = (d: any) => {
+        if (typeof d === 'string' || d instanceof Buffer || d instanceof ArrayBuffer) {
+          try {
+            const parsed = JSON.parse(d.toString());
+            if (parsed?.op === 'ready') return;
+          } catch {}
+        }
+        origMessage(d);
+      };
+    }
+
     connect() {
       if ((this as any).connected) return;
       const headers = {
