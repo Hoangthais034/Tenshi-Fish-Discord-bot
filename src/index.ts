@@ -26,6 +26,10 @@ async function main(): Promise<void> {
 
   loadCommandMap(commands);
 
+  client.on('error', (e: Error) => {
+    console.error('Client error:', e);
+  });
+
   client.once('clientReady', async () => {
     const musicService = container.resolve(MusicService);
     musicService.init();

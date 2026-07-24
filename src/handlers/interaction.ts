@@ -23,12 +23,16 @@ export async function handleInteraction(interaction: ChatInputCommandInteraction
   } catch (e) {
     console.error(`Error executing ${interaction.commandName}:`, e);
 
-    const reply = { content: 'An error occurred while executing this command.', flags: MessageFlags.Ephemeral };
+    try {
+      const reply = { content: 'An error occurred while executing this command.', flags: MessageFlags.Ephemeral };
 
-    if (interaction.replied || interaction.deferred) {
-      await interaction.followUp(reply);
-    } else {
-      await interaction.reply(reply);
+      if (interaction.replied || interaction.deferred) {
+        await interaction.followUp(reply);
+      } else {
+        await interaction.reply(reply);
+      }
+    } catch {
+      console.error('Failed to send error response to interaction.');
     }
   }
 }
