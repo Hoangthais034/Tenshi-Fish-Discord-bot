@@ -1,5 +1,4 @@
 import 'reflect-metadata';
-import { Events } from 'discord.js';
 import { config, client, container } from './di.js';
 import { handleInteraction, loadCommandMap } from './handlers/interaction.js';
 import { registerCommands } from './handlers/register.js';
@@ -34,15 +33,7 @@ async function main(): Promise<void> {
     const musicService = container.resolve(MusicService);
     musicService.init();
 
-    client.on(Events.Raw, (packet: any) => {
-      if (packet.t === 'VOICE_STATE_UPDATE') {
-        console.log(`[Voice] Received VOICE_STATE_UPDATE: guild=${packet.d?.guild_id} user=${packet.d?.user_id} has_session=${!!packet.d?.session_id}`);
-        musicService.manager.updateVoiceState(packet);
-      } else if (packet.t === 'VOICE_SERVER_UPDATE') {
-        console.log(`[Voice] Received VOICE_SERVER_UPDATE: guild=${packet.d?.guild_id} endpoint=${packet.d?.endpoint}`);
-        musicService.manager.updateVoiceState(packet);
-      }
-    });
+    musicService.forwardVoiceEvents();
 
     const modmailService = container.resolve(ModmailService);
     modmailService.registerHandlers();

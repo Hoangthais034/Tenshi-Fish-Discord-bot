@@ -352,6 +352,15 @@ export class MusicService {
     return `Đã chọn loop chế độ ${label}.`;
   }
 
+  forwardVoiceEvents(): void {
+    this.client.ws.on('VOICE_STATE_UPDATE', (data: any) => {
+      this.manager.updateVoiceState({ t: 'VOICE_STATE_UPDATE', d: data });
+    });
+    this.client.ws.on('VOICE_SERVER_UPDATE', (data: any) => {
+      this.manager.updateVoiceState({ t: 'VOICE_SERVER_UPDATE', d: data });
+    });
+  }
+
   async nowPlaying(guildId: string): Promise<string> {
     const player = this.getPlayer(guildId);
     if (!player || !player.queue.current) return 'Không có bài nào đang phát.';
