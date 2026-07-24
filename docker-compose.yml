@@ -1,16 +1,19 @@
 services:
   nodelink:
-    image: ghcr.io/nonelolly/nodelink:latest
+    image: performanc/nodelink:latest
     container_name: nodelink
     restart: unless-stopped
     ports:
       - "2333:2333"
     environment:
-      - LAVALINK_SERVER_PASSWORD=${NODELINK_PASSWORD:?err}
-    volumes:
-      - ./nodelink/application.yml:/app/application.yml:ro
+      - NODELINK_SERVER_PASSWORD=${NODELINK_PASSWORD:?err}
+      - NODELINK_SOURCES_YOUTUBE_ENABLED=true
+      - NODELINK_SOURCES_SOUNDCLOUD_ENABLED=true
+      - NODELINK_SOURCES_BANDCAMP_ENABLED=true
+      - NODELINK_SOURCES_TWITCH_ENABLED=true
+      - NODELINK_SOURCES_HTTP_ENABLED=true
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf -H \"Authorization: $$LAVALINK_SERVER_PASSWORD\" http://localhost:2333/v4/info"]
+      test: ["CMD", "curl", "-f", "http://localhost:2333/version"]
       interval: 15s
       timeout: 10s
       retries: 40
