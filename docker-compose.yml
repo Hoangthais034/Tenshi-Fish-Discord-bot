@@ -14,11 +14,11 @@ services:
       - NODELINK_SOURCES_YOUTUBE_ENABLED=true
       - NODELINK_SOURCES_HTTP_ENABLED=true
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:2333/version"]
+      test: ["CMD", "node", "-e", "fetch('http://localhost:2333/version').then(r => process.exit(r.ok?0:1))"]
       interval: 15s
       timeout: 10s
       retries: 40
-      start_period: 60s
+      start_period: 120s
     networks:
       - botnet
     logging:
