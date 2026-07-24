@@ -11,8 +11,8 @@ services:
     environment:
       - NODELINK_SERVER_PORT=2333
       - NODELINK_SERVER_PASSWORD=${NODELINK_PASSWORD:?err}
-      - NODELINK_SOURCES_YOUTUBE_ENABLED=true
-      - NODELINK_SOURCES_HTTP_ENABLED=true
+    volumes:
+      - ./nodelink/config.js:/app/config.js
     healthcheck:
       test: ["CMD-SHELL", "node -e \"require('net').createConnection(2333,'localhost').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))\""]
       interval: 15s
