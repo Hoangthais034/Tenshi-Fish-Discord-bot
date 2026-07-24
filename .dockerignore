@@ -1,0 +1,12 @@
+node_modules
+dist
+.data
+.git
+.gitignore
+.env
+.env.example
+.plan
+*.md
+deploy.sh
+docker-compose.yml
+tsconfig.json

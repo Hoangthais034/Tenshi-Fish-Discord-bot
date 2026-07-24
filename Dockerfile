@@ -1,18 +1,55 @@
-FROM node:20-alpine AS build
+# ─────────────────────────────────────────────────────────
+# Stage 1: Dependencies
+# ─────────────────────────────────────────────────────────
+FROM node:20-alpine AS deps
+
 WORKDIR /app
-COPY package*.json .
-RUN npm ci
-COPY . .
+
+COPY package.json package-lock.json ./
+
+RUN npm ci --include=dev
+
+# ─────────────────────────────────────────────────────────
+# Stage 2: Build
+# ─────────────────────────────────────────────────────────
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+COPY --from=deps /app/node_modules ./node_modules
+
+COPY tsconfig.json ./
+COPY src/ ./src/
+
 RUN npm run build
 
+# ─────────────────────────────────────────────────────────
+# Stage 3: Runtime
+# ─────────────────────────────────────────────────────────
 FROM node:20-alpine AS runtime
+
+ENV NODE_ENV=production \
+    PATH=/app/node_modules/.bin:$PATH
+
 WORKDIR /app
-RUN adduser -D -h /app bot && mkdir -p /data && chown bot:bot /data
-COPY --from=build --chown=bot:bot /app/dist ./dist
-COPY --from=build --chown=bot:bot /app/node_modules ./node_modules
-COPY --from=build --chown=bot:bot /app/package.json .
-COPY --from=build --chown=bot:bot /app/src/database/schema.sql ./src/database/schema.sql
+
+RUN adduser -D -h /app bot && \
+    mkdir -p /data && \
+    chown bot:bot /data
+
+COPY package.json package-lock.json ./
+COPY --from=deps /app/node_modules ./node_modules
+
+COPY --from=build /app/dist ./dist
+COPY src/database/schema.sql ./src/database/schema.sql
+
 COPY --chown=bot:bot entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+
 USER bot
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
+    CMD node -e "process.exit(process.connected?0:1)" || exit 1
+
 ENTRYPOINT ["/entrypoint.sh"]
