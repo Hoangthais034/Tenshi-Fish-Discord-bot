@@ -24,10 +24,10 @@ export default {
       tasksPerWorker: 32,
       silentLogs: true,
     },
-    commandTimeout: 6000,
-    fastCommandTimeout: 4000,
+    commandTimeout: 30000,
+    fastCommandTimeout: 15000,
     maxRetries: 2,
-    hibernation: { enabled: true, timeoutMs: 1200000 },
+    hibernation: { enabled: false, timeoutMs: 1200000 },
     scaling: {
       maxPlayersPerWorker: 20,
       targetUtilization: 0.7,
