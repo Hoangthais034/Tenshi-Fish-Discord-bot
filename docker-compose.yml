@@ -6,7 +6,7 @@ services:
     ports:
       - "2333:2333"
     environment:
-      - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD:?err}
+      - LAVALINK_SERVER_PASSWORD=${NODELINK_PASSWORD:?err}
     volumes:
       - ./nodelink/application.yml:/app/application.yml:ro
     healthcheck:
