@@ -49,7 +49,6 @@ RUN chmod +x /entrypoint.sh
 
 USER bot
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-    CMD node -e "process.exit(process.connected?0:1)" || exit 1
+HEALTHCHECK NONE
 
 ENTRYPOINT ["/entrypoint.sh"]
