@@ -5,6 +5,7 @@ import {
   type GuildTextBasedChannel,
   Colors,
   EmbedBuilder,
+  MessageFlags,
 } from 'discord.js';
 import { container } from 'tsyringe';
 import { HoneypotService } from '../services/honeypot.js';
@@ -78,14 +79,14 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
         }
 
         honeypot.save(settings as any);
-        await interaction.reply({ content: `✅ Đã thiết lập: trap = ${trapChannel}, log = ${logChannel}, action = ${action}.`, ephemeral: true });
+        await interaction.reply({ content: `✅ Đã thiết lập: trap = ${trapChannel}, log = ${logChannel}, action = ${action}.`, flags: MessageFlags.Ephemeral });
         break;
       }
 
       case 'disable':
         settings.action = 'Disabled';
         honeypot.save(settings as any);
-        await interaction.reply({ content: '✅ Đã tắt honeypot.', ephemeral: true });
+        await interaction.reply({ content: '✅ Đã tắt honeypot.', flags: MessageFlags.Ephemeral });
         break;
 
       case 'messages': {
@@ -94,7 +95,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
         if (dmMessage) settings.dm_message = dmMessage;
         if (warningMessage) settings.warning_message = warningMessage;
         honeypot.save(settings as any);
-        await interaction.reply({ content: '✅ Đã cập nhật tin nhắn.', ephemeral: true });
+        await interaction.reply({ content: '✅ Đã cập nhật tin nhắn.', flags: MessageFlags.Ephemeral });
         break;
       }
 
@@ -108,14 +109,14 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
 
         honeypot.save(settings as any);
         const status = honeypot.getExperimentStatus(settings.experiments);
-        await interaction.reply({ content: `✅ Experiment \`${experiment}\` ${enabled ? 'bật' : 'tắt'}.\nHiện tại: ${status}`, ephemeral: true });
+        await interaction.reply({ content: `✅ Experiment \`${experiment}\` ${enabled ? 'bật' : 'tắt'}.\nHiện tại: ${status}`, flags: MessageFlags.Ephemeral });
         break;
       }
 
       case 'add-trap': {
         const channel = interaction.options.getChannel('channel', true) as TextChannel;
         if (settings.trapChannels.some(t => t.channelId === channel.id)) {
-          await interaction.reply({ content: 'Channel này đã là trap rồi.', ephemeral: true });
+          await interaction.reply({ content: 'Channel này đã là trap rồi.', flags: MessageFlags.Ephemeral });
           return;
         }
 
@@ -123,7 +124,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
         settings.trapChannels.push(info);
         await honeypot.postWarningMessage(channel, settings as any, info);
         honeypot.save(settings as any);
-        await interaction.reply({ content: `✅ Đã thêm ${channel} làm trap channel.`, ephemeral: true });
+        await interaction.reply({ content: `✅ Đã thêm ${channel} làm trap channel.`, flags: MessageFlags.Ephemeral });
         break;
       }
 
@@ -132,17 +133,17 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
         const before = settings.trapChannels.length;
         settings.trapChannels = settings.trapChannels.filter(t => t.channelId !== channel.id);
         if (settings.trapChannels.length === before) {
-          await interaction.reply({ content: 'Channel này không phải trap.', ephemeral: true });
+          await interaction.reply({ content: 'Channel này không phải trap.', flags: MessageFlags.Ephemeral });
         } else {
           honeypot.save(settings as any);
-          await interaction.reply({ content: `✅ Đã xóa ${channel} khỏi trap channel.`, ephemeral: true });
+          await interaction.reply({ content: `✅ Đã xóa ${channel} khỏi trap channel.`, flags: MessageFlags.Ephemeral });
         }
         break;
       }
     }
   } catch (e) {
     console.error('Honeypot command error:', e);
-    await interaction.reply({ content: '❌ Lỗi khi thực hiện lệnh.', ephemeral: true });
+    await interaction.reply({ content: '❌ Lỗi khi thực hiện lệnh.', flags: MessageFlags.Ephemeral });
   }
 }
 

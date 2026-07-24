@@ -2,7 +2,7 @@ import { REST, Routes, type RESTPostAPIApplicationCommandsJSONBody } from 'disco
 import { config } from '../config.js';
 import type { Command } from '../types.js';
 
-export async function registerCommands(commands: Command[]): Promise<void> {
+export async function registerCommands(commands: Command[], clientId: string): Promise<void> {
   const rest = new REST().setToken(config.discord.token);
 
   const body: RESTPostAPIApplicationCommandsJSONBody[] = commands.map(c => c.data.toJSON());
@@ -10,12 +10,12 @@ export async function registerCommands(commands: Command[]): Promise<void> {
   try {
     if (config.discord.devGuildId !== '0') {
       await rest.put(
-        Routes.applicationGuildCommands(config.discord.ownerId, config.discord.devGuildId),
+        Routes.applicationGuildCommands(clientId, config.discord.devGuildId),
         { body },
       );
     } else {
       await rest.put(
-        Routes.applicationCommands(config.discord.ownerId),
+        Routes.applicationCommands(clientId),
         { body },
       );
     }

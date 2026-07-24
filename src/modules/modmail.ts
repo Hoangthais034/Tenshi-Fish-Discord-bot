@@ -7,6 +7,7 @@ import {
   type GuildTextBasedChannel,
   EmbedBuilder,
   Colors,
+  MessageFlags,
 } from 'discord.js';
 import { container } from 'tsyringe';
 import { ModmailService } from '../services/modmail.js';
@@ -175,7 +176,7 @@ const data = new SlashCommandBuilder()
 async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
   const channel = interaction.channel as GuildTextBasedChannel | null;
   if (!isTextChannel(channel)) {
-    await interaction.reply({ content: 'Lệnh này chỉ dùng được trong text channel.', ephemeral: true });
+    await interaction.reply({ content: 'Lệnh này chỉ dùng được trong text channel.', flags: MessageFlags.Ephemeral });
     return;
   }
 
@@ -252,7 +253,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
             result = 'Chưa có snippet nào.';
           } else {
             const desc = snippets.map(s => `\`${s.name}\``).join('\n');
-            await interaction.reply({ embeds: [new EmbedBuilder().setTitle(`Snippets (${snippets.length})`).setDescription(desc).setColor(Colors.Blue)], ephemeral: true });
+            await interaction.reply({ embeds: [new EmbedBuilder().setTitle(`Snippets (${snippets.length})`).setDescription(desc).setColor(Colors.Blue)], flags: MessageFlags.Ephemeral });
             return;
           }
           break;
@@ -293,7 +294,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
             result = 'Không có người dùng nào bị chặn.';
           } else {
             const lines = blocked.map(b => `<@${b.user_id}> — ${b.reason ?? 'Không có lý do'} (bởi <@${b.blocked_by_staff_id}>)`);
-            await interaction.reply({ embeds: [new EmbedBuilder().setTitle(`Danh sách chặn (${blocked.length})`).setDescription(lines.join('\n')).setColor(Colors.Red)], ephemeral: true });
+            await interaction.reply({ embeds: [new EmbedBuilder().setTitle(`Danh sách chặn (${blocked.length})`).setDescription(lines.join('\n')).setColor(Colors.Red)], flags: MessageFlags.Ephemeral });
             return;
           }
           break;
@@ -389,7 +390,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
   }
 
   if (result) {
-    await interaction.reply({ content: result, ephemeral: true });
+    await interaction.reply({ content: result, flags: MessageFlags.Ephemeral });
   }
 }
 

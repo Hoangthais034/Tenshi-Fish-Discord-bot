@@ -25,7 +25,7 @@ async function main(): Promise<void> {
 
   loadCommandMap(commands);
 
-  client.once('ready', () => {
+  client.once('clientReady', async () => {
     const musicService = container.resolve(MusicService);
     musicService.init();
 
@@ -39,7 +39,7 @@ async function main(): Promise<void> {
     honeypotHosted.start();
 
     console.log(`Logged in as ${client.user!.tag}`);
-    registerCommands(commands);
+    await registerCommands(commands, client.user!.id);
   });
 
   client.on('interactionCreate', async interaction => {

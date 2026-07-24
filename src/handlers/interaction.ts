@@ -1,3 +1,4 @@
+import { MessageFlags } from 'discord.js';
 import type { ChatInputCommandInteraction } from 'discord.js';
 import type { Command } from '../types.js';
 
@@ -13,7 +14,7 @@ export async function handleInteraction(interaction: ChatInputCommandInteraction
   const command = commandMap.get(interaction.commandName);
 
   if (!command) {
-    await interaction.reply({ content: 'Command not found.', ephemeral: true });
+    await interaction.reply({ content: 'Command not found.', flags: MessageFlags.Ephemeral });
     return;
   }
 
@@ -22,7 +23,7 @@ export async function handleInteraction(interaction: ChatInputCommandInteraction
   } catch (e) {
     console.error(`Error executing ${interaction.commandName}:`, e);
 
-    const reply = { content: 'An error occurred while executing this command.', ephemeral: true };
+    const reply = { content: 'An error occurred while executing this command.', flags: MessageFlags.Ephemeral };
 
     if (interaction.replied || interaction.deferred) {
       await interaction.followUp(reply);

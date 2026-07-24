@@ -1,7 +1,29 @@
-import { Manager, type SearchResult, type Player, type Track } from 'erela.js';
+import { Manager, Structure, type SearchResult, type Player, type Track } from 'erela.js';
+import WebSocket from 'ws';
 import { Client } from 'discord.js';
 import { injectable, inject } from 'tsyringe';
 import { config } from '../config.js';
+
+Structure.extend('Node', (NodeClass) => {
+  return class NodeLinkNode extends NodeClass {
+    connect() {
+      if ((this as any).connected) return;
+      const headers = {
+        Authorization: (this as any).options.password,
+        'Num-Shards': String((this as any).manager.options.shards),
+        'User-Id': (this as any).manager.options.clientId,
+        'Client-Name': (this as any).manager.options.clientName,
+      };
+      const proto = (this as any).options.secure ? 'wss' : 'ws';
+      const url = `${proto}://${(this as any).address}/v4/websocket`;
+      (this as any).socket = new WebSocket(url, { headers });
+      (this as any).socket.on('open', (this as any).open.bind(this));
+      (this as any).socket.on('close', (this as any).close.bind(this));
+      (this as any).socket.on('message', (this as any).message.bind(this));
+      (this as any).socket.on('error', (this as any).error.bind(this));
+    }
+  };
+});
 
 @injectable()
 export class MusicService {
