@@ -1,5 +1,5 @@
 import { MessageFlags } from 'discord.js';
-import type { ChatInputCommandInteraction } from 'discord.js';
+import type { ChatInputCommandInteraction, InteractionReplyOptions } from 'discord.js';
 import type { Command } from '../types.js';
 
 const commandMap = new Map<string, Command>();

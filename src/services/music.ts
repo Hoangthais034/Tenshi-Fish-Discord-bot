@@ -1,7 +1,7 @@
 import { Manager, Structure, type SearchResult, type Player, type Track } from 'erela.js';
 import WebSocket from 'ws';
 import { Client } from 'discord.js';
-import { injectable, inject } from 'tsyringe';
+import { singleton, inject } from 'tsyringe';
 import { config } from '../config.js';
 
 Structure.extend('Node', (NodeClass) => {
@@ -51,7 +51,7 @@ Structure.extend('Node', (NodeClass) => {
   };
 });
 
-@injectable()
+@singleton()
 export class MusicService {
   public manager!: Manager;
   private ready = false;
