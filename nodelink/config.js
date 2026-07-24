@@ -113,7 +113,7 @@ export default {
   defaultSearchSource: ['youtube'],
   unifiedSearchSources: ['youtube'],
   sources: {
-    youtube: { enabled: true, allowItag: [], targetItag: null, getOAuthToken: false, hl: 'en', gl: 'US', fallbackSources: [], clients: { search: ['Android'], playback: ['WEB'], resolve: ['WEB'], settings: { TV: { refreshToken: [''] } } }, cipher: { url: 'https://cipher.kikkia.dev/api', token: null } },
+    youtube: { enabled: true, allowItag: [], targetItag: null, getOAuthToken: false, hl: 'en', gl: 'US', fallbackSources: [], clients: { search: ['Android', 'WEB'], playback: ['Android', 'WEB'], resolve: ['Android', 'WEB'], settings: { TV: { refreshToken: [''] } } }, cipher: { url: 'https://cipher.kikkia.dev/api', token: null } },
     http: { enabled: true, userAgent: '' },
     soundcloud: { enabled: false },
     spotify: { enabled: false, clientId: '', clientSecret: '', externalAuthUrl: '', market: 'US', playlistLoadLimit: 1, playlistPageLoadConcurrency: 10, albumLoadLimit: 1, albumPageLoadConcurrency: 5, allowExplicit: true, allowLocalFiles: false, sp_dc: '' },
