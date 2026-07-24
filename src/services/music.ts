@@ -140,7 +140,17 @@ export class MusicService {
       ],
       send: (id, payload) => {
         const guild = this.client.guilds.cache.get(id);
-        if (guild) guild.shard.send(payload);
+        if (!guild) {
+          console.error(`[Send] Guild not found in cache: ${id}`);
+          return;
+        }
+        const shard = guild.shard;
+        if (!shard) {
+          console.error(`[Send] Shard not found for guild ${id} (shardId=${guild.shardId})`);
+          return;
+        }
+        console.log(`[Send] Sending op ${payload.op} voice state to guild ${id}`);
+        shard.send(payload);
       },
     });
 

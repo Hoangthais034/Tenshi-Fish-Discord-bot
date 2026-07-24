@@ -35,8 +35,11 @@ async function main(): Promise<void> {
     musicService.init();
 
     client.on(Events.Raw, (packet: any) => {
-      if (packet.t === 'VOICE_SERVER_UPDATE' || packet.t === 'VOICE_STATE_UPDATE') {
-        console.log(`[Voice] Received ${packet.t}: guild=${packet.d?.guild_id}, has_session=${!!packet.d?.session_id}, has_token=${!!packet.d?.token}`);
+      if (packet.t === 'VOICE_STATE_UPDATE') {
+        console.log(`[Voice] Received VOICE_STATE_UPDATE: guild=${packet.d?.guild_id} user=${packet.d?.user_id} has_session=${!!packet.d?.session_id}`);
+        musicService.manager.updateVoiceState(packet);
+      } else if (packet.t === 'VOICE_SERVER_UPDATE') {
+        console.log(`[Voice] Received VOICE_SERVER_UPDATE: guild=${packet.d?.guild_id} endpoint=${packet.d?.endpoint}`);
         musicService.manager.updateVoiceState(packet);
       }
     });
