@@ -6,6 +6,7 @@ services:
     ports:
       - "2333:2333"
     environment:
+      - NODELINK_SERVER_PORT=2333
       - NODELINK_SERVER_PASSWORD=${NODELINK_PASSWORD:?err}
       - NODELINK_SOURCES_YOUTUBE_ENABLED=true
       - NODELINK_SOURCES_SOUNDCLOUD_ENABLED=true
