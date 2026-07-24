@@ -26,6 +26,11 @@ var devGuildId = Environment.GetEnvironmentVariable("DISCORD_DEV_GUILD_ID");
 if (!string.IsNullOrEmpty(devGuildId))
     builder.Configuration["Discord:DevGuildId"] = devGuildId;
 
+var lavalinkPassword = Environment.GetEnvironmentVariable("LAVALINK_PASSWORD")
+    ?? Environment.GetEnvironmentVariable("Lavalink__Password");
+if (!string.IsNullOrEmpty(lavalinkPassword))
+    builder.Configuration["Lavalink:Password"] = lavalinkPassword;
+
 builder.Services.Configure<DiscordBot.Configuration.DiscordConfig>(builder.Configuration.GetSection("Discord"));
 builder.Services.Configure<LavalinkConfig>(builder.Configuration.GetSection("Lavalink"));
 builder.Services.Configure<ModmailConfig>(builder.Configuration.GetSection("Modmail"));
