@@ -6,6 +6,8 @@ import { config } from '../config.js';
 
 Structure.extend('Node', (NodeClass) => {
   return class NodeLinkNode extends NodeClass {
+    private pingInterval: ReturnType<typeof setInterval> | null = null;
+
     constructor(options: any) {
       super(options);
       const origMessage = (this as any).message.bind(this);
@@ -13,7 +15,7 @@ Structure.extend('Node', (NodeClass) => {
         if (typeof d === 'string' || d instanceof Buffer || d instanceof ArrayBuffer) {
           try {
             const parsed = JSON.parse(d.toString());
-            if (parsed?.op === 'ready') return;
+            if (parsed?.op === 'ready' || parsed?.op === 'pong') return;
           } catch {}
         }
         origMessage(d);
@@ -35,6 +37,24 @@ Structure.extend('Node', (NodeClass) => {
       (this as any).socket.on('close', (this as any).close.bind(this));
       (this as any).socket.on('message', (this as any).message.bind(this));
       (this as any).socket.on('error', (this as any).error.bind(this));
+    }
+
+    open() {
+      (NodeClass.prototype as any).open.call(this);
+      if (this.pingInterval) clearInterval(this.pingInterval);
+      this.pingInterval = setInterval(() => {
+        if ((this as any).connected) {
+          (this as any).send({ op: 'ping' });
+        }
+      }, 30_000);
+    }
+
+    close(code: number, reason: string) {
+      if (this.pingInterval) {
+        clearInterval(this.pingInterval);
+        this.pingInterval = null;
+      }
+      (NodeClass.prototype as any).close.call(this, code, reason);
     }
 
     async makeRequest(endpoint: string, modify?: (options: any) => void): Promise<any> {
