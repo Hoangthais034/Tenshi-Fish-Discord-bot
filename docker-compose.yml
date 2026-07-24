@@ -1,23 +1,20 @@
 services:
-  lavalink:
-    build: ./lavalink
-    image: tenshi-lavalink
-    container_name: lavalink
+  nodelink:
+    image: ghcr.io/nonelolly/nodelink:latest
+    container_name: nodelink
     restart: unless-stopped
     ports:
       - "2333:2333"
     environment:
-      - _JAVA_OPTIONS=-Xmx384m
       - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD:?err}
     volumes:
-      - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
-      - lavalink-data:/opt/Lavalink/data
+      - ./nodelink/application.yml:/app/application.yml:ro
     healthcheck:
       test: ["CMD-SHELL", "curl -sf -H \"Authorization: $$LAVALINK_SERVER_PASSWORD\" http://localhost:2333/v4/info"]
       interval: 15s
       timeout: 10s
       retries: 40
-      start_period: 600s
+      start_period: 60s
     networks:
       - botnet
     logging:
@@ -32,17 +29,17 @@ services:
     container_name: discord-bot
     restart: unless-stopped
     depends_on:
-      lavalink:
+      nodelink:
         condition: service_healthy
     environment:
-      - DOTNET_ENVIRONMENT=Production
-      - Discord__Token=${DISCORD_TOKEN:?err}
-      - Discord__OwnerId=${DISCORD_OWNER_ID:-0}
-      - Discord__DevGuildId=${DISCORD_DEV_GUILD_ID:-0}
-      - Lavalink__BaseAddress=http://lavalink:2333
-      - Lavalink__Password=${LAVALINK_PASSWORD:?err}
-      - Modmail__GuildId=${MODMAIL_GUILD_ID:?err}
-      - Modmail__CategoryId=${MODMAIL_CATEGORY_ID:-0}
+      - DISCORD_TOKEN=${DISCORD_TOKEN:?err}
+      - DISCORD_OWNER_ID=${DISCORD_OWNER_ID:-0}
+      - DISCORD_DEV_GUILD_ID=${DISCORD_DEV_GUILD_ID:-0}
+      - NODELINK_HOST=nodelink
+      - NODELINK_PORT=2333
+      - NODELINK_PASSWORD=${NODELINK_PASSWORD:?err}
+      - MODMAIL_GUILD_ID=${MODMAIL_GUILD_ID:?err}
+      - MODMAIL_CATEGORY_ID=${MODMAIL_CATEGORY_ID:-0}
       - DATA_PATH=/data/bot-data.db
     volumes:
       - bot-data:/data
@@ -59,5 +56,4 @@ networks:
     driver: bridge
 
 volumes:
-  lavalink-data:
   bot-data:

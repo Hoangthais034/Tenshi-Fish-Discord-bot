@@ -1,28 +1,8 @@
-# .NET
-bin/
-obj/
-*.user
-*.suo
-*.sln.docstates
-*.userprefs
-*.csproj.user
-.vs/
-
-# Node / Yarn
 node_modules/
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/releases
-!.yarn/plugins
-!.yarn/sdks
-!.yarn/versions
-.yarn/build-state.yml
-.yarn/cache/
-.yarn/unplugged/
+dist/
+.data/
 
-# Env files (chứa token thật)
-appsettings.Development.json
+# Env
 .env
 .env.local
 .env.production
@@ -31,19 +11,12 @@ appsettings.Development.json
 .DS_Store
 Thumbs.db
 
-# Docker
-docker-compose.override.yml
-
-# LiteDB
-*.db
-*.db-lock
-/data/
-
-# Lavalink plugins (auto-downloaded)
-plugins/
-
 # IDE
 .idea/
+.vscode/
 *.swp
 *.swo
 *~
+
+# Docker
+docker-compose.override.yml

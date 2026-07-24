@@ -1,20 +1,17 @@
-#!/usr/bin/env bash
-# VPS deploy: pull code, restart with pre-pushed images.
-# For CI/CD: use build-and-push.sh on local machine first.
-# This script is for cases where you just pulled new code/config.
-set -euo pipefail
+#!/bin/bash
+set -e
 
-cd "$(dirname "$0")"
+echo "=== Building and deploying Discord Bot ==="
 
-echo "=== Pulling latest code ==="
-git pull
+# Load .env
+if [ -f .env ]; then
+  export $(grep -v '^#' .env | xargs)
+fi
 
-echo "=== Restarting containers ==="
-docker compose down --remove-orphans 2>/dev/null || true
-docker compose up -d --force-recreate
+# Build and start
+docker compose build bot
+docker compose up -d --remove-orphans
 
-echo "=== Pruning old images ==="
-docker image prune -f 2>/dev/null || true
-
-echo "=== Done ==="
-docker compose ps
+echo "=== Deploy complete ==="
+echo "Check status: docker compose ps"
+echo "View logs: docker compose logs -f bot"
