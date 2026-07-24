@@ -148,6 +148,12 @@ export class MusicService {
       console.log(`Lavalink node connected: ${node.options.identifier}`);
     });
 
+    this.manager.on('nodeRaw', (payload: any) => {
+      if (payload.op === 'voiceUpdate' || payload.op === 'play' || payload.op === 'destroy') {
+        console.log(`[NodeRaw] op=${payload.op} guildId=${payload.guildId} has_session=${!!payload.sessionId} has_event=${!!payload.event}`);
+      }
+    });
+
     this.manager.on('nodeError', (node, error) => {
       console.error(`Lavalink node error [${node.options.identifier}]:`, error.message);
     });
@@ -156,12 +162,25 @@ export class MusicService {
       console.log(`Playing: ${track.title}`);
     });
 
+    this.manager.on('trackEnd', (player, track, payload) => {
+      console.log(`Track ended: ${track?.title}, reason: ${payload.reason}`);
+    });
+
     this.manager.on('queueEnd', player => {
+      console.log(`Queue ended for guild ${player.guild}`);
       player.destroy();
     });
 
     this.manager.on('playerDestroy', player => {
       console.log(`Player destroyed for guild ${player.guild}`);
+    });
+
+    this.manager.on('nodeDisconnect', (node, { code, reason }) => {
+      console.log(`Node disconnected: ${node.options.identifier}, code=${code} reason=${reason}`);
+    });
+
+    this.manager.on('nodeReconnect', node => {
+      console.log(`Node reconnecting: ${node.options.identifier}`);
     });
 
     this.manager.init(this.client.user!.id);
