@@ -22,6 +22,18 @@ Structure.extend('Node', (NodeClass) => {
       (this as any).socket.on('message', (this as any).message.bind(this));
       (this as any).socket.on('error', (this as any).error.bind(this));
     }
+
+    async makeRequest(endpoint: string, modify?: (options: any) => void): Promise<any> {
+      let path = endpoint;
+      if (path.startsWith('/loadtracks')) {
+        path = path.replace('/loadtracks', '/v4/loadtracks');
+      } else if (path.startsWith('/decodetracks')) {
+        path = path.replace('/decodetracks', '/v4/decodetrack');
+      } else if (!path.startsWith('/version')) {
+        path = `/v4${path}`;
+      }
+      return (NodeClass.prototype as any).makeRequest.call(this, path, modify);
+    }
   };
 });
 
