@@ -1,4 +1,8 @@
+using System.Text;
+using System.Text.Json;
+using Discord;
 using Discord.WebSocket;
+using DiscordBot.Configuration;
 using Lavalink4NET;
 using Lavalink4NET.Extensions;
 using Lavalink4NET.Players;
@@ -13,31 +17,25 @@ namespace DiscordBot.Services;
 public sealed class MusicService
 {
     private readonly IAudioService _audio;
+    private readonly DiscordSocketClient _client;
     private readonly ILogger<MusicService> _logger;
+    private readonly LavalinkConfig _lavalink;
 
-    public MusicService(IAudioService audio, ILogger<MusicService> logger)
+    public MusicService(
+        IAudioService audio,
+        DiscordSocketClient client,
+        IOptions<LavalinkConfig> lavalink,
+        ILogger<MusicService> logger)
     {
         _audio = audio;
+        _client = client;
         _logger = logger;
+        _lavalink = lavalink.Value;
     }
 
     public void RegisterHandlers(DiscordSocketClient client)
     {
     }
-
-    private static readonly PlayerFactory<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions> PlayerFactory =
-        Lavalink4NET.Players.PlayerFactory.Create<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
-            static props => new QueuedLavalinkPlayer(props));
-
-    private static readonly QueuedLavalinkPlayerOptions DefaultOptions = new()
-    {
-        DisconnectOnStop = true,
-        ClearQueueOnStop = true,
-        SelfDeaf = true,
-    };
-
-    private static readonly IOptions<QueuedLavalinkPlayerOptions> PlayerOptions =
-        Options.Create(DefaultOptions);
 
     private async ValueTask<QueuedLavalinkPlayer?> GetPlayerAsync(ulong guildId)
     {
@@ -51,49 +49,96 @@ public sealed class MusicService
         if (existing is not null)
             return existing;
 
-        var retrieveOptions = new PlayerRetrieveOptions(
-            ChannelBehavior: PlayerChannelBehavior.Join);
+        var guild = _client.GetGuild(guildId);
+        var channel = guild?.GetVoiceChannel(voiceChannelId);
+        if (channel is null)
+            return null;
 
-        // RetrieveAsync has a hardcoded 10s timeout. On slow hosts the PATCH may take
-        // longer, but the background request will still complete. Send ONE request and
-        // poll for the result — never retry RetrieveAsync because each retry sends a
-        // duplicate PATCH that also takes 10-40s.
+        var node = _audio.GetNodes().FirstOrDefault();
+        if (node?.SessionId is null)
+        {
+            _logger.LogWarning("Lavalink node chưa sẵn sàng");
+            return null;
+        }
+
+        var voiceInfo = await JoinVoiceChannelAsync(channel);
+        if (voiceInfo is null)
+        {
+            _logger.LogWarning("Không lấy được voice server info cho guild {GuildId}", guildId);
+            return null;
+        }
+
+        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
+        http.BaseAddress = new Uri(_lavalink.BaseAddress.TrimEnd('/') + '/');
+
+        var payload = new
+        {
+            voice = new
+            {
+                token = voiceInfo.Value.Token,
+                endpoint = voiceInfo.Value.Endpoint,
+                sessionId = voiceInfo.Value.SessionId
+            }
+        };
+
         try
         {
-            var result = await _audio.Players
-                .RetrieveAsync<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(
-                    guildId, voiceChannelId, PlayerFactory, PlayerOptions, retrieveOptions)
-                .ConfigureAwait(false);
-
-            if (result.IsSuccess)
-                return result.Player;
-        }
-        catch (TimeoutException)
-        {
-            _logger.LogWarning("RetrieveAsync timeout, poll chờ player nền...");
+            var json = JsonSerializer.Serialize(payload);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var response = await http.PatchAsync(
+                $"v4/sessions/{node.SessionId}/players/{guildId}", content);
+            response.EnsureSuccessStatusCode();
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "RetrieveAsync error, poll chờ player nền...");
+            _logger.LogError(ex, "Lỗi khi tạo player qua REST API cho guild {GuildId}", guildId);
+            return null;
         }
 
-        // Poll: the background PATCH from RetrieveAsync should finish within ~30-40s.
-        var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(30);
-        while (DateTime.UtcNow < deadline)
+        for (var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(10);
+             DateTime.UtcNow < deadline;)
         {
-            await Task.Delay(1000).ConfigureAwait(false);
             var player = await _audio.Players
                 .GetPlayerAsync<QueuedLavalinkPlayer>(guildId)
                 .ConfigureAwait(false);
             if (player is not null)
-            {
-                _logger.LogInformation("Player nền xuất hiện cho guild {GuildId}", guildId);
                 return player;
-            }
+            await Task.Delay(500).ConfigureAwait(false);
         }
 
-        _logger.LogWarning("Không lấy được player sau 40s cho guild {GuildId}", guildId);
+        _logger.LogWarning("Player không xuất hiện sau khi PATCH thành công cho guild {GuildId}", guildId);
         return null;
+    }
+
+    private async ValueTask<(string Token, string Endpoint, string SessionId)?> JoinVoiceChannelAsync(
+        IVoiceChannel channel)
+    {
+        var tcs = new TaskCompletionSource<(string Token, string Endpoint, string SessionId)?>();
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+
+        Task OnVoiceServerUpdated(SocketVoiceServer server)
+        {
+            if (server.Guild.Id == channel.GuildId)
+            {
+                var guild = _client.GetGuild(channel.GuildId);
+                var sessionId = guild?.GetUser(_client.CurrentUser.Id)?.VoiceState?.VoiceSessionId;
+                if (sessionId is not null)
+                    tcs.TrySetResult((server.Token, server.Endpoint, sessionId));
+            }
+            return Task.CompletedTask;
+        }
+
+        _client.VoiceServerUpdated += OnVoiceServerUpdated;
+        try
+        {
+            using var registration = cts.Token.Register(() => tcs.TrySetResult(null));
+            await channel.ConnectAsync();
+            return await tcs.Task;
+        }
+        finally
+        {
+            _client.VoiceServerUpdated -= OnVoiceServerUpdated;
+        }
     }
 
     public async Task<string> PlayAsync(ulong guildId, ulong voiceChannelId, string query)
