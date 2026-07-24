@@ -46,10 +46,60 @@ Structure.extend('Node', (NodeClass) => {
       } else if (!path.startsWith('/version')) {
         path = `/v4${path}`;
       }
-      return (NodeClass.prototype as any).makeRequest.call(this, path, modify);
+      const res = await (NodeClass.prototype as any).makeRequest.call(this, path, modify);
+      return transformV4ToV3(res);
     }
   };
 });
+
+function normalizeTrackV4toV3(t: any): any {
+  if (!t) return t;
+  return {
+    track: t.encoded ?? t.track ?? '',
+    info: t.info ?? {},
+  };
+}
+
+function transformV4ToV3(res: any): any {
+  if (!res || typeof res !== 'object' || !res.loadType) return res;
+
+  const { loadType, data } = res;
+
+  switch (loadType) {
+    case 'search':
+      return {
+        loadType: 'SearchResult',
+        tracks: Array.isArray(data) ? data.map(normalizeTrackV4toV3) : [],
+        playlistInfo: null,
+        exception: null,
+      };
+    case 'track':
+      return {
+        loadType: 'TrackLoaded',
+        tracks: data ? [normalizeTrackV4toV3(data)] : [],
+        playlistInfo: null,
+        exception: null,
+      };
+    case 'playlist':
+      return {
+        loadType: 'PlaylistLoaded',
+        tracks: Array.isArray(data?.tracks) ? data.tracks.map(normalizeTrackV4toV3) : [],
+        playlistInfo: { name: data?.info?.name ?? 'Unknown', selectedTrack: data?.info?.selectedTrack ?? -1 },
+        exception: null,
+      };
+    case 'empty':
+      return { loadType: 'NoMatches', tracks: [], playlistInfo: null, exception: null };
+    case 'error':
+      return {
+        loadType: 'LoadFailed',
+        tracks: [],
+        playlistInfo: null,
+        exception: { message: data?.message ?? 'Unknown error', severity: data?.severity ?? 'COMMON' },
+      };
+    default:
+      return res;
+  }
+}
 
 @singleton()
 export class MusicService {
