@@ -2,11 +2,13 @@ import { Manager, Structure, type SearchResult, type Player, type Track } from '
 import WebSocket from 'ws';
 import { Client } from 'discord.js';
 import { singleton, inject } from 'tsyringe';
+import { request } from 'undici';
 import { config } from '../config.js';
 
 Structure.extend('Node', (NodeClass) => {
   return class NodeLinkNode extends NodeClass {
     private pingInterval: ReturnType<typeof setInterval> | null = null;
+    private sessionId: string | null = null;
 
     constructor(options: any) {
       super(options);
@@ -15,7 +17,11 @@ Structure.extend('Node', (NodeClass) => {
         if (typeof d === 'string' || d instanceof Buffer || d instanceof ArrayBuffer) {
           try {
             const parsed = JSON.parse(d.toString());
-            if (parsed?.op === 'ready' || parsed?.op === 'pong') return;
+            if (parsed?.op === 'ready') {
+              if (parsed.sessionId) this.sessionId = parsed.sessionId;
+              return;
+            }
+            if (parsed?.op === 'pong') return;
           } catch {}
         }
         origMessage(d);
@@ -55,6 +61,91 @@ Structure.extend('Node', (NodeClass) => {
         this.pingInterval = null;
       }
       (NodeClass.prototype as any).close.call(this, code, reason);
+    }
+
+    async send(data: any): Promise<boolean> {
+      if (!data || !data.op) return false;
+
+      switch (data.op) {
+        case 'voiceUpdate':
+        case 'play':
+        case 'stop':
+        case 'pause':
+        case 'seek':
+        case 'volume':
+        case 'destroy':
+          console.log(`[REST] sending op=${data.op} guildId=${data.guildId} sessionId=${this.sessionId}`);
+          const ok = await this.sendViaRest(data);
+          console.log(`[REST] result=${ok}`);
+          return ok;
+        default:
+          return (NodeClass.prototype as any).send.call(this, data);
+      }
+    }
+
+    private async sendViaRest(data: any): Promise<boolean> {
+      if (!this.sessionId) {
+        console.warn(`[REST] No sessionId yet, dropping op=${data.op}`);
+        return false;
+      }
+      const guildId = data.guildId;
+      if (!guildId) return false;
+
+      const proto = (this as any).options.secure ? 'https' : 'http';
+      const base = `${proto}://${(this as any).address}`;
+      const headers: Record<string, string> = { Authorization: (this as any).options.password };
+
+      try {
+        if (data.op === 'destroy') {
+          const url = `${base}/v4/sessions/${this.sessionId}/players/${guildId}`;
+          const res = await request(url, { method: 'DELETE', headers });
+          return res.statusCode === 204 || res.statusCode === 200;
+        }
+
+        const body: any = {};
+
+        switch (data.op) {
+          case 'voiceUpdate': {
+            body.voice = {
+              sessionId: data.sessionId,
+              token: data.event?.token,
+              endpoint: data.event?.endpoint,
+            };
+            break;
+          }
+          case 'play': {
+            body.track = { encoded: data.track };
+            if (data.startTime != null) body.position = data.startTime;
+            if (data.endTime != null) body.endTime = data.endTime;
+            break;
+          }
+          case 'stop': {
+            body.track = { encoded: null };
+            break;
+          }
+          case 'pause': {
+            body.paused = data.pause;
+            break;
+          }
+          case 'seek': {
+            body.position = data.position;
+            break;
+          }
+          case 'volume': {
+            body.volume = data.volume;
+            break;
+          }
+        }
+
+        headers['Content-Type'] = 'application/json';
+        const noReplace = data.noReplace ? 'true' : 'false';
+        const url = `${base}/v4/sessions/${this.sessionId}/players/${guildId}?noReplace=${noReplace}`;
+        const res = await request(url, { method: 'PATCH', headers, body: JSON.stringify(body) });
+        return res.statusCode === 204 || res.statusCode === 200;
+      } catch (e) {
+        console.error(`[REST] Error op=${data.op} guildId=${guildId}:`, (e as Error).message);
+        return false;
+      }
     }
 
     async makeRequest(endpoint: string, modify?: (options: any) => void): Promise<any> {
