@@ -357,12 +357,14 @@ export class MusicService {
     console.log('[VoiceEvents] client.ws exists:', !!this.client.ws);
 
     this.client.ws.on('VOICE_STATE_UPDATE', (data: any) => {
-      console.log('[VoiceEvents] VOICE_STATE_UPDATE received, has d:', !!data?.d, 'guildId:', data?.d?.guild_id);
+      console.log('[VoiceEvents] VOICE_STATE_UPDATE raw keys:', Object.keys(data || {}), 'guild_id:', data?.guild_id, 'channel_id:', data?.channel_id);
+      console.log('[VoiceEvents] forwarding VOICE_STATE_UPDATE to manager...');
       this.manager.updateVoiceState({ t: 'VOICE_STATE_UPDATE', d: data });
     });
 
     this.client.ws.on('VOICE_SERVER_UPDATE', (data: any) => {
-      console.log('[VoiceEvents] VOICE_SERVER_UPDATE received, endpoint:', data?.d?.endpoint);
+      console.log('[VoiceEvents] VOICE_SERVER_UPDATE raw keys:', Object.keys(data || {}), 'endpoint:', data?.endpoint, 'token:', data?.token ? 'present' : 'missing');
+      console.log('[VoiceEvents] forwarding VOICE_SERVER_UPDATE to manager...');
       this.manager.updateVoiceState({ t: 'VOICE_SERVER_UPDATE', d: data });
     });
   }
