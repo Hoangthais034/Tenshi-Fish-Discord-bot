@@ -113,7 +113,7 @@ export default {
   defaultSearchSource: ['youtube', 'soundcloud'],
   unifiedSearchSources: ['youtube', 'soundcloud'],
   sources: {
-    youtube: { enabled: true, allowItag: [], targetItag: null, getOAuthToken: process.env.YT_GET_OAUTH_TOKEN === 'true', hl: 'en', gl: 'US', fallbackSources: [], clients: { search: ['TV', 'TV_EMBED', 'MUSIC_ANDROID', 'Android', 'WEB'], playback: ['TV', 'TV_EMBED', 'MUSIC_ANDROID', 'Android', 'WEB'], resolve: ['TV', 'TV_EMBED', 'MUSIC_ANDROID', 'Android', 'WEB'], settings: { TV: { refreshToken: process.env.YT_REFRESH_TOKEN ? [process.env.YT_REFRESH_TOKEN] : [] } } }, cipher: { url: 'https://cipher.kikkia.dev/api', token: null } },
+    youtube: { enabled: true, allowItag: [], targetItag: null, getOAuthToken: false, hl: 'en', gl: 'US', fallbackSources: [], clients: { search: ['MUSIC_ANDROID', 'Android', 'WEB'], playback: ['MUSIC_ANDROID', 'Android', 'WEB'], resolve: ['MUSIC_ANDROID', 'Android', 'WEB'] }, cipher: { url: 'https://cipher.kikkia.dev/api', token: null } },
     http: { enabled: true, userAgent: '' },
     soundcloud: { enabled: true },
     spotify: { enabled: false, clientId: '', clientSecret: '', externalAuthUrl: '', market: 'US', playlistLoadLimit: 1, playlistPageLoadConcurrency: 10, albumLoadLimit: 1, albumPageLoadConcurrency: 5, allowExplicit: true, allowLocalFiles: false, sp_dc: '' },
