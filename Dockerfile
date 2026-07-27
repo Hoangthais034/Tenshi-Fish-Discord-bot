@@ -19,7 +19,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY --from=deps /app/node_modules ./node_modules
 
-COPY tsconfig.json ./
+COPY tsconfig.json tsup.config.ts ./
 COPY src/ ./src/
 
 RUN npm run build
