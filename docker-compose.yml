@@ -13,6 +13,7 @@ services:
       - NODELINK_SERVER_PASSWORD=${NODELINK_PASSWORD:?err}
     volumes:
       - ./nodelink/config.js:/app/config.js
+      - ./nodelink/.cache:/app/.cache
     healthcheck:
       test: ["CMD-SHELL", "node -e \"require('net').createConnection(2333,'localhost').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))\""]
       interval: 15s
