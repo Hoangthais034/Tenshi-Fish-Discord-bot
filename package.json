@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
-    "build": "tsup src/index.ts --format esm --outDir dist --dts --external ws --external erela.js",
-    "start": "node dist/index.js",
+    "build": "rm -rf dist && tsup",
+    "start": "node dist/index.cjs",
     "db:init": "tsx src/database/init.ts"
   },
   "dependencies": {

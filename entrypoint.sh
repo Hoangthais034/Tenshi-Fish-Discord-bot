@@ -1,2 +1,2 @@
 #!/bin/sh
-cd /app && exec node --import reflect-metadata dist/index.js
+cd /app && exec node dist/index.cjs
