@@ -286,9 +286,26 @@ export class MusicService {
     if (!track) return `Không tìm thấy kết quả cho \`${query}\`.`;
 
     const enqueueSingle = player.queue.current !== null;
-    player.queue.add(track);
-    if (!player.playing && !player.paused) player.play();
+    try {
+      player.queue.add(track);
+      console.log(`[play] track added to queue, current=${!!player.queue.current}, playing=${player.playing}, paused=${player.paused}`);
+    } catch (e) {
+      console.error(`[play] queue.add error:`, e);
+      return '❌ Lỗi khi thêm track vào hàng đợi.';
+    }
 
+    if (!player.playing && !player.paused) {
+      try {
+        console.log(`[play] calling player.play()`);
+        player.play();
+        console.log(`[play] player.play() returned`);
+      } catch (e) {
+        console.error(`[play] player.play() error:`, e);
+        return '❌ Lỗi khi phát nhạc.';
+      }
+    }
+
+    console.log(`[play] returning success: ${track.title}`);
     return enqueueSingle
       ? `Đã thêm vào hàng đợi: **${track.title}**`
       : `Đang phát: **${track.title}**`;
