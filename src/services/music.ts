@@ -66,7 +66,9 @@ Structure.extend('Node', (NodeClass) => {
       } else if (!path.startsWith('/version')) {
         path = `/v4${path}`;
       }
+      console.log(`[makeRequest] calling ${path}`);
       const res = await (NodeClass.prototype as any).makeRequest.call(this, path, modify);
+      console.log(`[makeRequest] response loadType=${res?.loadType}, has data=${!!res?.data}`);
       return transformV4ToV3(res);
     }
   };
@@ -240,20 +242,29 @@ export class MusicService {
   }
 
   async play(guildId: string, voiceChannelId: string, query: string, textChannelId?: string): Promise<string> {
+    console.log(`[play] start guild=${guildId} vc=${voiceChannelId} query=${query}`);
     query = this.cleanUrl(query);
+    console.log(`[play] cleaned query=${query}`);
 
     const player = await this.getOrCreatePlayer(guildId, voiceChannelId, textChannelId);
+    console.log(`[play] player created/retrieved: ${!!player}`);
     if (!player) return 'Không thể kết nối tới voice channel.';
+    console.log(`[play] player state: playing=${player.playing} paused=${player.paused} connected=${player.voiceState?.connected}`);
 
     let result: SearchResult;
     try {
+      console.log(`[play] searching... manager exists: ${!!this.manager}`);
       result = await this.manager.search(query, this.client.user!);
-    } catch {
+      console.log(`[play] search result loadType=${result?.loadType} tracks=${result?.tracks?.length}`);
+    } catch (e) {
+      console.error(`[play] search error:`, e);
       return `Lỗi khi tải track: \`${query}\`.`;
     }
 
-    if (result.loadType === 'LOAD_FAILED' || result.exception)
+    if (result.loadType === 'LOAD_FAILED' || result.exception) {
+      console.error(`[play] load failed:`, result.exception?.message);
       return `Lỗi khi tải track: \`${query}\`.`;
+    }
 
     if (result.loadType === 'NO_MATCHES')
       return `Không tìm thấy kết quả cho \`${query}\`.`;
