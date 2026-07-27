@@ -18,9 +18,13 @@ Structure.extend('Node', (NodeClass) => {
             const parsed = JSON.parse(d.toString());
             if (parsed?.op === 'ready') {
               if (parsed.sessionId) this.sessionId = parsed.sessionId;
+              console.log('[WS] ready event received, sessionId=' + parsed.sessionId);
               return;
             }
             if (parsed?.op === 'pong') return;
+            if (parsed?.op === 'event') {
+              console.log('[WS] event received: type=' + parsed.type + ' guildId=' + parsed.guildId);
+            }
           } catch {}
         }
         origMessage(d);
@@ -251,9 +255,7 @@ export class MusicService {
     });
 
     this.manager.on('nodeRaw', (payload: any) => {
-      if (payload.op === 'voiceUpdate' || payload.op === 'play' || payload.op === 'destroy') {
-        console.log(`[NodeRaw] op=${payload.op} guildId=${payload.guildId} has_session=${!!payload.sessionId} has_event=${!!payload.event}`);
-      }
+      console.log(`[NodeRaw]`, JSON.stringify(payload));
     });
 
     this.manager.on('nodeError', (node, error) => {
