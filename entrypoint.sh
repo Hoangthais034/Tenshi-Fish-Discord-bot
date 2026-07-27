@@ -1,2 +1,2 @@
 #!/bin/sh
-cd /app && exec node dist/index.cjs
+cd /app && exec node dist/index.js
