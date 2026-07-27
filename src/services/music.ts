@@ -2,7 +2,6 @@ import { Manager, Structure, type SearchResult, type Player, type Track } from '
 import WebSocket from 'ws';
 import { Client } from 'discord.js';
 import { singleton, inject } from 'tsyringe';
-import { request } from 'undici';
 import { config } from '../config.js';
 
 Structure.extend('Node', (NodeClass) => {
@@ -98,8 +97,8 @@ Structure.extend('Node', (NodeClass) => {
       try {
         if (data.op === 'destroy') {
           const url = `${base}/v4/sessions/${this.sessionId}/players/${guildId}`;
-          const res = await request(url, { method: 'DELETE', headers });
-          return res.statusCode === 204 || res.statusCode === 200;
+          const res = await fetch(url, { method: 'DELETE', headers });
+          return res.ok;
         }
 
         const body: any = {};
@@ -140,8 +139,8 @@ Structure.extend('Node', (NodeClass) => {
         headers['Content-Type'] = 'application/json';
         const noReplace = data.noReplace ? 'true' : 'false';
         const url = `${base}/v4/sessions/${this.sessionId}/players/${guildId}?noReplace=${noReplace}`;
-        const res = await request(url, { method: 'PATCH', headers, body: JSON.stringify(body) });
-        return res.statusCode === 204 || res.statusCode === 200;
+        const res = await fetch(url, { method: 'PATCH', headers, body: JSON.stringify(body) });
+        return res.ok;
       } catch (e) {
         console.error(`[REST] Error op=${data.op} guildId=${guildId}:`, (e as Error).message);
         return false;
