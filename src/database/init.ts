@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const __dirname = typeof __dirname !== 'undefined' ? __dirname : dirname(fileURLToPath(import.meta.url));
 
 let db: Database.Database | null = null;
 
@@ -23,7 +23,7 @@ export function getDb(dbPath?: string): Database.Database {
   return db;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (typeof import.meta !== 'undefined' && import.meta.url === `file://${process.argv[1]}`) {
   const d = getDb();
   console.log(`Database initialized at: ${d.name}`);
   d.close();
