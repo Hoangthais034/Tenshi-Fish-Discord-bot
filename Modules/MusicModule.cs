@@ -72,13 +72,11 @@ public sealed class MusicModule : InteractionModuleBase<SocketInteractionContext
     public async Task Play(
         [Summary(description: "Tên bài hát hoặc URL YouTube")] string query)
     {
-        await Context.Interaction.DeferAsync();
-
         var user = Context.User as SocketGuildUser;
         var voiceChannel = user?.VoiceState?.VoiceChannel;
         if (voiceChannel is null)
         {
-            await Context.Interaction.FollowupAsync("Bạn cần vào voice channel trước.");
+            await RespondAsync("play", new MusicResult("Bạn cần vào voice channel trước."));
             return;
         }
 
