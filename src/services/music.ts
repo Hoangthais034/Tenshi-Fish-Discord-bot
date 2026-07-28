@@ -28,6 +28,9 @@ export class MusicService {
           port: config.nodelink.port,
           authorization: config.nodelink.password,
           id: 'nodelink',
+          closeOnError: false,
+          retryAmount: 10,
+          retryDelay: 5000,
         },
       ],
       client: {
@@ -83,6 +86,10 @@ export class MusicService {
 
     this.manager.on('nodeError', (node, error) => {
       console.error(`Lavalink node error [${node.id}]:`, error.message);
+    });
+
+    this.manager.nodeManager.on('error', (error) => {
+      console.error('[NodeManager] error:', (error as Error)?.message ?? error);
     });
 
     this.manager.on('nodeDisconnect', (node, { code, reason }) => {
