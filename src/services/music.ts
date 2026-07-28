@@ -28,9 +28,8 @@ export class MusicService {
           port: config.nodelink.port,
           authorization: config.nodelink.password,
           id: 'nodelink',
-          closeOnError: false,
-          retryAmount: 10,
-          retryDelay: 5000,
+          retryAmount: 20,
+          retryDelay: 3000,
         },
       ],
       client: {
@@ -80,16 +79,16 @@ export class MusicService {
       console.log(`Player destroyed for guild ${player.guildId}`);
     });
 
+    this.manager.nodeManager.on('error', (...args) => {
+      // prevent crash from unhandled 'error' event on NodeManager
+    });
+
     this.manager.on('nodeConnect', node => {
       console.log(`Lavalink node connected: ${node.id}`);
     });
 
     this.manager.on('nodeError', (node, error) => {
-      console.error(`Lavalink node error [${node.id}]:`, error.message);
-    });
-
-    this.manager.nodeManager.on('error', (error) => {
-      console.error('[NodeManager] error:', (error as Error)?.message ?? error);
+      console.error(`Lavalink node error [${node.id}]:`, error?.message ?? error);
     });
 
     this.manager.on('nodeDisconnect', (node, { code, reason }) => {
