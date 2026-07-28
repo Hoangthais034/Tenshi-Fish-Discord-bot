@@ -19,7 +19,7 @@ export default {
     },
     specializedSourceWorker: {
       enabled: true,
-      count: 0,
+      count: 1,
       microWorkers: 2,
       tasksPerWorker: 128,
       silentLogs: false,
@@ -30,7 +30,7 @@ export default {
     hibernation: { enabled: false, timeoutMs: 1200000 },
     scaling: {
       maxPlayersPerWorker: 200,
-      targetUtilization: 0.85,
+      targetUtilization: 0.75,
       scaleUpThreshold: 0.8,
       scaleDownThreshold: 0.2,
       checkIntervalMs: 2000,
