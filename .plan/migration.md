@@ -7,8 +7,8 @@
 | Runtime | Node.js 20+ |
 | Framework | discord.js v14 |
 | Ngôn ngữ | TypeScript |
-| Audio Client | erela.js v2 |
-| Audio Server | NodeLink |
+| Audio Client | lavalink-client |
+| Audio Server | Lavalink v4 |
 | Database | better-sqlite3 |
 | DI Container | tsyringe |
 | Config | dotenv |
@@ -44,8 +44,8 @@ DiscordBot/
 │       ├── schema.sql            # DDL (9 tables)
 │       ├── init.ts               # Khởi tạo DB
 │       └── types.ts               # Row types
-├── nodelink/
-│   └── application.yml           # NodeLink config
+├── lavalink/
+│   └── application.yml           # Lavalink config
 ├── docker-compose.yml
 ├── Dockerfile
 ├── deploy.sh
@@ -79,11 +79,11 @@ DiscordBot/
 | 1.5 | modules/music.ts, modules/help.ts | Slash commands |
 | 2.1 | services/modmail.ts, modules/modmail.ts | Modmail full |
 | 2.2 | services/honeypot.ts, services/honeypot-hosted.ts, modules/honeypot.ts | Honeypot |
-| 3 | nodelink/, docker-compose.yml, Dockerfile, deploy.sh | Infra |
+| 3 | lavalink/, docker-compose.yml, Dockerfile, deploy.sh | Infra |
 
 ## So sánh C# → TS methods
 
-### MusicService (erela.js)
+### MusicService (lavalink-client)
 
 | C# | TypeScript |
 |---|---|

@@ -7,10 +7,10 @@ export const config = {
     devGuildId: process.env.DISCORD_DEV_GUILD_ID ?? '0',
   },
 
-  nodelink: {
-    host: process.env.NODELINK_HOST ?? 'localhost',
-    port: Number(process.env.NODELINK_PORT) || 2333,
-    password: process.env.NODELINK_PASSWORD ?? 'youshallnotpass',
+  lavalink: {
+    host: process.env.LAVALINK_HOST ?? 'localhost',
+    port: Number(process.env.LAVALINK_PORT) || 2333,
+    password: process.env.LAVALINK_PASSWORD ?? 'youshallnotpass',
     secure: false,
   },
 

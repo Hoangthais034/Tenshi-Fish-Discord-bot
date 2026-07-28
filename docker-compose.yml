@@ -1,22 +1,23 @@
 services:
-  nodelink:
-    image: performanc/nodelink:latest
-    container_name: nodelink
+  lavalink:
+    image: ghcr.io/lavalink-devs/lavalink:4
+    container_name: lavalink
     restart: unless-stopped
     ports:
       - "2333:2333"
     environment:
-      - NODELINK_SERVER_PORT=2333
-      - NODELINK_SERVER_PASSWORD=${NODELINK_PASSWORD:?err}
+      - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD:?err}
+      - LAVALINK_SERVER_PORT=2333
+      - _JAVA_OPTIONS=-Xmx256m -Xms256m
     volumes:
-      - ./nodelink/config.js:/app/config.js
-      - ./nodelink/.cache:/app/.cache
+      - ./lavalink/application.yml:/opt/Lavalink/application.yml
+      - lavalink-logs:/opt/Lavalink/logs
     healthcheck:
-      test: ["CMD-SHELL", "node -e \"require('net').createConnection(2333,'localhost').on('connect',()=>process.exit(0)).on('error',()=>process.exit(1))\""]
+      test: ["CMD", "curl", "-f", "http://localhost:2333/healthcheck"]
       interval: 15s
       timeout: 10s
-      retries: 40
-      start_period: 120s
+      retries: 10
+      start_period: 40s
     networks:
       - botnet
     logging:
@@ -31,15 +32,15 @@ services:
     container_name: discord-bot
     restart: unless-stopped
     depends_on:
-      nodelink:
+      lavalink:
         condition: service_healthy
     environment:
       - DISCORD_TOKEN=${DISCORD_TOKEN:?err}
       - DISCORD_OWNER_ID=${DISCORD_OWNER_ID:-0}
       - DISCORD_DEV_GUILD_ID=${DISCORD_DEV_GUILD_ID:-0}
-      - NODELINK_HOST=nodelink
-      - NODELINK_PORT=2333
-      - NODELINK_PASSWORD=${NODELINK_PASSWORD:?err}
+      - LAVALINK_HOST=lavalink
+      - LAVALINK_PORT=2333
+      - LAVALINK_PASSWORD=${LAVALINK_PASSWORD:?err}
       - MODMAIL_GUILD_ID=${MODMAIL_GUILD_ID:?err}
       - MODMAIL_CATEGORY_ID=${MODMAIL_CATEGORY_ID:-0}
       - DATA_PATH=/data/bot-data.db
@@ -59,3 +60,4 @@ networks:
 
 volumes:
   bot-data:
+  lavalink-logs:

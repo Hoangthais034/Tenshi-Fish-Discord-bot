@@ -24,10 +24,10 @@ export class MusicService {
     this.manager = new LavalinkManager({
       nodes: [
         {
-          host: config.nodelink.host,
-          port: config.nodelink.port,
-          authorization: config.nodelink.password,
-          id: 'nodelink',
+          host: config.lavalink.host,
+          port: config.lavalink.port,
+          authorization: config.lavalink.password,
+          id: 'lavalink',
           retryAmount: 20,
           retryDelay: 3000,
         },

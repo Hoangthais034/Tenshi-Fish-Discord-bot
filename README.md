@@ -1,12 +1,12 @@
 # Tenshi Fish Discord Bot
 
-Discord bot built with discord.js v14, erela.js, better-sqlite3, tsyringe (DI), and NodeLink audio server.
+Discord bot built with discord.js v14, lavalink-client, better-sqlite3, tsyringe (DI), and Lavalink audio server.
 
 ## Stack
 
 - **Runtime:** Node.js + TypeScript
 - **Framework:** discord.js v14
-- **Audio:** erela.js v2.4.0 + NodeLink (Lavalink v4-compatible)
+- **Audio:** lavalink-client + Lavalink v4
 - **Database:** better-sqlite3
 - **DI:** tsyringe
 - **Build:** tsup
@@ -25,13 +25,13 @@ docker compose up -d
 |---|---|---|
 | `DISCORD_TOKEN` | ✅ | Discord bot token |
 | `DISCORD_OWNER_ID` | Owner Discord user ID |
-| `NODELINK_HOST` | NodeLink hostname (default: `nodelink`) |
-| `NODELINK_PORT` | NodeLink port (default: `2333`) |
-| `NODELINK_PASSWORD` | ✅ | NodeLink server password |
+| `LAVALINK_HOST` | Lavalink hostname (default: `lavalink`) |
+| `LAVALINK_PORT` | Lavalink port (default: `2333`) |
+| `LAVALINK_PASSWORD` | ✅ | Lavalink server password |
 | `MODMAIL_GUILD_ID` | ✅ | Guild ID for modmail |
 ## YouTube Block
 
-NodeLink chạy trên Oracle VPS bị YouTube block ở network level (IP datacenter). Tất cả client (Android, WEB, TV, MUSIC_ANDROID) đều fail resolve URL. OAuth cũng ko hiệu quả vì chính OAuth token exchange request cũng bị chặn.
+Host VPS bị YouTube block ở network level (IP datacenter). Tất cả client đều fail resolve URL.
 
 Giải pháp:
 
