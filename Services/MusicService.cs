@@ -1,15 +1,10 @@
-using System.Text;
-using System.Text.Json;
 using Discord;
 using Discord.WebSocket;
-using DiscordBot.Configuration;
 using Lavalink4NET;
-using Lavalink4NET.Extensions;
 using Lavalink4NET.Players;
 using Lavalink4NET.Players.Queued;
 using Lavalink4NET.Rest.Entities.Tracks;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace DiscordBot.Services;
 
@@ -26,18 +21,15 @@ public sealed class MusicService
     private readonly IAudioService _audio;
     private readonly DiscordSocketClient _client;
     private readonly ILogger<MusicService> _logger;
-    private readonly LavalinkConfig _lavalink;
 
     public MusicService(
         IAudioService audio,
         DiscordSocketClient client,
-        IOptions<LavalinkConfig> lavalink,
         ILogger<MusicService> logger)
     {
         _audio = audio;
         _client = client;
         _logger = logger;
-        _lavalink = lavalink.Value;
     }
 
     public void RegisterHandlers(DiscordSocketClient client) { }
@@ -52,75 +44,14 @@ public sealed class MusicService
         var existing = await GetPlayerAsync(guildId);
         if (existing is not null) return existing;
 
-        var guild = _client.GetGuild(guildId);
-        var channel = guild?.GetVoiceChannel(voiceChannelId);
-        if (channel is null) return null;
-
-        var node = _audio.Nodes.GetNodes().FirstOrDefault();
-        if (node?.SessionId is null)
-        {
-            _logger.LogWarning("Lavalink node chưa sẵn sàng");
-            return null;
-        }
-
-        var tcs = new TaskCompletionSource<(string Token, string Endpoint, string SessionId)?>();
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-
-        Task OnVoiceServerUpdated(SocketVoiceServer server)
-        {
-            if (server.Guild.Id == guildId)
-            {
-                var g = _client.GetGuild(guildId);
-                var sid = g?.GetUser(_client.CurrentUser.Id)?.VoiceState?.VoiceSessionId;
-                if (sid is not null)
-                    tcs.TrySetResult((server.Token, server.Endpoint, sid));
-            }
-            return Task.CompletedTask;
-        }
-
-        _client.VoiceServerUpdated += OnVoiceServerUpdated;
         try
         {
-            using var reg = cts.Token.Register(() => tcs.TrySetResult(null));
-            await channel.ConnectAsync();
-            var voiceInfo = await tcs.Task;
-            if (voiceInfo is null) return null;
-
-            using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
-            http.BaseAddress = new Uri(_lavalink.BaseAddress.TrimEnd('/') + '/');
-
-            var payload = new
-            {
-                voice = new
-                {
-                    token = voiceInfo.Value.Token,
-                    endpoint = voiceInfo.Value.Endpoint,
-                    sessionId = voiceInfo.Value.SessionId
-                }
-            };
-
-            var json = JsonSerializer.Serialize(payload);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await http.PatchAsync(
-                $"v4/sessions/{node.SessionId}/players/{guildId}", content);
-            response.EnsureSuccessStatusCode();
-
-            for (var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(10);
-                 DateTime.UtcNow < deadline;)
-            {
-                var player = await _audio.Players
-                    .GetPlayerAsync<QueuedLavalinkPlayer>(guildId)
-                    .ConfigureAwait(false);
-                if (player is not null) return player;
-                await Task.Delay(500).ConfigureAwait(false);
-            }
-
-            _logger.LogWarning("Player không xuất hiện sau khi PATCH cho guild {GuildId}", guildId);
-            return null;
+            return await _audio.Players.JoinAsync<QueuedLavalinkPlayer>(guildId, voiceChannelId);
         }
-        finally
+        catch (Exception ex)
         {
-            _client.VoiceServerUpdated -= OnVoiceServerUpdated;
+            _logger.LogError(ex, "Không thể join voice channel {VoiceChannelId}", voiceChannelId);
+            return null;
         }
     }
 
