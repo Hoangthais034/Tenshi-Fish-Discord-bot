@@ -161,7 +161,7 @@ export default {
   lyrics: { fallbackSource: 'genius', youtube: { enabled: false }, genius: { enabled: false }, musixmatch: { enabled: false }, deezer: { enabled: false }, lrclib: { enabled: false }, letrasmus: { enabled: false }, bilibili: { enabled: false }, yandexmusic: { enabled: false }, monochrome: { enabled: false } },
   meanings: { letrasmus: { enabled: false }, wikipedia: { enabled: false } },
   audio: {
-    quality: 'medium',
+    quality: 'low',
     encryption: 'aead_aes256_gcm_rtpsize',
     resamplingQuality: 'fast',
     loudnessNormalizer: false,
