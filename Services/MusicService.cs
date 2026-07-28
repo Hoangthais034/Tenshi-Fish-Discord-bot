@@ -68,7 +68,7 @@ public sealed class MusicService
         return videoId?.Length >= 10 ? $"https://i.ytimg.com/vi/{videoId}/mqdefault.jpg" : null;
     }
 
-    private static MusicResult MakeResult(string text, ITrack? track = null)
+    private static MusicResult MakeResult(string text, Lavalink4NET.ITrackInfo? track = null)
     {
         if (track is null) return new MusicResult(text);
         return new MusicResult(text)
