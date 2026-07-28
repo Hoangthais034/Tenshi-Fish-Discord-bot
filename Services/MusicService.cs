@@ -44,9 +44,23 @@ public sealed class MusicService
         var existing = await GetPlayerAsync(guildId);
         if (existing is not null) return existing;
 
+        var guild = _client.GetGuild(guildId);
+        var channel = guild?.GetVoiceChannel(voiceChannelId);
+        if (channel is null) return null;
+
         try
         {
-            return await _audio.JoinAsync<QueuedLavalinkPlayer>(guildId, voiceChannelId);
+            await channel.ConnectAsync();
+
+            for (var i = 0; i < 20; i++)
+            {
+                await Task.Delay(500).ConfigureAwait(false);
+                var player = await GetPlayerAsync(guildId).ConfigureAwait(false);
+                if (player is not null) return player;
+            }
+
+            _logger.LogWarning("Player không xuất hiện sau khi join voice guild {GuildId}", guildId);
+            return null;
         }
         catch (Exception ex)
         {
