@@ -1,6 +1,7 @@
 # ── Build stage ──────────────────────────────────────────────
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
 
 COPY DiscordBot.csproj .
 RUN --mount=type=cache,target=/root/.nuget/packages \
@@ -18,8 +19,7 @@ RUN groupadd -r bot && useradd -r -g bot -d /app -s /sbin/nologin bot \
     && mkdir -p /data && chown bot:bot /data
 
 COPY --from=build --chown=bot:bot /app .
-COPY --chown=bot:bot entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+COPY --chown=bot:bot --chmod=755 entrypoint.sh /entrypoint.sh
 
 USER bot
 ENTRYPOINT ["/entrypoint.sh"]
