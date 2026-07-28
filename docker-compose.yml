@@ -7,7 +7,7 @@ services:
     ports:
       - "2333:2333"
     environment:
-      - _JAVA_OPTIONS=-Xmx384m
+      - _JAVA_OPTIONS=-Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=100
       - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD:?err}
     volumes:
       - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
