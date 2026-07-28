@@ -15,7 +15,9 @@ RUN --mount=type=cache,target=/root/.nuget/packages \
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
-RUN groupadd -r bot && useradd -r -g bot -d /app -s /sbin/nologin bot \
+RUN apt-get update && apt-get install -y libopus0 libsodium-dev opus-tools --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd -r bot && useradd -r -g bot -d /app -s /sbin/nologin bot \
     && mkdir -p /data && chown bot:bot /data
 
 COPY --from=build --chown=bot:bot /app .
