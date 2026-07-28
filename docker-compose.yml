@@ -11,9 +11,10 @@ services:
       - _JAVA_OPTIONS=-Xmx256m -Xms256m
     volumes:
       - ./lavalink/application.yml:/opt/Lavalink/application.yml
+      - ./lavalink/plugins/:/opt/Lavalink/plugins/
       - lavalink-logs:/opt/Lavalink/logs
     healthcheck:
-      test: ["CMD", "curl", "-s", "-o", "/dev/null", "http://localhost:2333/version"]
+      test: ["CMD-SHELL", "curl -s -o /dev/null -H 'Authorization: ${LAVALINK_PASSWORD}' http://localhost:2333/version"]
       interval: 15s
       timeout: 10s
       retries: 10

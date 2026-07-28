@@ -6,7 +6,7 @@ lavalink:
   server:
     password: "${LAVALINK_SERVER_PASSWORD:youshallnotpass}"
     sources:
-      youtube: true
+      youtube: false
       bandcamp: true
       soundcloud: true
       twitch: true
@@ -19,11 +19,12 @@ lavalink:
     resamplingQuality: HIGH
     trackStuckThresholdMs: 10000
     useSeekGhosting: true
-    youtubePlaylistLoadLimit: 6
     playerUpdateInterval: 5
-    youtubeSearchEnabled: true
     soundcloudSearchEnabled: true
     gc-warnings: true
+
+plugins:
+  path: /opt/Lavalink/plugins
 
 metrics:
   prometheus:
