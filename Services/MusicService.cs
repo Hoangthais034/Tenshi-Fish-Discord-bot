@@ -46,7 +46,7 @@ public sealed class MusicService
 
         try
         {
-            return await _audio.Players.JoinAsync<QueuedLavalinkPlayer>(guildId, voiceChannelId);
+            return await _audio.Players.JoinAsync<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(guildId, voiceChannelId);
         }
         catch (Exception ex)
         {
