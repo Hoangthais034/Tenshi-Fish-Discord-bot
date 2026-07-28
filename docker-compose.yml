@@ -8,7 +8,7 @@ services:
       - "2333:2333"
     environment:
       - _JAVA_OPTIONS=-Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=100
-      - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD:?err}
+      - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD}
     volumes:
       - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
       - lavalink-data:/opt/Lavalink/data
@@ -36,12 +36,12 @@ services:
         condition: service_healthy
     environment:
       - DOTNET_ENVIRONMENT=Production
-      - Discord__Token=${DISCORD_TOKEN:?err}
+      - Discord__Token=${DISCORD_TOKEN}
       - Discord__OwnerId=${DISCORD_OWNER_ID:-0}
       - Discord__DevGuildId=${DISCORD_DEV_GUILD_ID:-0}
       - Lavalink__BaseAddress=http://lavalink:2333
-      - Lavalink__Password=${LAVALINK_PASSWORD:?err}
-      - Modmail__GuildId=${MODMAIL_GUILD_ID:?err}
+      - Lavalink__Password=${LAVALINK_PASSWORD}
+      - Modmail__GuildId=${MODMAIL_GUILD_ID}
       - Modmail__CategoryId=${MODMAIL_CATEGORY_ID:-0}
       - DATA_PATH=/data/bot-data.db
     volumes:
