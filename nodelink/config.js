@@ -6,9 +6,7 @@ export default {
     useBunServer: false,
   },
   cluster: {
-    enabled: true,
-    workers: 0,
-    minWorkers: 1,
+    enabled: false,
     runtime: {
       workerMaxOldSpaceMb: 0,
       workerExposeGc: false,
