@@ -1,16 +1,10 @@
-using System.Text;
-using System.Text.Json;
 using Discord;
 using Discord.WebSocket;
-using DiscordBot.Configuration;
 using Lavalink4NET;
-using Lavalink4NET.Extensions;
 using Lavalink4NET.Players;
 using Lavalink4NET.Players.Queued;
 using Lavalink4NET.Rest.Entities.Tracks;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace DiscordBot.Services;
 
@@ -27,152 +21,41 @@ public sealed class MusicService
     private readonly IAudioService _audio;
     private readonly DiscordSocketClient _client;
     private readonly ILogger<MusicService> _logger;
-    private readonly LavalinkConfig _lavalink;
 
-    public MusicService(
-        IAudioService audio,
-        DiscordSocketClient client,
-        IOptions<LavalinkConfig> lavalink,
-        ILogger<MusicService> logger)
+    public MusicService(IAudioService audio, DiscordSocketClient client, ILogger<MusicService> logger)
     {
         _audio = audio;
         _client = client;
         _logger = logger;
-        _lavalink = lavalink.Value;
     }
 
-    public void RegisterHandlers(DiscordSocketClient client)
-    {
-    }
+    public void RegisterHandlers(DiscordSocketClient client) { }
 
     private async ValueTask<QueuedLavalinkPlayer?> GetPlayerAsync(ulong guildId)
     {
         return await _audio.Players.GetPlayerAsync<QueuedLavalinkPlayer>(guildId);
     }
 
-    private async ValueTask<QueuedLavalinkPlayer?> GetOrCreatePlayerAsync(
-        ulong guildId, ulong voiceChannelId)
+    private async ValueTask<QueuedLavalinkPlayer?> GetOrCreatePlayerAsync(ulong guildId, ulong voiceChannelId)
     {
-        var existing = await _audio.Players.GetPlayerAsync<QueuedLavalinkPlayer>(guildId);
-        if (existing is not null)
-            return existing;
-
-        var guild = _client.GetGuild(guildId);
-        var channel = guild?.GetVoiceChannel(voiceChannelId);
-        if (channel is null)
-            return null;
-
-        var node = _audio.GetNodes().FirstOrDefault();
-        if (node?.SessionId is null)
-        {
-            _logger.LogWarning("Lavalink node chưa sẵn sàng");
-            return null;
-        }
-
-        var voiceInfo = await JoinVoiceChannelAsync(channel);
-        if (voiceInfo is null)
-        {
-            _logger.LogWarning("Không lấy được voice server info cho guild {GuildId}", guildId);
-            return null;
-        }
-
-        using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(60) };
-        http.BaseAddress = new Uri(_lavalink.BaseAddress.TrimEnd('/') + '/');
-
-        var payload = new
-        {
-            voice = new
-            {
-                token = voiceInfo.Value.Token,
-                endpoint = voiceInfo.Value.Endpoint,
-                sessionId = voiceInfo.Value.SessionId
-            }
-        };
+        var existing = await GetPlayerAsync(guildId);
+        if (existing is not null) return existing;
 
         try
         {
-            var json = JsonSerializer.Serialize(payload);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-            var response = await http.PatchAsync(
-                $"v4/sessions/{node.SessionId}/players/{guildId}", content);
-            response.EnsureSuccessStatusCode();
+            return await _audio.Players.JoinAsync<QueuedLavalinkPlayer>(guildId, voiceChannelId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Lỗi khi tạo player qua REST API cho guild {GuildId}", guildId);
+            _logger.LogError(ex, "Không thể join voice channel {VoiceChannelId}", voiceChannelId);
             return null;
-        }
-
-        for (var deadline = DateTime.UtcNow + TimeSpan.FromSeconds(10);
-             DateTime.UtcNow < deadline;)
-        {
-            var player = await _audio.Players
-                .GetPlayerAsync<QueuedLavalinkPlayer>(guildId)
-                .ConfigureAwait(false);
-            if (player is not null)
-                return player;
-            await Task.Delay(500).ConfigureAwait(false);
-        }
-
-        _logger.LogWarning("Player không xuất hiện sau khi PATCH thành công cho guild {GuildId}", guildId);
-        return null;
-    }
-
-    private async ValueTask<(string Token, string Endpoint, string SessionId)?> JoinVoiceChannelAsync(
-        IVoiceChannel channel)
-    {
-        var tcs = new TaskCompletionSource<(string Token, string Endpoint, string SessionId)?>();
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-
-        Task OnVoiceServerUpdated(SocketVoiceServer server)
-        {
-            if (server.Guild.Id == channel.GuildId)
-            {
-                var guild = _client.GetGuild(channel.GuildId);
-                var sessionId = guild?.GetUser(_client.CurrentUser.Id)?.VoiceState?.VoiceSessionId;
-                if (sessionId is not null)
-                    tcs.TrySetResult((server.Token, server.Endpoint, sessionId));
-            }
-            return Task.CompletedTask;
-        }
-
-        _client.VoiceServerUpdated += OnVoiceServerUpdated;
-        try
-        {
-            using var registration = cts.Token.Register(() => tcs.TrySetResult(null));
-            await channel.ConnectAsync();
-            return await tcs.Task;
-        }
-        finally
-        {
-            _client.VoiceServerUpdated -= OnVoiceServerUpdated;
         }
     }
 
-    private static MusicResult MakeResult(string text, ITrack? track = null)
+    private static string? GetYouTubeThumbnail(Uri? uri)
     {
-        var result = new MusicResult(text);
-        if (track is null) return result;
-
-        var artworkUrl = track.Uri is not null
-            ? GetYouTubeThumbnail(track.Uri.AbsoluteUri)
-            : null;
-
-        return result with
-        {
-            Title = track.Title,
-            Author = track.Author,
-            ArtworkUrl = artworkUrl,
-            Uri = track.Uri?.AbsoluteUri
-        };
-    }
-
-    private static string? GetYouTubeThumbnail(string url)
-    {
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
-            return null;
-        if (!uri.Host.Contains("youtube.com") && uri.Host != "youtu.be")
-            return null;
+        if (uri is null) return null;
+        if (!uri.Host.Contains("youtube.com") && uri.Host != "youtu.be") return null;
 
         var parts = uri.Query.TrimStart('?').Split('&');
         var videoId = parts
@@ -182,10 +65,19 @@ public sealed class MusicService
             .FirstOrDefault()
             ?? uri.Segments.LastOrDefault()?.Trim('/');
 
-        if (string.IsNullOrEmpty(videoId) || videoId.Length < 10)
-            return null;
+        return videoId?.Length >= 10 ? $"https://i.ytimg.com/vi/{videoId}/mqdefault.jpg" : null;
+    }
 
-        return $"https://i.ytimg.com/vi/{videoId}/mqdefault.jpg";
+    private static MusicResult MakeResult(string text, ITrack? track = null)
+    {
+        if (track is null) return new MusicResult(text);
+        return new MusicResult(text)
+        {
+            Title = track.Title,
+            Author = track.Author,
+            ArtworkUrl = GetYouTubeThumbnail(track.Uri),
+            Uri = track.Uri?.AbsoluteUri
+        };
     }
 
     public async Task<MusicResult> PlayAsync(ulong guildId, ulong voiceChannelId, string query)
@@ -193,13 +85,10 @@ public sealed class MusicService
         query = CleanUrl(query);
 
         QueuedLavalinkPlayer? player;
-        try
-        {
-            player = await GetOrCreatePlayerAsync(guildId, voiceChannelId);
-        }
+        try { player = await GetOrCreatePlayerAsync(guildId, voiceChannelId); }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Không thể kết nối NodeLink");
+            _logger.LogError(ex, "Không thể kết nối Lavalink");
             return new MusicResult("Không thể kết nối tới Lavalink server. Vui lòng thử lại sau.");
         }
 
@@ -210,13 +99,9 @@ public sealed class MusicService
         try
         {
             var loadTask = _audio.Tracks.LoadTracksAsync(query, TrackSearchMode.YouTube).AsTask();
-            var timeoutTask = Task.Delay(TimeSpan.FromSeconds(45));
-            var completed = await Task.WhenAny(loadTask, timeoutTask).ConfigureAwait(false);
-            if (completed != loadTask)
-            {
-                _logger.LogWarning("Tải track timeout sau 45s: {Query}", query);
+            var timeout = await Task.WhenAny(loadTask, Task.Delay(45000)).ConfigureAwait(false);
+            if (timeout != loadTask)
                 return new MusicResult($"Tải track timeout, vui lòng thử lại. (`{query}`)");
-            }
             result = await loadTask.ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -225,28 +110,23 @@ public sealed class MusicService
             return new MusicResult($"Lỗi khi tải track: `{query}`.");
         }
 
-        if (result.IsFailed)
+        if (result.IsFailed || !result.HasMatches)
             return new MusicResult($"Lỗi khi tải track: `{query}`.");
-
-        if (!result.HasMatches)
-            return new MusicResult($"Không tìm thấy kết quả cho `{query}`.");
 
         if (result.IsPlaylist)
         {
             var playlist = result.Playlist;
             var tracks = result.Tracks;
-
             if (tracks.IsDefaultOrEmpty)
                 return new MusicResult($"Playlist trống: **{playlist?.Name ?? query}**.");
 
             var enqueue = player.State is PlayerState.Playing or PlayerState.Paused;
             await player.PlayAsync(result);
-
-            var count = tracks.Length;
-            var text = enqueue
-                ? $"Đã thêm playlist **{playlist?.Name ?? "Unknown"}** ({count} bài) vào hàng đợi."
-                : $"Đang phát playlist **{playlist?.Name ?? "Unknown"}** ({count} bài).";
-            return MakeResult(text, tracks[0]);
+            return MakeResult(
+                enqueue
+                    ? $"Đã thêm playlist **{playlist?.Name ?? "Unknown"}** ({tracks.Length} bài) vào hàng đợi."
+                    : $"Đang phát playlist **{playlist?.Name ?? "Unknown"}** ({tracks.Length} bài).",
+                tracks[0]);
         }
 
         var track = result.Track;
@@ -255,81 +135,71 @@ public sealed class MusicService
 
         var enqueueSingle = player.State is PlayerState.Playing or PlayerState.Paused;
         await player.PlayAsync(track, enqueue: enqueueSingle);
-
-        var singleText = enqueueSingle
-            ? $"Đã thêm vào hàng đợi: **{track.Title}**"
-            : $"Đang phát: **{track.Title}**";
-        return MakeResult(singleText, track);
+        return MakeResult(
+            enqueueSingle
+                ? $"Đã thêm vào hàng đợi: **{track.Title}**"
+                : $"Đang phát: **{track.Title}**",
+            track);
     }
 
     public async Task<MusicResult> SkipAsync(ulong guildId)
     {
-        var player = await GetPlayerAsync(guildId);
-        if (player is null)
-            return new MusicResult("Bot không ở trong voice channel nào.");
-        if (player.CurrentItem is null)
-            return new MusicResult("Không có bài nào đang phát.");
-        await player.SkipAsync(1);
+        var p = await GetPlayerAsync(guildId);
+        if (p is null) return new MusicResult("Bot không ở trong voice channel nào.");
+        if (p.CurrentItem is null) return new MusicResult("Không có bài nào đang phát.");
+        await p.SkipAsync(1);
         return new MusicResult("Đã skip bài hiện tại.");
     }
 
     public async Task<MusicResult> StopAsync(ulong guildId)
     {
-        var player = await GetPlayerAsync(guildId);
-        if (player is null)
-            return new MusicResult("Bot không ở trong voice channel nào.");
-        await player.StopAsync();
-        await player.DisconnectAsync();
+        var p = await GetPlayerAsync(guildId);
+        if (p is null) return new MusicResult("Bot không ở trong voice channel nào.");
+        await p.StopAsync();
+        await p.DisconnectAsync();
         return new MusicResult("Đã dừng và rời voice channel.");
     }
 
     public async Task<MusicResult> PauseAsync(ulong guildId)
     {
-        var player = await GetPlayerAsync(guildId);
-        if (player is null)
-            return new MusicResult("Bot không ở trong voice channel nào.");
-        if (player.IsPaused)
-            return new MusicResult("Đã tạm dừng rồi.");
-        await player.PauseAsync();
+        var p = await GetPlayerAsync(guildId);
+        if (p is null) return new MusicResult("Bot không ở trong voice channel nào.");
+        if (p.IsPaused) return new MusicResult("Đã tạm dừng rồi.");
+        await p.PauseAsync();
         return new MusicResult("Đã tạm dừng.");
     }
 
     public async Task<MusicResult> ResumeAsync(ulong guildId)
     {
-        var player = await GetPlayerAsync(guildId);
-        if (player is null)
-            return new MusicResult("Bot không ở trong voice channel nào.");
-        if (!player.IsPaused)
-            return new MusicResult("Không ở trạng thái tạm dừng.");
-        await player.ResumeAsync();
+        var p = await GetPlayerAsync(guildId);
+        if (p is null) return new MusicResult("Bot không ở trong voice channel nào.");
+        if (!p.IsPaused) return new MusicResult("Không ở trạng thái tạm dừng.");
+        await p.ResumeAsync();
         return new MusicResult("Đã tiếp tục phát.");
     }
 
     public async Task<MusicResult> SetVolumeAsync(ulong guildId, float volume)
     {
-        var player = await GetPlayerAsync(guildId);
-        if (player is null)
-            return new MusicResult("Bot không ở trong voice channel nào.");
+        var p = await GetPlayerAsync(guildId);
+        if (p is null) return new MusicResult("Bot không ở trong voice channel nào.");
         volume = Math.Clamp(volume, 0, 200);
-        await player.SetVolumeAsync(volume / 100f);
+        await p.SetVolumeAsync(volume / 100f);
         return new MusicResult($"Đã chỉnh volume về {volume}%.");
     }
 
     public async Task<MusicResult> ToggleShuffleAsync(ulong guildId)
     {
-        var player = await GetPlayerAsync(guildId);
-        if (player is null)
-            return new MusicResult("Bot không ở trong voice channel nào.");
-        player.Shuffle = !player.Shuffle;
-        return new MusicResult(player.Shuffle ? "Đã bật shuffle." : "Đã tắt shuffle.");
+        var p = await GetPlayerAsync(guildId);
+        if (p is null) return new MusicResult("Bot không ở trong voice channel nào.");
+        p.Shuffle = !p.Shuffle;
+        return new MusicResult(p.Shuffle ? "Đã bật shuffle." : "Đã tắt shuffle.");
     }
 
     public async Task<MusicResult> SetLoopModeAsync(ulong guildId, TrackRepeatMode mode)
     {
-        var player = await GetPlayerAsync(guildId);
-        if (player is null)
-            return new MusicResult("Bot không ở trong voice channel nào.");
-        player.RepeatMode = mode;
+        var p = await GetPlayerAsync(guildId);
+        if (p is null) return new MusicResult("Bot không ở trong voice channel nào.");
+        p.RepeatMode = mode;
         var label = mode switch
         {
             TrackRepeatMode.Queue => "toàn bộ hàng đợi",
@@ -341,72 +211,52 @@ public sealed class MusicService
 
     public async Task<MusicResult> GetNowPlayingAsync(ulong guildId)
     {
-        var player = await GetPlayerAsync(guildId);
-        if (player?.CurrentTrack is null)
-            return new MusicResult("Không có bài nào đang phát.");
+        var p = await GetPlayerAsync(guildId);
+        if (p?.CurrentTrack is null) return new MusicResult("Không có bài nào đang phát.");
 
-        var track = player.CurrentTrack;
-        var position = player.Position?.Position ?? TimeSpan.Zero;
-        var duration = track.Duration;
-        var progress = duration == TimeSpan.Zero ? "??:??" : $"{FormatTime(position)}/{FormatTime(duration)}";
-        var state = player.IsPaused ? "⏸️" : "▶️";
-
-        return MakeResult($"{state} **{track.Title}** — {track.Author}\n`{progress}`", track);
+        var track = p.CurrentTrack;
+        var pos = p.Position?.Position ?? TimeSpan.Zero;
+        var dur = track.Duration;
+        var progress = dur == TimeSpan.Zero ? "??:??" : $"{FormatTime(pos)}/{FormatTime(dur)}";
+        return MakeResult($"{(p.IsPaused ? "⏸️" : "▶️")} **{track.Title}** — {track.Author}\n`{progress}`", track);
     }
 
     public async Task<MusicResult> GetQueueAsync(ulong guildId)
     {
-        var player = await GetPlayerAsync(guildId);
-        if (player is null || player.Queue is null)
-            return new MusicResult("Hàng đợi trống.");
+        var p = await GetPlayerAsync(guildId);
+        if (p is null || p.Queue is null) return new MusicResult("Hàng đợi trống.");
 
         var lines = new List<string>();
-        var nowPlaying = player.CurrentItem?.Track;
-        if (nowPlaying is not null)
-            lines.Add($"▶️ **{nowPlaying.Title}** — {nowPlaying.Author}");
+        var current = p.CurrentItem?.Track;
+        if (current is not null)
+            lines.Add($"▶️ **{current.Title}** — {current.Author}");
 
-        var queue = player.Queue;
+        var queue = p.Queue;
         var total = queue.Count;
-        var take = Math.Min(total, 20);
-
-        for (int i = 0; i < take; i++)
+        for (int i = 0; i < Math.Min(total, 20); i++)
         {
-            var item = queue[i];
-            if (item?.Track is not null)
-                lines.Add($"  {i + 1}. {item.Track.Title} — {item.Track.Author}");
+            var item = queue[i]?.Track;
+            if (item is not null)
+                lines.Add($"  {i + 1}. {item.Title} — {item.Author}");
         }
+        if (total > 20) lines.Add($"  ... và {total - 20} bài nữa");
 
-        if (total > 20)
-            lines.Add($"  ... và {total - 20} bài nữa");
-
-        if (lines.Count == 0)
-            return new MusicResult("Hàng đợi trống.");
-
-        return MakeResult(string.Join('\n', lines), nowPlaying);
+        return lines.Count > 0
+            ? MakeResult(string.Join('\n', lines), current)
+            : new MusicResult("Hàng đợi trống.");
     }
 
     private static string CleanUrl(string query)
     {
-        if (!Uri.TryCreate(query, UriKind.Absolute, out var uri))
-            return query;
+        if (!Uri.TryCreate(query, UriKind.Absolute, out var uri)) return query;
+        if (!uri.Host.Contains("youtube.com") && uri.Host != "youtu.be") return query;
 
-        if (!uri.Host.Contains("youtube.com") && uri.Host != "youtu.be")
-            return query;
-
-        var parts = uri.Query.TrimStart('?')
-            .Split('&', StringSplitOptions.RemoveEmptyEntries)
-            .Where(p => !p.StartsWith("si=") && !p.StartsWith("feature="))
-            .ToArray();
-
-        var cleanQuery = parts.Length > 0 ? "?" + string.Join("&", parts) : "";
-        var clean = uri.GetLeftPart(UriPartial.Path) + cleanQuery;
-        return clean;
+        var clean = string.Join('&',
+            uri.Query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries)
+            .Where(p => !p.StartsWith("si=") && !p.StartsWith("feature=")));
+        return uri.GetLeftPart(UriPartial.Path) + (clean.Length > 0 ? "?" + clean : "");
     }
 
-    private static string FormatTime(TimeSpan t)
-    {
-        return t.Hours > 0
-            ? $"{t.Hours:D2}:{t.Minutes:D2}:{t.Seconds:D2}"
-            : $"{t.Minutes:D2}:{t.Seconds:D2}";
-    }
+    private static string FormatTime(TimeSpan t) =>
+        t.Hours > 0 ? $"{t.Hours:D2}:{t.Minutes:D2}:{t.Seconds:D2}" : $"{t.Minutes:D2}:{t.Seconds:D2}";
 }
