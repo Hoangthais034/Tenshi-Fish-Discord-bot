@@ -56,7 +56,7 @@ public sealed class MusicService
         var channel = guild?.GetVoiceChannel(voiceChannelId);
         if (channel is null) return null;
 
-        var node = _audio.GetNodes().FirstOrDefault();
+        var node = _audio.Nodes.GetNodes().FirstOrDefault();
         if (node?.SessionId is null)
         {
             _logger.LogWarning("Lavalink node chưa sẵn sàng");
