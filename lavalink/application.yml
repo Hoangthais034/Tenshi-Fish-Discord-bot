@@ -20,6 +20,7 @@ lavalink:
       snapshot: false
   server:
     password: "${LAVALINK_SERVER_PASSWORD}"
+    requestAuthorization: false
     sources:
       youtube: false
       soundcloud: true
