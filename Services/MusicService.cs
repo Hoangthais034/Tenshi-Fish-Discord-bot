@@ -43,7 +43,7 @@ public sealed class MusicService
 
         try
         {
-            return await _audio.Players.JoinAsync<QueuedLavalinkPlayer>(guildId, voiceChannelId);
+            return await _audio.Players.JoinAsync<QueuedLavalinkPlayer, QueuedLavalinkPlayerOptions>(guildId, voiceChannelId);
         }
         catch (Exception ex)
         {
@@ -120,7 +120,8 @@ public sealed class MusicService
                 return new MusicResult($"Playlist trống: **{playlist?.Name ?? query}**.");
 
             var enqueue = player.State is PlayerState.Playing or PlayerState.Paused;
-            await player.PlayAsync(result);
+            for (int i = 0; i < tracks.Length; i++)
+                await player.PlayAsync(tracks[i], enqueue: enqueue || i > 0);
             var first = tracks[0];
             return TrackResult(
                 enqueue
