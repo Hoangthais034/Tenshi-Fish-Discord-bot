@@ -114,6 +114,8 @@ export class MusicService {
       selfDeaf: true,
     });
 
+    await player.connect();
+
     return player;
   }
 
