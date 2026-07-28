@@ -2,7 +2,7 @@
 set -euo pipefail
 
 YOUTUBE_PLUGIN_VERSION="1.18.2"
-PLUGIN_DIR="$(dirname "$0")/plugins"
+PLUGIN_DIR="/opt/Lavalink/plugins"
 mkdir -p "$PLUGIN_DIR"
 
 echo "Downloading youtube-source plugin v${YOUTUBE_PLUGIN_VERSION}..."
