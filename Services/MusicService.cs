@@ -68,15 +68,14 @@ public sealed class MusicService
         return videoId?.Length >= 10 ? $"https://i.ytimg.com/vi/{videoId}/mqdefault.jpg" : null;
     }
 
-    private static MusicResult MakeResult(string text, Lavalink4NET.ITrackInfo? track = null)
+    private static MusicResult TrackResult(string text, Uri? uri, string? title, string? author)
     {
-        if (track is null) return new MusicResult(text);
         return new MusicResult(text)
         {
-            Title = track.Title,
-            Author = track.Author,
-            ArtworkUrl = GetYouTubeThumbnail(track.Uri),
-            Uri = track.Uri?.AbsoluteUri
+            Title = title,
+            Author = author,
+            ArtworkUrl = GetYouTubeThumbnail(uri),
+            Uri = uri?.AbsoluteUri
         };
     }
 
@@ -122,11 +121,12 @@ public sealed class MusicService
 
             var enqueue = player.State is PlayerState.Playing or PlayerState.Paused;
             await player.PlayAsync(result);
-            return MakeResult(
+            var first = tracks[0];
+            return TrackResult(
                 enqueue
                     ? $"Đã thêm playlist **{playlist?.Name ?? "Unknown"}** ({tracks.Length} bài) vào hàng đợi."
                     : $"Đang phát playlist **{playlist?.Name ?? "Unknown"}** ({tracks.Length} bài).",
-                tracks[0]);
+                first.Uri, first.Title, first.Author);
         }
 
         var track = result.Track;
@@ -135,11 +135,11 @@ public sealed class MusicService
 
         var enqueueSingle = player.State is PlayerState.Playing or PlayerState.Paused;
         await player.PlayAsync(track, enqueue: enqueueSingle);
-        return MakeResult(
+        return TrackResult(
             enqueueSingle
                 ? $"Đã thêm vào hàng đợi: **{track.Title}**"
                 : $"Đang phát: **{track.Title}**",
-            track);
+            track.Uri, track.Title, track.Author);
     }
 
     public async Task<MusicResult> SkipAsync(ulong guildId)
@@ -218,7 +218,7 @@ public sealed class MusicService
         var pos = p.Position?.Position ?? TimeSpan.Zero;
         var dur = track.Duration;
         var progress = dur == TimeSpan.Zero ? "??:??" : $"{FormatTime(pos)}/{FormatTime(dur)}";
-        return MakeResult($"{(p.IsPaused ? "⏸️" : "▶️")} **{track.Title}** — {track.Author}\n`{progress}`", track);
+        return TrackResult($"{(p.IsPaused ? "⏸️" : "▶️")} **{track.Title}** — {track.Author}\n`{progress}`", track.Uri, track.Title, track.Author);
     }
 
     public async Task<MusicResult> GetQueueAsync(ulong guildId)
@@ -242,7 +242,7 @@ public sealed class MusicService
         if (total > 20) lines.Add($"  ... và {total - 20} bài nữa");
 
         return lines.Count > 0
-            ? MakeResult(string.Join('\n', lines), current)
+            ? TrackResult(string.Join('\n', lines), current?.Uri, current?.Title, current?.Author)
             : new MusicResult("Hàng đợi trống.");
     }
 
