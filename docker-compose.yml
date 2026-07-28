@@ -13,7 +13,7 @@ services:
       - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
       - lavalink-data:/opt/Lavalink/data
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:2333/health", "-O", "/dev/null"]
+      test: ["CMD", "wget", "--spider", "--tries=1", "--no-verbose", "http://localhost:2333/health"]
       interval: 15s
       timeout: 10s
       retries: 40
