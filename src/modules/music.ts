@@ -3,12 +3,40 @@ import {
   type ChatInputCommandInteraction,
   type GuildMember,
   EmbedBuilder,
+  Colors,
 } from 'discord.js';
 import { container } from 'tsyringe';
-import { MusicService } from '../services/music.js';
+import { MusicService, type MusicResult } from '../services/music.js';
 import type { Command } from '../types.js';
 
 const musicService = container.resolve(MusicService);
+
+const embedColors: Record<string, number> = {
+  play: Colors.Green,
+  skip: Colors.Orange,
+  stop: Colors.Red,
+  queue: Colors.Blue,
+  pause: Colors.Yellow,
+  resume: Colors.Green,
+  nowplaying: Colors.Purple,
+  volume: Colors.Aqua,
+  shuffle: Colors.DarkPurple,
+  loop: Colors.Gold,
+};
+
+function buildEmbed(sub: string, result: MusicResult, user: GuildMember): EmbedBuilder {
+  const embed = new EmbedBuilder()
+    .setColor(embedColors[sub] ?? Colors.Default)
+    .setDescription(result.text)
+    .setFooter({ text: user.displayName, iconURL: user.displayAvatarURL() })
+    .setTimestamp();
+
+  if (result.track?.artworkUrl) {
+    embed.setThumbnail(result.track.artworkUrl);
+  }
+
+  return embed;
+}
 
 const builder = new SlashCommandBuilder()
   .setName('music')
@@ -63,7 +91,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
 
   const sub = interaction.options.getSubcommand();
   const guildId = interaction.guildId!;
-  let result: string;
+  let result: MusicResult;
 
   try {
     switch (sub) {
@@ -104,18 +132,14 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
         break;
       }
       default:
-        result = 'Unknown subcommand.';
+        result = { text: 'Unknown subcommand.' };
     }
   } catch (e) {
     console.error('Music command error:', e);
-    result = '❌ Lỗi khi thực hiện lệnh.';
+    result = { text: '❌ Lỗi khi thực hiện lệnh.' };
   }
 
-  if (sub === 'queue' || sub === 'nowplaying') {
-    await interaction.editReply({ embeds: [new EmbedBuilder().setDescription(result)] });
-  } else {
-    await interaction.editReply(result);
-  }
+  await interaction.editReply({ embeds: [buildEmbed(sub, result, member!)] });
 }
 
 export const commands: Command[] = [{ data, execute }];
