@@ -15,7 +15,7 @@ import { t } from '../locales/index.js';
 const honeypot = container.resolve(HoneypotService);
 
 const data = new SlashCommandBuilder()
-  .setName('honeypot')
+  .setName('trap')
   .setDescription(t('cmd.honeypot.desc'))
   .addSubcommand(sub =>
     sub.setName('setup').setDescription(t('cmd.honeypot.setup.desc'))

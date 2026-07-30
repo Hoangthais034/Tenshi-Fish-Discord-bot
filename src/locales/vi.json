@@ -297,7 +297,7 @@
     "modmail_admin_name": "📬 Modmail — Admin",
     "modmail_admin": "`/modmail admin block <user> [reason]` — Chặn user\n`/modmail admin unblock <user>` — Bỏ chặn\n`/modmail admin blocked` — DS bị chặn\n`/modmail admin whitelist <user> [add|remove]` — Whitelist\n`/modmail admin contact <user>` — Tạo ticket chủ động\n`/modmail admin selfcontact <user>` — Tạo ticket (hiện tên)\n`/modmail admin enable [user]` — Bật modmail\n`/modmail admin disable [mode] [user]` — Tắt modmail\n`/modmail admin isenable [user]` — Kiểm tra trạng thái\n`/modmail admin setup-log [channel]` — Set log channel\n`/modmail admin alert-role [role]` — Set role ping\n`/modmail admin greeting [msg]` — Set tin nhắn chào\n`/modmail admin staff-role add|remove|list` — Staff roles\n`/modmail admin category add|remove|list` — Categories",
     "honeypot_name": "🍯 Honeypot",
-    "honeypot": "`/honeypot setup` — Cấu hình\n`/honeypot add-trap <channel>` — Thêm trap\n`/honeypot remove-trap <channel>` — Xoá trap\n`/honeypot disable` — Tắt honeypot\n`/honeypot messages` — Set DM & warning\n`/honeypot experiment` — Bật/tắt experiment\n`/honeypot stats` — Thống kê"
+    "honeypot": "`/trap setup` — Cấu hình\n`/trap add-trap <channel>` — Thêm trap\n`/trap remove-trap <channel>` — Xoá trap\n`/trap disable` — Tắt honeypot\n`/trap messages` — Set DM & warning\n`/trap experiment` — Bật/tắt experiment\n`/trap stats` — Thống kê"
   },
   "cmd": {
     "music": {

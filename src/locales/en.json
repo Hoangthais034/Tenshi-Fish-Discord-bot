@@ -291,7 +291,7 @@
     "modmail_admin_name": "📬 Modmail — Admin",
     "modmail_admin": "`/modmail admin block <user> [reason]` — Block user\n`/modmail admin unblock <user>` — Unblock\n`/modmail admin blocked` — Block list\n`/modmail admin whitelist <user> [add|remove]` — Whitelist\n`/modmail admin contact <user>` — Contact user\n`/modmail admin selfcontact <user>` — Contact (show name)\n`/modmail admin enable [user]` — Enable modmail\n`/modmail admin disable [mode] [user]` — Disable modmail\n`/modmail admin isenable [user]` — Check status\n`/modmail admin setup-log [channel]` — Set log channel\n`/modmail admin alert-role [role]` — Set alert role\n`/modmail admin greeting [msg]` — Set greeting\n`/modmail admin staff-role add|remove|list` — Staff roles\n`/modmail admin category add|remove|list` — Categories",
     "honeypot_name": "🍯 Honeypot",
-    "honeypot": "`/honeypot setup` — Configure\n`/honeypot add-trap <channel>` — Add trap\n`/honeypot remove-trap <channel>` — Remove trap\n`/honeypot disable` — Disable\n`/honeypot messages` — Set DM & warning\n`/honeypot experiment` — Toggle experiment\n`/honeypot stats` — Statistics"
+    "honeypot": "`/trap setup` — Configure\n`/trap add-trap <channel>` — Add trap\n`/trap remove-trap <channel>` — Remove trap\n`/trap disable` — Disable\n`/trap messages` — Set DM & warning\n`/trap experiment` — Toggle experiment\n`/trap stats` — Statistics"
   },
   "cmd": {
     "music": {
