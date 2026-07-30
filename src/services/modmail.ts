@@ -69,6 +69,42 @@ export class ModmailService {
     let ticket = this.db.prepare('SELECT * FROM tickets WHERE user_id = ? AND open = 1').get(message.author.id) as TicketRow | undefined;
     let channel: TextChannel | null = null;
 
+    // ─── DM Commands ──────────────────────────────────────────────────────
+    const content = message.content.trim();
+
+    if (content === '!close' || content === '!status') {
+      if (!ticket) {
+        await dmChannel.send('Bạn không có ticket nào đang mở.').catch(() => {});
+        return;
+      }
+
+      if (content === '!status') {
+        const unix = Math.floor(new Date(ticket.created_at).getTime() / 1000);
+        const msg = ticket.snoozed_until && new Date(ticket.snoozed_until) > new Date()
+          ? `⏸️ Ticket của bạn đang tạm gác đến <t:${Math.floor(new Date(ticket.snoozed_until).getTime() / 1000)}:R>.`
+          : `🟢 Ticket của bạn đang mở (tạo <t:${unix}:R>).`;
+        await dmChannel.send(msg).catch(() => {});
+        return;
+      }
+
+      if (content === '!close') {
+        channel = guild.channels.cache.get(ticket.channel_id) as TextChannel | null;
+        this.db.prepare('UPDATE tickets SET open = 0, closed_at = datetime(\'now\'), close_reason = ? WHERE channel_id = ?').run('Closed by user via DM', ticket.channel_id);
+        if (channel) {
+          await channel.send({
+            embeds: [new EmbedBuilder()
+              .setTitle('Ticket đã đóng bởi người dùng')
+              .setDescription(`Người dùng đã yêu cầu đóng ticket từ DM.`)
+              .setColor(Colors.Red)
+              .setTimestamp()],
+          });
+          await channel.delete();
+        }
+        await dmChannel.send('✅ Đã đóng ticket của bạn. Cảm ơn bạn đã liên hệ!').catch(() => {});
+        return;
+      }
+    }
+
     if (ticket) {
       if (ticket.disabled === 1) {
         await dmChannel.send('Ticket của bạn đã bị tắt nhận tin nhắn.').catch(() => {});
@@ -91,7 +127,7 @@ export class ModmailService {
       }
 
       const restChannel = await guild.channels.create({
-        name: `ticket-${message.author.username}`.toLowerCase(),
+        name: `ticket-${message.author.username}-${message.author.id.slice(-4)}`.toLowerCase(),
         type: ChannelType.GuildText,
         parent: config.modmail.categoryId !== '0' ? config.modmail.categoryId : undefined,
       });
@@ -572,7 +608,7 @@ export class ModmailService {
     if (existing) return `Người dùng đã có ticket mở tại <#${existing.channel_id}>.`;
 
     const restChannel = await guild.channels.create({
-      name: `ticket-${user.username}`.toLowerCase(),
+        name: `ticket-${user.username}-${user.id.slice(-4)}`.toLowerCase(),
       type: ChannelType.GuildText,
       parent: config.modmail.categoryId !== '0' ? config.modmail.categoryId : undefined,
     });
@@ -603,7 +639,7 @@ export class ModmailService {
     if (existing) return `Người dùng đã có ticket mở tại <#${existing.channel_id}>.`;
 
     const restChannel = await guild.channels.create({
-      name: `ticket-${target.username}`.toLowerCase(),
+        name: `ticket-${target.username}-${target.id.slice(-4)}`.toLowerCase(),
       type: ChannelType.GuildText,
       parent: config.modmail.categoryId !== '0' ? config.modmail.categoryId : undefined,
     });
@@ -639,7 +675,7 @@ export class ModmailService {
     if (existing) return `Người dùng đã có ticket mở tại <#${existing.channel_id}>.`;
 
     const restChannel = await guild.channels.create({
-      name: `ticket-${latest.user_name}`.toLowerCase(),
+      name: `ticket-${latest.user_name}-${userId.slice(-4)}`.toLowerCase(),
       type: ChannelType.GuildText,
       parent: config.modmail.categoryId !== '0' ? config.modmail.categoryId : undefined,
     });
