@@ -101,7 +101,7 @@ export class ModmailService {
         `INSERT INTO tickets (channel_id, user_id, user_name, open, created_at) VALUES (?, ?, ?, 1, datetime('now'))`,
       );
       const result = insert.run(channel.id, message.author.id, message.author.username);
-      ticket = { id: Number(result.lastInsertRowid), channel_id: channel.id, user_id: message.author.id, user_name: message.author.username, open: 1, created_at: new Date().toISOString(), closed_at: null, snoozed_until: null, title: null, close_reason: null, closed_by_staff_id: null, is_nsfw: 0, disabled: 0, added_user_ids: '[]', subscriber_ids: '[]', webhook_id: null, webhook_token: null };
+      ticket = { id: Number(result.lastInsertRowid), channel_id: channel.id, user_id: message.author.id, user_name: message.author.username, open: 1, created_at: new Date().toISOString(), closed_at: null, snoozed_until: null, title: null, close_reason: null, closed_by_staff_id: null, is_nsfw: 0, disabled: 0, added_user_ids: '[]', subscriber_ids: '[]', webhook_id: null, webhook_token: null, parent_ticket_id: null, category: null };
 
       try {
         const webhook = await restChannel.createWebhook({ name: 'Modmail Forwarder' });
@@ -112,13 +112,20 @@ export class ModmailService {
         console.warn('Không thể tạo webhook:', e);
       }
 
+      const alertRole = cfg.alert_role_id ? `<@&${cfg.alert_role_id}>` : null;
+      const greeting = cfg.greeting_enabled && cfg.greeting_message ? cfg.greeting_message : null;
+
       await channel.send({
         embeds: [new EmbedBuilder()
           .setTitle('Modmail mới')
-          .setDescription(`Từ ${message.author} (\`${message.author.id}\`)`)
+          .setDescription(`Từ ${message.author} (\`${message.author.id}\`)${greeting ? `\n\n${greeting}` : ''}`)
           .setColor(Colors.Blue)
           .setTimestamp()],
       });
+
+      if (alertRole) {
+        await channel.send(alertRole).catch(() => {});
+      }
     }
 
     if (ticket) {
@@ -144,23 +151,40 @@ export class ModmailService {
   }
 
   private async forwardUserMessageToChannel(ticket: TicketRow, channel: TextChannel, message: Message): Promise<void> {
+    const attachmentUrls = [...message.attachments.values()].map(a => a.url);
+    const embedAttachments = message.embeds.filter(e => e.data?.type === 'image').map(e => e.url ?? '');
+    const stickerUrls = [...message.stickers.values()].map(s => s.url);
+    const allUrls = [...attachmentUrls, ...embedAttachments, ...stickerUrls].filter(Boolean);
+
+    const contentParts: string[] = [];
+    if (message.content) contentParts.push(message.content);
+    for (const url of allUrls) contentParts.push(url);
+
+    const finalContent = contentParts.join('\n') || '(file)';
+
     if (ticket.webhook_id && ticket.webhook_token) {
       try {
         const whClient = new WebhookClient({ id: ticket.webhook_id, token: ticket.webhook_token });
-        await whClient.send({
-          content: message.content,
+        const whPayload: Parameters<typeof whClient.send>[0] = {
+          content: message.content || undefined,
           username: message.author.username,
           avatarURL: message.author.displayAvatarURL(),
-        });
-        this.logMessage(ticket.channel_id, message.author.id, message.author.username, message.content, false, false);
+        };
+        if (allUrls.length) whPayload.files = allUrls.slice(0, 10).map(url => ({ attachment: url }));
+        await whClient.send(whPayload);
+        this.logMessage(ticket.channel_id, message.author.id, message.author.username, finalContent, JSON.stringify(allUrls), false, false);
         return;
       } catch (e) {
         console.warn('Webhook send failed, fallback to plain text:', e);
       }
     }
 
-    await channel.send(`**${message.author.username}:** ${message.content}`);
-    this.logMessage(ticket.channel_id, message.author.id, message.author.username, message.content, false, false);
+    const channelMsg = allUrls.length
+      ? `**${message.author.username}:** ${message.content || ''}\n${allUrls.join('\n')}`
+      : `**${message.author.username}:** ${message.content}`;
+
+    await channel.send(channelMsg);
+    this.logMessage(ticket.channel_id, message.author.id, message.author.username, finalContent, JSON.stringify(allUrls), false, false);
   }
 
   private getGuildConfig(guildId: string): GuildConfigRow {
@@ -198,7 +222,7 @@ export class ModmailService {
         .setFooter({ text: `ID: ${dmMsg.id}` });
       await channel.send({ embeds: [confirmEmbed] });
 
-      this.logMessage(ticket.channel_id, staff.id, staff.displayName, content, true, false);
+      this.logMessage(ticket.channel_id, staff.id, staff.displayName, content, '[]', true, false);
       return '✅ Đã gửi tin nhắn.';
     } catch (e) {
       console.warn('Không thể gửi DM:', e);
@@ -217,7 +241,7 @@ export class ModmailService {
       const dm = await user.createDM();
       const dmMsg = await dm.send(`**${staff.displayName}:** ${content}`);
       await channel.send(`📨 **Bạn → ${user.username}:** ${content}`);
-      this.logMessage(ticket.channel_id, staff.id, staff.displayName, content, true, false);
+      this.logMessage(ticket.channel_id, staff.id, staff.displayName, content, '[]', true, false);
       return '✅ Đã gửi tin nhắn dạng text.';
     } catch {
       return '❌ Không thể gửi tin nhắn.';
@@ -248,7 +272,7 @@ export class ModmailService {
         .setFooter({ text: `ID: ${dmMsg.id}` });
       await channel.send({ embeds: [confirmEmbed] });
 
-      this.logMessage(ticket.channel_id, '0', 'Staff (Anonymous)', content, true, true);
+      this.logMessage(ticket.channel_id, '0', 'Staff (Anonymous)', content, '[]', true, true);
       return '✅ Đã gửi tin nhắn ẩn danh.';
     } catch {
       return '❌ Không thể gửi tin nhắn.';
@@ -266,7 +290,7 @@ export class ModmailService {
       const dm = await user.createDM();
       await dm.send(`**Staff (Anonymous):** ${content}`);
       await channel.send(`📨 **Staff (Anonymous) → ${user.username}:** ${content}`);
-      this.logMessage(ticket.channel_id, '0', 'Staff (Anonymous)', content, true, true);
+      this.logMessage(ticket.channel_id, '0', 'Staff (Anonymous)', content, '[]', true, true);
       return '✅ Đã gửi tin nhắn ẩn danh dạng text.';
     } catch {
       return '❌ Không thể gửi tin nhắn.';
@@ -299,7 +323,7 @@ export class ModmailService {
       const newEmbed = EmbedBuilder.from(embed).setDescription(newContent).setFooter({ text: 'Đã sửa' });
       await msg.edit({ embeds: [newEmbed] });
 
-      this.logMessage(ticket.channel_id, '0', 'System', `Edited message ${messageId}: ${newContent}`, true, false);
+      this.logMessage(ticket.channel_id, '0', 'System', `Edited message ${messageId}: ${newContent}`, '[]', true, false);
       return '✅ Đã sửa tin nhắn.';
     } catch {
       return '❌ Không thể sửa tin nhắn.';
@@ -318,7 +342,7 @@ export class ModmailService {
       const msg = await dm.messages.fetch(messageId).catch(() => null);
       if (msg) await msg.delete();
 
-      this.logMessage(ticket.channel_id, '0', 'System', `Deleted message ${messageId}`, true, false);
+      this.logMessage(ticket.channel_id, '0', 'System', `Deleted message ${messageId}`, '[]', true, false);
       return '✅ Đã xoá tin nhắn.';
     } catch {
       return '❌ Không thể xoá tin nhắn.';
@@ -471,6 +495,8 @@ export class ModmailService {
         .setTimestamp()],
     });
 
+    await this.sendTranscriptLog(channel.guild.id, ticket, closer, reason);
+
     await channel.delete();
     return '✅ Đã đóng ticket.';
   }
@@ -614,7 +640,7 @@ export class ModmailService {
         .setTimestamp()],
     });
 
-    this.logMessage(ticket.channel_id, staff.id, staff.displayName, `[NOTE] ${content}`, true, false);
+      this.logMessage(ticket.channel_id, staff.id, staff.displayName, `[NOTE] ${content}`, '[]', true, false);
     return '✅ Đã thêm note.';
   }
 
@@ -643,7 +669,7 @@ export class ModmailService {
       await channel.send('💡 Persistent note đã được ghim. Dùng `/modmail note persistent` để cập nhật.');
     }
 
-    this.logMessage(ticket.channel_id, staff.id, staff.displayName, `[PERSISTENT NOTE] ${content}`, true, false);
+    this.logMessage(ticket.channel_id, staff.id, staff.displayName, `[PERSISTENT NOTE] ${content}`, '[]', true, false);
     return '✅ Đã thêm persistent note.';
   }
 
@@ -805,6 +831,78 @@ export class ModmailService {
     return '✅ Đã tắt modmail.';
   }
 
+  // ─── Log Channel ────────────────────────────────────────────────────────────
+
+  setLogChannel(guildId: string, channelId: string | null): string {
+    if (channelId) {
+      this.db.prepare('UPDATE guild_configs SET log_channel_id = ? WHERE guild_id = ?').run(channelId, guildId);
+      return `✅ Đã set log channel thành <#${channelId}>.`;
+    }
+    this.db.prepare('UPDATE guild_configs SET log_channel_id = NULL WHERE guild_id = ?').run(guildId);
+    return '✅ Đã xoá log channel.';
+  }
+
+  getLogChannel(guildId: string): string | null {
+    const cfg = this.getGuildConfig(guildId);
+    return cfg.log_channel_id;
+  }
+
+  async sendTranscriptLog(guildId: string, ticket: TicketRow, closer: GuildMember, reason: string | null): Promise<void> {
+    const logChannelId = this.getLogChannel(guildId);
+    if (!logChannelId) return;
+
+    const guild = this.client.guilds.cache.get(guildId);
+    if (!guild) return;
+
+    const logChannel = guild.channels.cache.get(logChannelId) as TextChannel | null;
+    if (!logChannel) return;
+
+    const messageCount = (this.db.prepare('SELECT COUNT(*) as count FROM message_logs WHERE ticket_channel_id = ?').get(ticket.channel_id) as { count: number }).count;
+    const userMention = `<@${ticket.user_id}>`;
+    const duration = ticket.created_at ? Math.round((Date.now() - new Date(ticket.created_at).getTime()) / 3600000) + 'h' : '?';
+
+    const embed = new EmbedBuilder()
+      .setTitle('Ticket Closed')
+      .setColor(Colors.Red)
+      .addFields(
+        { name: 'User', value: `${userMention} (\`${ticket.user_id}\`)`, inline: true },
+        { name: 'Closed by', value: closer.toString(), inline: true },
+        { name: 'Duration', value: duration, inline: true },
+        { name: 'Messages', value: `${messageCount}`, inline: true },
+        { name: 'Reason', value: reason || 'None', inline: false },
+      )
+      .setTimestamp();
+
+    await logChannel.send({ embeds: [embed] }).catch(() => {});
+  }
+
+  // ─── Alert Role ──────────────────────────────────────────────────────────────
+
+  setAlertRole(guildId: string, roleId: string | null): string {
+    if (roleId) {
+      this.db.prepare('UPDATE guild_configs SET alert_role_id = ? WHERE guild_id = ?').run(roleId, guildId);
+      return `✅ Đã set alert role thành <@&${roleId}>.`;
+    }
+    this.db.prepare('UPDATE guild_configs SET alert_role_id = NULL WHERE guild_id = ?').run(guildId);
+    return '✅ Đã xoá alert role.';
+  }
+
+  getAlertRole(guildId: string): string | null {
+    const cfg = this.getGuildConfig(guildId);
+    return cfg.alert_role_id;
+  }
+
+  // ─── Greeting ────────────────────────────────────────────────────────────────
+
+  setGreeting(guildId: string, message: string | null): string {
+    if (message) {
+      this.db.prepare('UPDATE guild_configs SET greeting_message = ?, greeting_enabled = 1 WHERE guild_id = ?').run(message, guildId);
+      return '✅ Đã bật greeting message.';
+    }
+    this.db.prepare('UPDATE guild_configs SET greeting_message = NULL, greeting_enabled = 0 WHERE guild_id = ?').run(guildId);
+    return '✅ Đã tắt greeting message.';
+  }
+
   // ─── Logs ───────────────────────────────────────────────────────────────────
 
   getLogsByUser(guild: Guild, userId: string): string {
@@ -938,9 +1036,9 @@ export class ModmailService {
     return ticket?.user_id ?? null;
   }
 
-  private logMessage(channelId: string, authorId: string, authorName: string, content: string, isStaff: boolean, anonymous: boolean): void {
+  private logMessage(channelId: string, authorId: string, authorName: string, content: string, attachmentUrls: string, isStaff: boolean, anonymous: boolean): void {
     this.db.prepare(
-      'INSERT INTO message_logs (ticket_channel_id, author_id, author_name, content, is_staff, anonymous, timestamp) VALUES (?, ?, ?, ?, ?, ?, datetime(\'now\'))',
-    ).run(channelId, authorId, authorName, content, isStaff ? 1 : 0, anonymous ? 1 : 0);
+      'INSERT INTO message_logs (ticket_channel_id, author_id, author_name, content, attachment_urls, is_staff, anonymous, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, datetime(\'now\'))',
+    ).run(channelId, authorId, authorName, content, attachmentUrls, isStaff ? 1 : 0, anonymous ? 1 : 0);
   }
 }

@@ -14,7 +14,8 @@ export async function handleInteraction(interaction: ChatInputCommandInteraction
   const command = commandMap.get(interaction.commandName);
 
   if (!command) {
-    await interaction.reply({ content: 'Command not found.', flags: MessageFlags.Ephemeral });
+      const flags = MessageFlags.Ephemeral as any;
+      await interaction.reply({ content: 'Command not found.', flags });
     return;
   }
 
@@ -24,7 +25,8 @@ export async function handleInteraction(interaction: ChatInputCommandInteraction
     console.error(`Error executing ${interaction.commandName}:`, e);
 
     try {
-      const reply = { content: 'An error occurred while executing this command.', flags: MessageFlags.Ephemeral };
+      const flags = MessageFlags.Ephemeral as any;
+      const reply = { content: 'An error occurred while executing this command.', flags };
 
       if (interaction.replied || interaction.deferred) {
         await interaction.followUp(reply);

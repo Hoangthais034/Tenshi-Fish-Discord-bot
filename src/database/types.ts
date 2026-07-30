@@ -16,6 +16,8 @@ export interface TicketRow {
   subscriber_ids: string;
   webhook_id: string | null;
   webhook_token: string | null;
+  parent_ticket_id: number | null;
+  category: string | null;
 }
 
 export interface BlockRow {
@@ -41,6 +43,7 @@ export interface MessageLogRow {
   author_id: string;
   author_name: string;
   content: string;
+  attachment_urls: string;
   is_staff: number;
   anonymous: number;
   timestamp: string;
@@ -59,6 +62,12 @@ export interface GuildConfigRow {
   disable_new_tickets: number;
   disable_all_tickets: number;
   disabled_user_ids: string;
+  log_channel_id: string | null;
+  alert_role_id: string | null;
+  staff_role_ids: string;
+  greeting_message: string | null;
+  greeting_enabled: number;
+  categories: string;
 }
 
 export interface NotificationRow {

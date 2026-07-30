@@ -133,7 +133,16 @@ const data = new SlashCommandBuilder()
           .addUserOption(opt => opt.setName('user').setDescription('Người dùng (với mode=user)')))
       .addSubcommand(sub =>
         sub.setName('isenable').setDescription('Kiểm tra trạng thái modmail')
-          .addUserOption(opt => opt.setName('user').setDescription('Người dùng (bỏ trống = kiểm tra chung)'))))
+          .addUserOption(opt => opt.setName('user').setDescription('Người dùng (bỏ trống = kiểm tra chung)')))
+      .addSubcommand(sub =>
+        sub.setName('setup-log').setDescription('Đặt channel log ticket')
+          .addChannelOption(opt => opt.setName('channel').setDescription('Channel log (bỏ trống = xoá)')))
+      .addSubcommand(sub =>
+        sub.setName('alert-role').setDescription('Đặt role ping khi có ticket mới')
+          .addRoleOption(opt => opt.setName('role').setDescription('Role (bỏ trống = xoá)')))
+      .addSubcommand(sub =>
+        sub.setName('greeting').setDescription('Set tin nhắn chào khi tạo ticket')
+          .addStringOption(opt => opt.setName('message').setDescription('Nội dung (bỏ trống = tắt)'))))
 
   // ─── Ticket group ───────────────────────────────────────────────────────
   .addSubcommandGroup(group =>
@@ -330,6 +339,21 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
         case 'isenable':
           result = modmail.isModmailEnabled(interaction.guildId!, interaction.options.getUser('user')?.id);
           break;
+        case 'setup-log': {
+          const logChannel = interaction.options.getChannel('channel');
+          result = modmail.setLogChannel(interaction.guildId!, logChannel?.id ?? null);
+          break;
+        }
+        case 'alert-role': {
+          const role = interaction.options.getRole('role');
+          result = modmail.setAlertRole(interaction.guildId!, role?.id ?? null);
+          break;
+        }
+        case 'greeting': {
+          const msg = interaction.options.getString('message');
+          result = modmail.setGreeting(interaction.guildId!, msg ?? null);
+          break;
+        }
       }
     } else if (group === 'ticket') {
       switch (sub) {

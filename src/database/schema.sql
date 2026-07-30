@@ -15,7 +15,9 @@ CREATE TABLE IF NOT EXISTS tickets (
   added_user_ids TEXT NOT NULL DEFAULT '[]',
   subscriber_ids TEXT NOT NULL DEFAULT '[]',
   webhook_id TEXT,
-  webhook_token TEXT
+  webhook_token TEXT,
+  parent_ticket_id INTEGER,
+  category TEXT
 );
 
 CREATE TABLE IF NOT EXISTS blocks (
@@ -41,6 +43,7 @@ CREATE TABLE IF NOT EXISTS message_logs (
   author_id TEXT NOT NULL,
   author_name TEXT NOT NULL,
   content TEXT NOT NULL,
+  attachment_urls TEXT NOT NULL DEFAULT '[]',
   is_staff INTEGER NOT NULL DEFAULT 0,
   anonymous INTEGER NOT NULL DEFAULT 0,
   timestamp TEXT NOT NULL DEFAULT (datetime('now'))
@@ -59,7 +62,13 @@ CREATE TABLE IF NOT EXISTS guild_configs (
   guild_id TEXT NOT NULL UNIQUE,
   disable_new_tickets INTEGER NOT NULL DEFAULT 0,
   disable_all_tickets INTEGER NOT NULL DEFAULT 0,
-  disabled_user_ids TEXT NOT NULL DEFAULT '[]'
+  disabled_user_ids TEXT NOT NULL DEFAULT '[]',
+  log_channel_id TEXT,
+  alert_role_id TEXT,
+  staff_role_ids TEXT NOT NULL DEFAULT '[]',
+  greeting_message TEXT,
+  greeting_enabled INTEGER NOT NULL DEFAULT 0,
+  categories TEXT NOT NULL DEFAULT '[]'
 );
 
 CREATE TABLE IF NOT EXISTS notifications (
