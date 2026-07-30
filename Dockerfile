@@ -42,6 +42,7 @@ COPY package.json package-lock.json ./
 COPY --from=deps /app/node_modules ./node_modules
 
 COPY --from=build /app/dist ./dist
+COPY src/locales/*.json ./dist/
 COPY src/database/schema.sql ./dist/schema.sql
 
 COPY --chown=bot:bot entrypoint.sh /entrypoint.sh
