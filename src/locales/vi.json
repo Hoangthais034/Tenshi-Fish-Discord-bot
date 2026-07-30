@@ -1,0 +1,429 @@
+{
+  "modmail": {
+    "dm": {
+      "disabled_all": "Modmail hiện đang tạm tắt.",
+      "disabled_user": "Bạn đã bị chặn khỏi dịch vụ hỗ trợ.",
+      "blocked": "Bạn đã bị chặn khỏi dịch vụ hỗ trợ.",
+      "ticket_disabled": "Ticket của bạn đã bị tắt nhận tin nhắn.",
+      "snoozed": "Ticket của bạn đang tạm gác, vui lòng đợi đến {time}.",
+      "new_disabled": "Hiện không thể tạo ticket mới.",
+      "sent": "✅ Tin nhắn của bạn đã được gửi đến đội ngũ hỗ trợ.",
+      "no_open_ticket": "Bạn không có ticket nào đang mở.",
+      "status_open": "🟢 Ticket của bạn đang mở (tạo {time}).",
+      "status_snoozed": "⏸️ Ticket của bạn đang tạm gác đến {time}.",
+      "close_success": "✅ Đã đóng ticket của bạn. Cảm ơn bạn đã liên hệ!",
+      "close_title": "Ticket đã đóng bởi người dùng",
+      "close_description": "Người dùng đã yêu cầu đóng ticket từ DM.",
+      "subscriber_notify": "📩 Tin nhắn mới trong ticket <#{channel}> ({user})",
+      "file_placeholder": "(file)"
+    },
+    "ticket": {
+      "not_found": "Channel này không phải ticket đang mở.",
+      "not_ticket": "Channel này không phải ticket.",
+      "user_not_found": "Không thể tìm thấy người dùng.",
+      "reply_sent": "✅ Đã gửi tin nhắn.",
+      "reply_failed": "❌ Không thể gửi tin nhắn. Người dùng có thể đã tắt DM hoặc chặn bot.",
+      "plain_sent": "✅ Đã gửi tin nhắn dạng text.",
+      "plain_failed": "❌ Không thể gửi tin nhắn.",
+      "anon_sent": "✅ Đã gửi tin nhắn ẩn danh.",
+      "anon_failed": "❌ Không thể gửi tin nhắn.",
+      "anon_plain_sent": "✅ Đã gửi tin nhắn ẩn danh dạng text.",
+      "edit_not_found": "Không tìm thấy tin nhắn với ID này.",
+      "edit_no_embed": "Tin nhắn không có embed để sửa.",
+      "edit_success": "✅ Đã sửa tin nhắn.",
+      "edit_failed": "❌ Không thể sửa tin nhắn.",
+      "delete_success": "✅ Đã xoá tin nhắn.",
+      "delete_failed": "❌ Không thể xoá tin nhắn.",
+      "already_added": "Người dùng này đã được thêm.",
+      "not_added": "Người dùng này không có trong ticket.",
+      "added": "✅ Đã thêm {user} vào ticket.",
+      "removed": "✅ Đã xoá {user} khỏi ticket.",
+      "repair_ok": "✅ Ticket không cần sửa chữa.",
+      "repaired": "✅ Đã sửa: {things}.",
+      "move_ok": "✅ Đã di chuyển ticket sang category mới.",
+      "move_failed": "❌ Không thể di chuyển ticket.",
+      "set_title": "✅ Đã đặt tiêu đề: \"{title}\".",
+      "title_updated": "Tiêu đề đã được cập nhật",
+      "title_updated_desc": "\"{title}\"",
+      "new_ticket_title": "Modmail mới",
+      "new_ticket_desc": "Từ {user} (`{id}`)",
+      "staff_contact_title": "Liên hệ bởi staff",
+      "staff_contact_desc": "Liên hệ {user} (`{id}`)",
+      "self_contact_title": "Staff tự liên hệ",
+      "self_contact_desc": "{staff} đã tạo ticket để liên hệ {user}",
+      "reopened_title": "Ticket mở lại",
+      "reopened_desc": "Ticket cũ của {staff} đã được mở lại cho {user}",
+      "reopened_old": "Ticket cũ #{id} — đóng lúc {time}",
+      "reopened_field_old": "Ticket cũ",
+      "no_old_ticket": "Người dùng này không có ticket cũ.",
+      "reopened_success": "✅ Đã mở lại ticket cho {user} tại {channel}.",
+      "already_open": "Người dùng đã có ticket mở tại {channel}.",
+      "unsnoozed_channel": "✅ Đã mở lại ticket."
+    },
+    "reply": {
+      "author_confirm": "Bạn → {user}",
+      "anonymous_author": "Staff (Anonymous)",
+      "anonymous_confirm": "Staff (Anonymous) → {user}",
+      "plain_confirm": "📨 Bạn → {user}:\n{content}",
+      "anonymous_plain_dm": "**Staff (Anonymous):** {content}",
+      "anonymous_plain_confirm": "📨 Staff (Anonymous) → {user}:\n{content}"
+    },
+    "close": {
+      "title": "Ticket đã đóng",
+      "user_dm_title": "Ticket đã đóng",
+      "user_dm_desc": "Cảm ơn bạn đã liên hệ.",
+      "fields_user": "Người dùng",
+      "fields_closed_by": "Đóng bởi",
+      "fields_reason": "Lý do",
+      "fields_duration": "Thời gian",
+      "fields_messages": "Số tin",
+      "closed_reason": "Đóng bởi người dùng qua DM",
+      "log_title": "Ticket Closed",
+      "success": "✅ Đã đóng ticket."
+    },
+    "note": {
+      "added": "✅ Đã thêm note.",
+      "persistent_added": "✅ Đã thêm persistent note.",
+      "label": "Note",
+      "persistent_label": "Persistent Note",
+      "persistent_hint": "Persistent note đã được ghim. Dùng `/modmail note persistent` để cập nhật.",
+      "updated": "Note đã được cập nhật",
+      "reply_hint": "Note này sẽ hiển thị lại khi có tin nhắn mới."
+    },
+    "snooze": {
+      "title": "Ticket tạm gác",
+      "desc": "Ticket sẽ tự động mở lại sau {time}.",
+      "success": "✅ Đã gác ticket đến {time}.",
+      "not_snoozed": "Ticket này không đang gác.",
+      "unsnoozed": "✅ Đã mở lại ticket.",
+      "none": "Không có ticket nào đang gác.",
+      "cleared": "✅ Đã xoá gác cho {count} ticket(s).",
+      "list_item": "• {channel} — {user} — còn {minutes}ph"
+    },
+    "block": {
+      "already": "Người dùng này đã bị chặn rồi.",
+      "blocked": "✅ Đã chặn {user} khỏi modmail.",
+      "not_blocked": "Người dùng này không bị chặn.",
+      "unblocked": "✅ Đã bỏ chặn {user}.",
+      "list_empty": "Không có người dùng nào bị chặn.",
+      "list_title": "Danh sách chặn ({count})",
+      "no_reason": "Không có lý do",
+      "by": "bởi"
+    },
+    "whitelist": {
+      "already": "Người dùng này đã có trong whitelist.",
+      "whitelisted": "✅ Đã whitelist {user} và bỏ chặn.",
+      "whitelisted_no_block": "✅ Đã whitelist {user}.",
+      "not_whitelisted": "Người dùng này không có trong whitelist.",
+      "removed": "✅ Đã xoá {user} khỏi whitelist."
+    },
+    "contact": {
+      "blocked": "Người dùng này đã bị chặn.",
+      "existing": "Người dùng đã có ticket mở tại {channel}.",
+      "success": "✅ Đã tạo ticket cho {user} tại {channel}.",
+      "self_success": "✅ Đã tạo ticket cho {user} tại {channel}.",
+      "guild_not_found": "Không tìm thấy guild."
+    },
+    "enable": {
+      "off_all": "Modmail đang tắt hoàn toàn.",
+      "off_new": "Không thể tạo ticket mới.",
+      "on": "Modmail đang bật.",
+      "user_off": "Người dùng này đã bị tắt modmail.",
+      "user_on": "Người dùng này có thể dùng modmail.",
+      "enabled": "✅ Đã bật modmail.",
+      "user_enabled": "✅ Đã bật modmail cho {user}.",
+      "disabled": "✅ Đã tắt modmail.",
+      "user_disabled": "✅ Đã tắt modmail cho {user}."
+    },
+    "notify": {
+      "off": "✅ Đã tắt thông báo cho ticket này.",
+      "on": "✅ Đã bật thông báo cho ticket này."
+    },
+    "subscribe": {
+      "off": "✅ Đã huỷ đăng ký nhận thông báo.",
+      "on": "✅ Đã đăng ký nhận thông báo khi người dùng trả lời."
+    },
+    "nsfw": {
+      "set": "✅ Đã đánh dấu ticket là NSFW.",
+      "unset": "✅ Đã đánh dấu ticket là SFW."
+    },
+    "links": {
+      "message": "Link tin nhắn",
+      "log": "Link channel"
+    },
+    "log_channel": {
+      "set": "✅ Đã set log channel thành {channel}.",
+      "removed": "✅ Đã xoá log channel."
+    },
+    "alert_role": {
+      "set": "✅ Đã set alert role thành {role}.",
+      "removed": "✅ Đã xoá alert role."
+    },
+    "staff_role": {
+      "added": "✅ Đã thêm {role} vào staff roles.",
+      "removed": "✅ Đã xoá {role} khỏi staff roles.",
+      "already": "Role này đã có trong danh sách.",
+      "not_found": "Role này không có trong danh sách.",
+      "list_empty": "Chưa có staff role nào.",
+      "list_header": "Staff roles:"
+    },
+    "category": {
+      "exists": "Category `{name}` đã tồn tại.",
+      "added": "✅ Đã thêm category `{name}`.",
+      "not_found": "Không tìm thấy category `{name}`.",
+      "removed": "✅ Đã xoá category `{name}`.",
+      "list_empty": "Chưa có category nào.",
+      "list_header": "Categories:"
+    },
+    "snippet": {
+      "not_found": "Không tìm thấy snippet `{name}`.",
+      "created": "✅ Đã tạo snippet `{name}`.",
+      "updated": "✅ Đã cập nhật snippet `{name}`.",
+      "deleted": "✅ Đã xoá snippet `{name}`.",
+      "list_title": "Snippets ({count})",
+      "list_empty": "Chưa có snippet nào."
+    },
+    "logs": {
+      "no_user": "Người dùng này chưa có ticket nào.",
+      "no_staff": "Staff này chưa đóng ticket nào.",
+      "no_keyword": "Không tìm thấy ticket nào với từ khoá \"{keyword}\".",
+      "responded_yes": "✅ Staff đã trả lời trong ticket này.",
+      "responded_no": "❌ Chưa có staff nào trả lời.",
+      "no_search": "Không tìm thấy log nào với từ khoá \"{keyword}\".",
+      "status_open": "🟢 Đang mở",
+      "status_closed": "🔴 Đã đóng",
+      "by": "bởi",
+      "reason": "— {reason}",
+      "entry": "• <@{userId}> — {reason} — {closedAt}"
+    },
+    "greeting": {
+      "enabled": "✅ Đã bật greeting message.",
+      "disabled": "✅ Đã tắt greeting message."
+    },
+    "errors": {
+      "guild_not_found": "Không tìm thấy guild.",
+      "channel_not_ticket": "Channel này không phải ticket.",
+      "unknown_command": "Unknown command.",
+      "unknown": "❌ Lỗi khi thực hiện lệnh.",
+      "text_only": "Lệnh này chỉ dùng được trong text channel.",
+      "member_not_found": "Không thể xác định người dùng.",
+      "member_not_in_guild": "Không tìm thấy người dùng này trong guild."
+    },
+    "admin": {
+      "role_required": "Vui lòng chọn role.",
+      "name_required": "Vui lòng nhập tên category.",
+      "channel_required": "Vui lòng chọn channel."
+    }
+  },
+  "music": {
+    "voice_required": "Bạn cần vào voice channel trước.",
+    "no_player": "Không thể kết nối tới voice channel.",
+    "no_voice": "Bot không ở trong voice channel nào.",
+    "nothing_playing": "Không có bài nào đang phát.",
+    "search_error": "Lỗi khi tải track: `{query}`.",
+    "no_results": "Không tìm thấy kết quả cho `{query}`.",
+    "playlist_empty": "Playlist trống: **{name}**.",
+    "playlist_enqueued": "Đã thêm playlist **{name}** ({count} bài) vào hàng đợi.",
+    "playlist_playing": "Đang phát playlist **{name}** ({count} bài).",
+    "track_enqueued": "Đã thêm vào hàng đợi: **{title}**",
+    "track_playing": "Đang phát: **{title}**",
+    "skipped": "Đã skip bài hiện tại.",
+    "stopped": "Đã dừng và rời voice channel.",
+    "already_paused": "Đã tạm dừng rồi.",
+    "paused": "Đã tạm dừng.",
+    "not_paused": "Không ở trạng thái tạm dừng.",
+    "resumed": "Đã tiếp tục phát.",
+    "volume_set": "Đã chỉnh volume về {volume}%.",
+    "shuffled": "Đã xáo trộn hàng đợi.",
+    "loop_mode_track": "bài hiện tại",
+    "loop_mode_queue": "toàn bộ hàng đợi",
+    "loop_mode_none": "tắt",
+    "loop_set": "Đã chọn loop chế độ {mode}.",
+    "nowplaying": "{state} **{title}** — {author}\n`{progress}`",
+    "queue_empty": "Hàng đợi trống.",
+    "queue_current": "▶️ **{title}** — {author}",
+    "queue_more": "  ... và {count} bài nữa"
+  },
+  "honeypot": {
+    "skipped_title": "Honeypot skipped",
+    "skipped_desc": "{user} triggered honeypot but is admin/owner.",
+    "triggered_title": "Honeypot triggered",
+    "error_title": "Honeypot error",
+    "field_user": "User",
+    "field_action": "Action",
+    "field_channel": "Channel",
+    "field_error": "Error",
+    "no_experiments": "Không có experiment nào được bật.",
+    "disabled": "✅ Đã tắt honeypot.",
+    "messages_updated": "✅ Đã cập nhật tin nhắn.",
+    "already_trap": "Channel này đã là trap rồi.",
+    "not_trap": "Channel này không phải trap.",
+    "experiment_toggle": "✅ Experiment `{experiment}` {status}.\nHiện tại: {experiments}",
+    "enabled": "bật",
+    "disabled_label": "tắt",
+    "stats_status": "Trạng thái",
+    "stats_trap_count": "Số trap channel",
+    "stats_trigger_total": "Tổng số lần trigger",
+    "stats_traps": "Trap channels",
+    "stats_experiments": "Experiment",
+    "stats_log": "Log channel",
+    "stats_no_traps": "Không có",
+    "trigger_count": "**{count}** lần",
+    "setup_done": "✅ Đã thiết lập: trap = {channel}, log = {logChannel}, action = {action}.",
+    "trap_added": "✅ Đã thêm {channel} làm trap channel.",
+    "trap_removed": "✅ Đã xóa {channel} khỏi trap channel.",
+    "stats_title": "🍯 Honeypot Stats"
+  },
+  "errors": {
+    "command_error": "❌ Lỗi khi thực hiện lệnh."
+  },
+  "cmd": {
+    "help": {
+      "desc": "Xem danh sách lệnh của bot"
+    }
+  },
+  "help": {
+    "title": "Danh sách lệnh",
+    "music_name": "🎵 Music",
+    "music": "`/music play <query>` — Phát nhạc\n`/music skip` — Bỏ qua bài\n`/music stop` — Dừng + rời voice\n`/music pause` — Tạm dừng\n`/music resume` — Tiếp tục\n`/music queue` — Xem hàng đợi\n`/music nowplaying` — Bài đang phát\n`/music volume <0-200>` — Volume\n`/music shuffle` — Xáo trộn\n`/music loop <mode>` — Lặp lại",
+    "modmail_reply_name": "📬 Modmail — Trả lời",
+    "modmail_reply": "`/modmail reply <msg>` — Trả lời (embed)\n`/modmail preply <msg>` — Trả lời (text)\n`/modmail areply <msg>` — Ẩn danh (embed)\n`/modmail pareply <msg>` — Ẩn danh (text)\n`/modmail edit <id> <new>` — Sửa tin đã gửi\n`/modmail delete <id>` — Xoá tin đã gửi\n`/modmail note <msg> [persistent]` — Ghi chú nội bộ\n`/modmail close [reason] [silent]` — Đóng ticket\n`/modmail move <category>` — Di chuyển ticket",
+    "modmail_ticket_name": "📬 Modmail — Ticket",
+    "modmail_ticket": "`/modmail ticket title <title>` — Đặt tiêu đề\n`/modmail ticket adduser <user>` — Thêm người\n`/modmail ticket removeuser <user>` — Xoá người\n`/modmail ticket repair` — Sửa webhook/permissions\n`/modmail ticket snooze [min]` — Gác ticket\n`/modmail ticket unsnooze` — Mở lại\n`/modmail ticket snoozed` — DS ticket gác\n`/modmail ticket clearsnoozed` — Xoá hết gác\n`/modmail ticket reopen <user>` — Mở lại ticket cũ\n`/modmail ticket nsfw` — Đánh dấu NSFW\n`/modmail ticket sfw` — Đánh dấu SFW\n`/modmail ticket notify` — Bật/tắt thông báo\n`/modmail ticket subscribe` — Nhận DM khi user reply\n`/modmail ticket msglink <id>` — Link tới reply\n`/modmail ticket loglink` — Link channel ticket",
+    "modmail_snippet_name": "📬 Modmail — Snippet",
+    "modmail_snippet": "`/modmail snippet send <name>` — Gửi snippet\n`/modmail snippet raw <name>` — Xem nội dung gốc\n`/modmail snippet add <name> <content>` — Thêm\n`/modmail snippet edit <name> <content>` — Sửa\n`/modmail snippet remove <name>` — Xoá\n`/modmail snippet list` — Danh sách",
+    "modmail_logs_name": "📬 Modmail — Logs",
+    "modmail_logs": "`/modmail logs user <user>` — Lịch sử user\n`/modmail logs closed-by <staff>` — Ticket đã đóng\n`/modmail logs key <keyword>` — Tìm theo từ khoá\n`/modmail logs responded` — Staff đã reply?\n`/modmail logs search <keyword>` — Tìm nội dung",
+    "modmail_admin_name": "📬 Modmail — Admin",
+    "modmail_admin": "`/modmail admin block <user> [reason]` — Chặn user\n`/modmail admin unblock <user>` — Bỏ chặn\n`/modmail admin blocked` — DS bị chặn\n`/modmail admin whitelist <user> [add|remove]` — Whitelist\n`/modmail admin contact <user>` — Tạo ticket chủ động\n`/modmail admin selfcontact <user>` — Tạo ticket (hiện tên)\n`/modmail admin enable [user]` — Bật modmail\n`/modmail admin disable [mode] [user]` — Tắt modmail\n`/modmail admin isenable [user]` — Kiểm tra trạng thái\n`/modmail admin setup-log [channel]` — Set log channel\n`/modmail admin alert-role [role]` — Set role ping\n`/modmail admin greeting [msg]` — Set tin nhắn chào\n`/modmail admin staff-role add|remove|list` — Staff roles\n`/modmail admin category add|remove|list` — Categories",
+    "honeypot_name": "🍯 Honeypot",
+    "honeypot": "`/trap setup` — Cấu hình\n`/trap add-trap <channel>` — Thêm trap\n`/trap remove-trap <channel>` — Xoá trap\n`/trap disable` — Tắt honeypot\n`/trap messages` — Set DM & warning\n`/trap experiment` — Bật/tắt experiment\n`/trap stats` — Thống kê"
+  },
+  "cmd": {
+    "music": {
+      "desc": "Lệnh điều khiển nhạc",
+      "play": {
+        "desc": "Phát nhạc từ tên bài hoặc URL YouTube",
+        "opt_query": "Tên bài hát hoặc URL YouTube"
+      },
+      "skip": { "desc": "Bỏ qua bài đang phát" },
+      "stop": { "desc": "Dừng phát nhạc và rời voice channel" },
+      "queue": { "desc": "Xem hàng đợi hiện tại" },
+      "pause": { "desc": "Tạm dừng phát nhạc" },
+      "resume": { "desc": "Tiếp tục phát nhạc" },
+      "nowplaying": { "desc": "Xem bài đang phát" },
+      "volume": {
+        "desc": "Chỉnh âm lượng (0-200)",
+        "opt_volume": "Âm lượng từ 0 đến 200"
+      },
+      "shuffle": { "desc": "Xáo trộn hàng đợi" },
+      "loop": {
+        "desc": "Chọn chế độ lặp lại",
+        "opt_mode": "Chế độ lặp",
+        "choice_off": "Tắt",
+        "choice_track": "Bài hiện tại",
+        "choice_queue": "Cả hàng đợi"
+      }
+    },
+    "honeypot": {
+      "desc": "Cấu hình bot bẫy spam",
+      "setup": {
+        "desc": "Thiết lập channel bẫy, channel log và action",
+        "opt_trap_channel": "Channel dùng làm bẫy",
+        "opt_log_channel": "Channel để log trigger",
+        "opt_action": "Hành động khi trigger",
+        "choice_kick": "Kick",
+        "choice_ban": "Ban",
+        "choice_softban": "Softban"
+      },
+      "disable": { "desc": "Tắt honeypot cho server này" },
+      "messages": {
+        "desc": "Tùy chỉnh tin nhắn DM và warning",
+        "opt_dm_message": "Tin nhắn DM gửi tới user khi trigger (để trống = mặc định)",
+        "opt_warning_message": "Tin nhắn warning trong trap channel (để trống = mặc định)"
+      },
+      "experiment": {
+        "desc": "Bật/tắt experiment cho honeypot",
+        "opt_experiment": "Experiment cần bật/tắt",
+        "opt_enabled": "Bật hay tắt",
+        "choice_timeout_first": "Timeout Trước",
+        "choice_no_dm": "Không DM",
+        "choice_no_warning_msg": "Không Cảnh Báo",
+        "choice_random_channel_name": "Tên Channel Ngẫu Nhiên"
+      },
+      "add_trap": {
+        "desc": "Thêm channel bẫy mới",
+        "opt_channel": "Channel bẫy mới"
+      },
+      "remove_trap": {
+        "desc": "Xóa channel bẫy",
+        "opt_channel": "Channel cần xóa khỏi trap"
+      },
+      "stats": { "desc": "Xem thống kê honeypot" }
+    },
+    "modmail": {
+      "desc": "Quản lý ticket hỗ trợ",
+      "reply": { "desc": "Trả lời ticket (embed)", "opt_message": "Nội dung tin nhắn" },
+      "preply": { "desc": "Trả lời dạng text (không embed)", "opt_message": "Nội dung tin nhắn" },
+      "areply": { "desc": "Trả lời ẩn danh (embed)", "opt_message": "Nội dung tin nhắn" },
+      "pareply": { "desc": "Trả lời ẩn danh dạng text", "opt_message": "Nội dung tin nhắn" },
+      "close": { "desc": "Đóng ticket hiện tại", "opt_reason": "Lý do đóng", "opt_silent": "Không gửi thông báo" },
+      "edit": { "desc": "Sửa tin nhắn reply đã gửi", "opt_message_id": "ID tin nhắn (lấy từ footer)", "opt_new_content": "Nội dung mới" },
+      "delete": { "desc": "Xoá tin nhắn reply đã gửi", "opt_message_id": "ID tin nhắn (lấy từ footer)" },
+      "move": { "desc": "Di chuyển ticket sang category khác", "opt_category": "Category mới" },
+      "note": { "desc": "Thêm ghi chú nội bộ", "opt_message": "Nội dung ghi chú", "opt_persistent": "Ghim vĩnh viễn" },
+      "snippet": {
+        "desc": "Quản lý câu trả lời mẫu",
+        "send": { "desc": "Gửi snippet vào ticket", "opt_name": "Tên snippet" },
+        "raw": { "desc": "Xem nội dung gốc", "opt_name": "Tên snippet" },
+        "add": { "desc": "Thêm snippet mới", "opt_name": "Tên snippet", "opt_content": "Nội dung" },
+        "edit": { "desc": "Sửa nội dung snippet", "opt_name": "Tên snippet", "opt_content": "Nội dung mới" },
+        "remove": { "desc": "Xoá snippet", "opt_name": "Tên snippet" },
+        "list": { "desc": "Danh sách snippet" }
+      },
+      "logs": {
+        "desc": "Tra cứu log",
+        "user": { "desc": "Xem lịch sử ticket của người dùng", "opt_user": "Người dùng" },
+        "closed_by": { "desc": "Tìm ticket đã đóng bởi staff", "opt_staff": "Staff đã đóng" },
+        "key": { "desc": "Tìm ticket theo từ khoá", "opt_keyword": "Từ khoá" },
+        "responded": { "desc": "Kiểm tra staff đã trả lời chưa" },
+        "search": { "desc": "Tìm kiếm nội dung log", "opt_keyword": "Từ khoá" }
+      },
+      "admin": {
+        "desc": "Quản trị modmail",
+        "block": { "desc": "Chặn người dùng khỏi modmail", "opt_user": "Người dùng", "opt_reason": "Lý do" },
+        "unblock": { "desc": "Bỏ chặn người dùng", "opt_user": "Người dùng" },
+        "blocked": { "desc": "Danh sách người dùng bị chặn" },
+        "whitelist": { "desc": "Thêm/xoá whitelist", "opt_user": "Người dùng", "opt_action": "Add hoặc remove", "choice_add": "Thêm", "choice_remove": "Xoá" },
+        "contact": { "desc": "Tạo ticket chủ động", "opt_user": "Người dùng" },
+        "selfcontact": { "desc": "Tạo ticket (hiện tên staff)", "opt_user": "Người dùng" },
+        "enable": { "desc": "Bật modmail", "opt_user": "Người dùng (bỏ trống = bật tất cả)" },
+        "disable": { "desc": "Tắt modmail", "opt_mode": "Chế độ", "choice_new": "Chỉ ticket mới", "choice_all": "Tất cả ticket", "choice_user": "Theo người dùng", "opt_user": "Người dùng (với mode=user)" },
+        "isenable": { "desc": "Kiểm tra trạng thái modmail", "opt_user": "Người dùng (bỏ trống = kiểm tra chung)" },
+        "setup_log": { "desc": "Đặt channel log ticket", "opt_channel": "Channel log (bỏ trống = xoá)" },
+        "alert_role": { "desc": "Đặt role ping khi có ticket mới", "opt_role": "Role (bỏ trống = xoá)" },
+        "greeting": { "desc": "Set tin nhắn chào khi tạo ticket", "opt_message": "Nội dung (bỏ trống = tắt)" },
+        "staff_role": { "desc": "Quản lý staff roles", "opt_action": "add/remove/list", "choice_add": "Thêm", "choice_remove": "Xoá", "choice_list": "Danh sách", "opt_role": "Role (với action add/remove)" },
+      "category": { "desc": "Quản lý category ticket", "opt_action": "add/remove/list", "choice_add": "Thêm", "choice_remove": "Xoá", "choice_list": "Danh sách", "opt_name": "Tên category (với action add/remove)", "opt_parent": "Category Discord (với action add)" }
+    },
+    "ticket": {
+      "desc": "Quản lý ticket",
+      "title": { "desc": "Đặt tiêu đề ticket", "opt_title": "Tiêu đề mới" },
+      "adduser": { "desc": "Thêm người dùng vào ticket", "opt_user": "Người dùng" },
+      "removeuser": { "desc": "Xoá người dùng khỏi ticket", "opt_user": "Người dùng" },
+      "repair": { "desc": "Sửa ticket (webhook, permissions)" },
+      "snooze": { "desc": "Tạm gác ticket", "opt_minutes": "Số phút" },
+      "unsnooze": { "desc": "Mở lại ticket" },
+      "snoozed": { "desc": "Danh sách ticket đang gác" },
+      "clearsnoozed": { "desc": "Xoá gác tất cả ticket" },
+      "nsfw": { "desc": "Đánh dấu NSFW" },
+      "sfw": { "desc": "Đánh dấu SFW" },
+      "notify": { "desc": "Bật/tắt thông báo reply" },
+      "subscribe": { "desc": "Nhận DM khi user trả lời" },
+      "msglink": { "desc": "Link tới tin nhắn reply", "opt_message_id": "ID tin nhắn (từ footer)" },
+      "loglink": { "desc": "Link tới channel ticket" },
+      "reopen": { "desc": "Mở lại ticket cũ của user", "opt_user": "Người dùng" }
+    }
+  }
+}
+}

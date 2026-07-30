@@ -1,44 +1,37 @@
 server:
-  port: 2333
+  port: ${LAVALINK_SERVER_PORT:-2333}
   address: 0.0.0.0
 
-metrics:
-  prometheus:
-    enabled: true
-    endpoint: /health
-
-plugins:
-  youtube:
-    enabled: true
-    allowSearch: true
-    allowDirectVideoIds: true
-    allowDirectPlaylistIds: true
-    clients:
-      - WEB
-      - MUSIC
-      - WEBEMBEDDED
-      - ANDROID_VR
-
 lavalink:
-  plugins:
-    - dependency: "dev.lavalink.youtube:youtube-plugin:1.18.1"
-      snapshot: false
   server:
-    password: "${LAVALINK_SERVER_PASSWORD}"
+    password: "${LAVALINK_SERVER_PASSWORD:youshallnotpass}"
     sources:
       youtube: false
       soundcloud: true
       http: true
       local: false
-    filters:
-      volume: true
-      equalizer: true
-      timescale: true
-      tremolo: true
-      vibrato: true
-    bufferDurationMs: 800
-    youtubePlaylistLoadLimit: 3
+    bufferDurationMs: 400
+    frameBufferDurationMs: 5000
+    opusEncodingQuality: 10
+    resamplingQuality: HIGH
+    trackStuckThresholdMs: 10000
+    useSeekGhosting: true
     playerUpdateInterval: 5
-    youtubeSearchEnabled: true
     soundcloudSearchEnabled: true
     gc-warnings: true
+
+plugins:
+  path: /opt/Lavalink/plugins
+
+metrics:
+  prometheus:
+    enabled: false
+    endpoint: /metrics
+
+logging:
+  file:
+    path: ./logs/
+    maxHistory: 7
+  level:
+    root: INFO
+    lavalink: INFO

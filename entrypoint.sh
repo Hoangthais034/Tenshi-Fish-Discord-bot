@@ -1,2 +1,2 @@
 #!/bin/sh
-cd /app && exec dotnet DiscordBot.dll
+cd /app && exec node dist/index.cjs

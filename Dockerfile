@@ -1,27 +1,55 @@
-# ── Build stage ──────────────────────────────────────────────
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
-WORKDIR /src
-ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+# ─────────────────────────────────────────────────────────
+# Stage 1: Dependencies
+# ─────────────────────────────────────────────────────────
+FROM node:20-alpine AS deps
 
-COPY DiscordBot.csproj .
-RUN --mount=type=cache,target=/root/.nuget/packages \
-    dotnet restore
-
-COPY . .
-RUN --mount=type=cache,target=/root/.nuget/packages \
-    dotnet publish -c Release -o /app --no-restore
-
-# ── Runtime stage ────────────────────────────────────────────
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y libopus0 libsodium-dev opus-tools --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/* \
-    && groupadd -r bot && useradd -r -g bot -d /app -s /sbin/nologin bot \
-    && mkdir -p /data && chown bot:bot /data
+COPY package.json package-lock.json ./
 
-COPY --from=build --chown=bot:bot /app .
-COPY --chown=bot:bot --chmod=755 entrypoint.sh /entrypoint.sh
+RUN npm ci --include=dev
+
+# ─────────────────────────────────────────────────────────
+# Stage 2: Build
+# ─────────────────────────────────────────────────────────
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+COPY --from=deps /app/node_modules ./node_modules
+
+COPY tsconfig.json tsup.config.ts ./
+COPY src/ ./src/
+
+RUN npm run build
+
+# ─────────────────────────────────────────────────────────
+# Stage 3: Runtime
+# ─────────────────────────────────────────────────────────
+FROM node:20-alpine AS runtime
+
+ENV NODE_ENV=production \
+    PATH=/app/node_modules/.bin:$PATH
+
+WORKDIR /app
+
+RUN adduser -D -h /app bot && \
+    mkdir -p /data && \
+    chown bot:bot /data
+
+COPY package.json package-lock.json ./
+COPY --from=deps /app/node_modules ./node_modules
+
+COPY --from=build /app/dist ./dist
+COPY src/locales/*.json ./dist/
+COPY src/database/schema.sql ./dist/schema.sql
+
+COPY --chown=bot:bot entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 USER bot
+
+HEALTHCHECK NONE
+
 ENTRYPOINT ["/entrypoint.sh"]

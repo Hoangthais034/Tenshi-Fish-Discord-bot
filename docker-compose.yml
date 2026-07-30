@@ -1,23 +1,25 @@
 services:
   lavalink:
-    build: ./lavalink
-    image: tenshi-lavalink
+    build:
+      context: ./lavalink
+      dockerfile: Dockerfile
     container_name: lavalink
     restart: unless-stopped
     ports:
       - "2333:2333"
     environment:
-      - _JAVA_OPTIONS=-Xmx256m -XX:+UseG1GC -XX:MaxGCPauseMillis=100
-      - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD}
+      - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD:?err}
+      - LAVALINK_SERVER_PORT=2333
+      - _JAVA_OPTIONS=-Xmx256m -Xms256m
     volumes:
-      - ./lavalink/application.yml:/opt/Lavalink/application.yml:ro
-      - lavalink-data:/opt/Lavalink/data
+      - ./lavalink/application.yml:/opt/Lavalink/application.yml
+      - lavalink-logs:/opt/Lavalink/logs
     healthcheck:
-      test: ["CMD", "wget", "--spider", "--tries=1", "--no-verbose", "http://localhost:2333/health"]
+      test: ["CMD-SHELL", "curl -s -o /dev/null -H 'Authorization: ${LAVALINK_PASSWORD}' http://localhost:2333/version"]
       interval: 15s
       timeout: 10s
-      retries: 40
-      start_period: 120s
+      retries: 10
+      start_period: 40s
     networks:
       - botnet
     logging:
@@ -35,14 +37,14 @@ services:
       lavalink:
         condition: service_healthy
     environment:
-      - DOTNET_ENVIRONMENT=Production
-      - Discord__Token=${DISCORD_TOKEN}
-      - Discord__OwnerId=${DISCORD_OWNER_ID:-0}
-      - Discord__DevGuildId=${DISCORD_DEV_GUILD_ID:-0}
-      - Lavalink__BaseAddress=http://lavalink:2333
-      - Lavalink__Password=${LAVALINK_PASSWORD}
-      - Modmail__GuildId=${MODMAIL_GUILD_ID}
-      - Modmail__CategoryId=${MODMAIL_CATEGORY_ID:-0}
+      - DISCORD_TOKEN=${DISCORD_TOKEN:?err}
+      - DISCORD_OWNER_ID=${DISCORD_OWNER_ID:-0}
+      - DISCORD_DEV_GUILD_ID=${DISCORD_DEV_GUILD_ID:-0}
+      - LAVALINK_HOST=lavalink
+      - LAVALINK_PORT=2333
+      - LAVALINK_PASSWORD=${LAVALINK_PASSWORD:?err}
+      - MODMAIL_GUILD_ID=${MODMAIL_GUILD_ID:?err}
+      - MODMAIL_CATEGORY_ID=${MODMAIL_CATEGORY_ID:-0}
       - DATA_PATH=/data/bot-data.db
     volumes:
       - bot-data:/data
@@ -59,5 +61,5 @@ networks:
     driver: bridge
 
 volumes:
-  lavalink-data:
   bot-data:
+  lavalink-logs:
