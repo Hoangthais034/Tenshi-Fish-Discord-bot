@@ -9,7 +9,9 @@ let locale: Locale = {};
 
 function load(): void {
   const lang = config.locale;
-  const dir = dirname(fileURLToPath(import.meta.url));
+  const dir = typeof __dirname !== 'undefined'
+    ? __dirname
+    : dirname(fileURLToPath(import.meta.url));
   const path = join(dir, `${lang}.json`);
   try {
     locale = JSON.parse(readFileSync(path, 'utf-8'));
