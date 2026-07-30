@@ -2,6 +2,7 @@ import { LavalinkManager, type Track } from 'lavalink-client';
 import { Client } from 'discord.js';
 import { singleton, inject } from 'tsyringe';
 import { config } from '../config.js';
+import { t } from '../locales/index.js';
 
 export interface MusicResult {
   text: string;
@@ -83,15 +84,15 @@ export class MusicService {
       // prevent crash from unhandled 'error' event on NodeManager
     });
 
-    this.manager.on('nodeConnect', node => {
+    this.manager.nodeManager.on('connect', (node: any) => {
       console.log(`Lavalink node connected: ${node.id}`);
     });
 
-    this.manager.on('nodeError', (node, error) => {
+    this.manager.nodeManager.on('error', (node: any, error: any) => {
       console.error(`Lavalink node error [${node.id}]:`, error?.message ?? error);
     });
 
-    this.manager.on('nodeDisconnect', (node, { code, reason }) => {
+    this.manager.nodeManager.on('disconnect', (node: any, { code, reason }: any) => {
       console.log(`Node disconnected: ${node.id}, code=${code} reason=${reason}`);
     });
 
@@ -155,27 +156,27 @@ export class MusicService {
     query = this.cleanUrl(query);
 
     const player = await this.getOrCreatePlayer(guildId, voiceChannelId, textChannelId);
-    if (!player) return { text: 'Không thể kết nối tới voice channel.' };
+    if (!player) return { text: t('music.no_player') };
 
     let result;
     try {
       result = await player.search({ query }, this.client.user!);
     } catch (e) {
       console.error('[play] search error:', e);
-      return { text: `Lỗi khi tải track: \`${query}\`.` };
+      return { text: t('music.search_error', { query }) };
     }
 
     if (result.loadType === 'error' || result.exception) {
-      return { text: `Lỗi khi tải track: \`${query}\`.` };
+      return { text: t('music.search_error', { query }) };
     }
 
     if (result.loadType === 'empty') {
-      return { text: `Không tìm thấy kết quả cho \`${query}\`.` };
+      return { text: t('music.no_results', { query }) };
     }
 
     if (result.loadType === 'playlist') {
       const tracks = result.tracks;
-      if (!tracks.length) return { text: `Playlist trống: **${result.playlist?.name ?? query}**.` };
+      if (!tracks.length) return { text: t('music.playlist_empty', { name: result.playlist?.name ?? query }) };
 
       const enqueue = player.queue.current !== null;
       await player.queue.add(tracks);
@@ -184,14 +185,14 @@ export class MusicService {
       const firstTrack = tracks[0];
       return {
         text: enqueue
-          ? `Đã thêm playlist **${result.playlist?.name ?? 'Unknown'}** (${tracks.length} bài) vào hàng đợi.`
-          : `Đang phát playlist **${result.playlist?.name ?? 'Unknown'}** (${tracks.length} bài).`,
-        track: firstTrack ? this.trackToResult(firstTrack) : undefined,
+          ? t('music.playlist_enqueued', { name: result.playlist?.name ?? 'Unknown', count: tracks.length })
+          : t('music.playlist_playing', { name: result.playlist?.name ?? 'Unknown', count: tracks.length }),
+        track: firstTrack ? this.trackToResult(firstTrack as any) : undefined,
       };
     }
 
     const track = result.tracks[0];
-    if (!track) return { text: `Không tìm thấy kết quả cho \`${query}\`.` };
+    if (!track) return { text: t('music.no_results', { query }) };
 
     const enqueueSingle = player.queue.current !== null;
     await player.queue.add(track);
@@ -202,86 +203,86 @@ export class MusicService {
 
     return {
       text: enqueueSingle
-        ? `Đã thêm vào hàng đợi: **${track.info.title}**`
-        : `Đang phát: **${track.info.title}**`,
-      track: this.trackToResult(track),
+        ? t('music.track_enqueued', { title: track.info.title })
+        : t('music.track_playing', { title: track.info.title }),
+      track: this.trackToResult(track as any),
     };
   }
 
   async skip(guildId: string): Promise<MusicResult> {
     const player = this.getPlayer(guildId);
-    if (!player) return { text: 'Bot không ở trong voice channel nào.' };
-    if (!player.queue.current) return { text: 'Không có bài nào đang phát.' };
+    if (!player) return { text: t('music.no_voice') };
+    if (!player.queue.current) return { text: t('music.nothing_playing') };
 
     await player.skip();
-    return { text: 'Đã skip bài hiện tại.' };
+    return { text: t('music.skipped') };
   }
 
   async stop(guildId: string): Promise<MusicResult> {
     const player = this.getPlayer(guildId);
-    if (!player) return { text: 'Bot không ở trong voice channel nào.' };
+    if (!player) return { text: t('music.no_voice') };
 
     await player.destroy();
-    return { text: 'Đã dừng và rời voice channel.' };
+    return { text: t('music.stopped') };
   }
 
   async pause(guildId: string): Promise<MusicResult> {
     const player = this.getPlayer(guildId);
-    if (!player) return { text: 'Bot không ở trong voice channel nào.' };
-    if (player.paused) return { text: 'Đã tạm dừng rồi.' };
+    if (!player) return { text: t('music.no_voice') };
+    if (player.paused) return { text: t('music.already_paused') };
 
     await player.pause();
-    return { text: 'Đã tạm dừng.' };
+    return { text: t('music.paused') };
   }
 
   async resume(guildId: string): Promise<MusicResult> {
     const player = this.getPlayer(guildId);
-    if (!player) return { text: 'Bot không ở trong voice channel nào.' };
-    if (!player.paused) return { text: 'Không ở trạng thái tạm dừng.' };
+    if (!player) return { text: t('music.no_voice') };
+    if (!player.paused) return { text: t('music.not_paused') };
 
     await player.resume();
-    return { text: 'Đã tiếp tục phát.' };
+    return { text: t('music.resumed') };
   }
 
   async setVolume(guildId: string, volume: number): Promise<MusicResult> {
     const player = this.getPlayer(guildId);
-    if (!player) return { text: 'Bot không ở trong voice channel nào.' };
+    if (!player) return { text: t('music.no_voice') };
 
     volume = Math.max(0, Math.min(200, volume));
     await player.setVolume(volume);
-    return { text: `Đã chỉnh volume về ${volume}%.` };
+    return { text: t('music.volume_set', { volume }) };
   }
 
   async shuffle(guildId: string): Promise<MusicResult> {
     const player = this.getPlayer(guildId);
-    if (!player) return { text: 'Bot không ở trong voice channel nào.' };
+    if (!player) return { text: t('music.no_voice') };
 
     await player.queue.shuffle();
-    return { text: 'Đã xáo trộn hàng đợi.' };
+    return { text: t('music.shuffled') };
   }
 
-  async setLoop(guildId: string, mode: 'none' | 'track' | 'queue'): Promise<MusicResult> {
+  async setLoop(guildId: string, mode: 'off' | 'track' | 'queue'): Promise<MusicResult> {
     const player = this.getPlayer(guildId);
-    if (!player) return { text: 'Bot không ở trong voice channel nào.' };
+    if (!player) return { text: t('music.no_voice') };
 
     await player.setRepeatMode(mode);
-    const label = mode === 'track' ? 'bài hiện tại' : mode === 'queue' ? 'toàn bộ hàng đợi' : 'tắt';
-    return { text: `Đã chọn loop chế độ ${label}.` };
+    const label = mode === 'track' ? t('music.loop_mode_track') : mode === 'queue' ? t('music.loop_mode_queue') : t('music.loop_mode_none');
+    return { text: t('music.loop_set', { mode: label }) };
   }
 
   forwardVoiceEvents(): void {
-    this.client.ws.on('VOICE_STATE_UPDATE', (data: any) => {
+    this.client.ws.on('VOICE_STATE_UPDATE' as any, (data: any) => {
       this.manager.sendRawData({ t: 'VOICE_STATE_UPDATE', d: data });
     });
 
-    this.client.ws.on('VOICE_SERVER_UPDATE', (data: any) => {
+    this.client.ws.on('VOICE_SERVER_UPDATE' as any, (data: any) => {
       this.manager.sendRawData({ t: 'VOICE_SERVER_UPDATE', d: data });
     });
   }
 
   async nowPlaying(guildId: string): Promise<MusicResult> {
     const player = this.getPlayer(guildId);
-    if (!player || !player.queue.current) return { text: 'Không có bài nào đang phát.' };
+    if (!player || !player.queue.current) return { text: t('music.nothing_playing') };
 
     const track = player.queue.current;
     const position = player.position ?? 0;
@@ -290,23 +291,23 @@ export class MusicService {
     const state = player.paused ? '⏸️' : '▶️';
 
     return {
-      text: `${state} **${track.info.title}** — ${track.info.author}\n\`${progress}\``,
-      track: this.trackToResult(track),
+      text: t('music.nowplaying', { state, title: track.info.title, author: track.info.author, progress }),
+      track: this.trackToResult(track as any),
     };
   }
 
   async getQueue(guildId: string): Promise<MusicResult> {
     const player = this.getPlayer(guildId);
-    if (!player) return { text: 'Hàng đợi trống.' };
+    if (!player) return { text: t('music.queue_empty') };
 
     const lines: string[] = [];
     const current = player.queue.current;
     if (current) {
-      lines.push(`▶️ **${current.info.title}** — ${current.info.author}`);
+      lines.push(t('music.queue_current', { title: current.info.title, author: current.info.author }));
     }
 
     const queue = player.queue;
-    if (!queue.tracks.length) return { text: lines.length ? lines.join('\n') : 'Hàng đợi trống.' };
+    if (!queue.tracks.length) return { text: lines.length ? lines.join('\n') : t('music.queue_empty') };
 
     const total = queue.tracks.length;
     const take = Math.min(total, 20);
@@ -316,7 +317,7 @@ export class MusicService {
       if (track) lines.push(`  ${i + 1}. ${track.info.title} — ${track.info.author}`);
     }
 
-    if (total > 20) lines.push(`  ... và ${total - 20} bài nữa`);
+    if (total > 20) lines.push(t('music.queue_more', { count: total - 20 }));
 
     return { text: lines.join('\n') };
   }

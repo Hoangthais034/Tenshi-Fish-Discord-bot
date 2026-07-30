@@ -19,6 +19,7 @@ import { getDb } from '../database/init.js';
 import type { TicketRow, BlockRow, WhitelistRow, SnippetRow, GuildConfigRow, NotificationRow, PersistentNoteRow, MessageLogRow } from '../database/types.js';
 import { config } from '../config.js';
 import Database from 'better-sqlite3';
+import { t } from '../locales/index.js';
 
 type Db = Database.Database;
 
@@ -57,12 +58,12 @@ export class ModmailService {
 
     const cfg = this.getGuildConfig(config.modmail.guildId);
     if (cfg.disable_all_tickets === 1 || parseIds(cfg.disabled_user_ids).includes(message.author.id)) {
-      await dmChannel.send('Modmail hiện đang tạm tắt.').catch(() => {});
+      await dmChannel.send(t('modmail.dm.disabled_all')).catch(() => {});
       return;
     }
 
     if (this.isBlocked(config.modmail.guildId, message.author.id)) {
-      await dmChannel.send('Bạn đã bị chặn khỏi dịch vụ hỗ trợ.').catch(() => {});
+      await dmChannel.send(t('modmail.dm.blocked')).catch(() => {});
       return;
     }
 
@@ -74,15 +75,15 @@ export class ModmailService {
 
     if (content === '!close' || content === '!status') {
       if (!ticket) {
-        await dmChannel.send('Bạn không có ticket nào đang mở.').catch(() => {});
+        await dmChannel.send(t('modmail.dm.no_open_ticket')).catch(() => {});
         return;
       }
 
       if (content === '!status') {
         const unix = Math.floor(new Date(ticket.created_at).getTime() / 1000);
         const msg = ticket.snoozed_until && new Date(ticket.snoozed_until) > new Date()
-          ? `⏸️ Ticket của bạn đang tạm gác đến <t:${Math.floor(new Date(ticket.snoozed_until).getTime() / 1000)}:R>.`
-          : `🟢 Ticket của bạn đang mở (tạo <t:${unix}:R>).`;
+          ? t('modmail.dm.status_snoozed', { time: `<t:${Math.floor(new Date(ticket.snoozed_until).getTime() / 1000)}:R>` })
+          : t('modmail.dm.status_open', { time: `<t:${unix}:R>` });
         await dmChannel.send(msg).catch(() => {});
         return;
       }
@@ -93,27 +94,27 @@ export class ModmailService {
         if (channel) {
           await channel.send({
             embeds: [new EmbedBuilder()
-              .setTitle('Ticket đã đóng bởi người dùng')
-              .setDescription(`Người dùng đã yêu cầu đóng ticket từ DM.`)
+              .setTitle(t('modmail.dm.close_title'))
+              .setDescription(t('modmail.dm.close_description'))
               .setColor(Colors.Red)
               .setTimestamp()],
           });
           await channel.delete();
         }
-        await dmChannel.send('✅ Đã đóng ticket của bạn. Cảm ơn bạn đã liên hệ!').catch(() => {});
+        await dmChannel.send(t('modmail.dm.close_success')).catch(() => {});
         return;
       }
     }
 
     if (ticket) {
       if (ticket.disabled === 1) {
-        await dmChannel.send('Ticket của bạn đã bị tắt nhận tin nhắn.').catch(() => {});
+        await dmChannel.send(t('modmail.dm.ticket_disabled')).catch(() => {});
         return;
       }
 
       if (ticket.snoozed_until && new Date(ticket.snoozed_until) > new Date()) {
         const unix = Math.floor(new Date(ticket.snoozed_until).getTime() / 1000);
-        await dmChannel.send(`Ticket của bạn đang tạm gác, vui lòng đợi đến <t:${unix}:R>.`).catch(() => {});
+        await dmChannel.send(t('modmail.dm.snoozed', { time: `<t:${unix}:R>` })).catch(() => {});
         return;
       }
 
@@ -122,7 +123,7 @@ export class ModmailService {
 
     if (!channel) {
       if (cfg.disable_new_tickets === 1) {
-        await dmChannel.send('Hiện không thể tạo ticket mới.').catch(() => {});
+        await dmChannel.send(t('modmail.dm.new_disabled')).catch(() => {});
         return;
       }
 
@@ -153,8 +154,8 @@ export class ModmailService {
 
       await channel.send({
         embeds: [new EmbedBuilder()
-          .setTitle('Modmail mới')
-          .setDescription(`Từ ${message.author} (\`${message.author.id}\`)${greeting ? `\n\n${greeting}` : ''}`)
+          .setTitle(t('modmail.ticket.new_ticket_title'))
+          .setDescription(t('modmail.ticket.new_ticket_desc', { user: String(message.author), id: message.author.id }) + (greeting ? `\n\n${greeting}` : ''))
           .setColor(Colors.Blue)
           .setTimestamp()],
       });
@@ -169,7 +170,7 @@ export class ModmailService {
       await this.notifySubscribers(ticket);
     }
 
-    await dmChannel.send('✅ Tin nhắn của bạn đã được gửi đến đội ngũ hỗ trợ.').catch(() => {});
+    await dmChannel.send(t('modmail.dm.sent')).catch(() => {});
   }
 
   private async notifySubscribers(ticket: TicketRow): Promise<void> {
@@ -181,7 +182,7 @@ export class ModmailService {
         const user = await this.client.users.fetch(sid);
         if (!user) continue;
         const dm = await user.createDM();
-        await dm.send(`📩 Tin nhắn mới trong ticket <#${ticket.channel_id}> (người dùng: ${ticket.user_name})`);
+        await dm.send(t('modmail.dm.subscriber_notify', { channel: ticket.channel_id, user: ticket.user_name }));
       } catch {}
     }
   }
@@ -196,7 +197,7 @@ export class ModmailService {
     if (message.content) contentParts.push(message.content);
     for (const url of allUrls) contentParts.push(url);
 
-    const finalContent = contentParts.join('\n') || '(file)';
+    const finalContent = contentParts.join('\n') || t('modmail.dm.file_placeholder');
 
     if (ticket.webhook_id && ticket.webhook_token) {
       try {
@@ -236,10 +237,10 @@ export class ModmailService {
 
   async reply(channel: TextChannel, staff: GuildMember, content: string): Promise<string> {
     const ticket = this.db.prepare('SELECT * FROM tickets WHERE channel_id = ? AND open = 1').get(channel.id) as TicketRow | undefined;
-    if (!ticket) return 'Channel này không phải ticket đang mở.';
+    if (!ticket) return t('modmail.ticket.not_found');
 
     const user = await this.client.users.fetch(ticket.user_id).catch(() => null);
-    if (!user) return 'Không thể tìm thấy người dùng.';
+    if (!user) return t('modmail.ticket.user_not_found');
 
     try {
       const dm = await user.createDM();
@@ -251,7 +252,7 @@ export class ModmailService {
       const dmMsg = await dm.send({ embeds: [embed] });
 
       const confirmEmbed = new EmbedBuilder()
-        .setAuthor({ name: `Bạn → ${user.username}`, iconURL: staff.displayAvatarURL() })
+        .setAuthor({ name: t('modmail.reply.author_confirm', { user: user.username }), iconURL: staff.displayAvatarURL() })
         .setDescription(content)
         .setColor(Colors.Green)
         .setTimestamp()
@@ -259,49 +260,49 @@ export class ModmailService {
       await channel.send({ embeds: [confirmEmbed] });
 
       this.logMessage(ticket.channel_id, staff.id, staff.displayName, content, '[]', true, false);
-      return '✅ Đã gửi tin nhắn.';
+      return t('modmail.ticket.reply_sent');
     } catch (e) {
       console.warn('Không thể gửi DM:', e);
-      return '❌ Không thể gửi tin nhắn. Người dùng có thể đã tắt DM hoặc chặn bot.';
+      return t('modmail.ticket.reply_failed');
     }
   }
 
   async plainReply(channel: TextChannel, staff: GuildMember, content: string): Promise<string> {
     const ticket = this.db.prepare('SELECT * FROM tickets WHERE channel_id = ? AND open = 1').get(channel.id) as TicketRow | undefined;
-    if (!ticket) return 'Channel này không phải ticket đang mở.';
+    if (!ticket) return t('modmail.ticket.not_found');
 
     const user = await this.client.users.fetch(ticket.user_id).catch(() => null);
-    if (!user) return 'Không thể tìm thấy người dùng.';
+    if (!user) return t('modmail.ticket.user_not_found');
 
     try {
       const dm = await user.createDM();
       const dmMsg = await dm.send(`**${staff.displayName}:** ${content}`);
-      await channel.send(`📨 **Bạn → ${user.username}:** ${content}`);
+      await channel.send(t('modmail.reply.plain_confirm', { user: user.username, content }));
       this.logMessage(ticket.channel_id, staff.id, staff.displayName, content, '[]', true, false);
-      return '✅ Đã gửi tin nhắn dạng text.';
+      return t('modmail.ticket.plain_sent');
     } catch {
-      return '❌ Không thể gửi tin nhắn.';
+      return t('modmail.ticket.plain_failed');
     }
   }
 
   async anonymousReply(channel: TextChannel, content: string): Promise<string> {
     const ticket = this.db.prepare('SELECT * FROM tickets WHERE channel_id = ? AND open = 1').get(channel.id) as TicketRow | undefined;
-    if (!ticket) return 'Channel này không phải ticket đang mở.';
+    if (!ticket) return t('modmail.ticket.not_found');
 
     const user = await this.client.users.fetch(ticket.user_id).catch(() => null);
-    if (!user) return 'Không thể tìm thấy người dùng.';
+    if (!user) return t('modmail.ticket.user_not_found');
 
     try {
       const dm = await user.createDM();
       const embed = new EmbedBuilder()
-        .setAuthor({ name: 'Staff (Anonymous)' })
+        .setAuthor({ name: t('modmail.reply.anonymous_author') })
         .setDescription(content)
         .setColor(Colors.LightGrey)
         .setTimestamp();
       const dmMsg = await dm.send({ embeds: [embed] });
 
       const confirmEmbed = new EmbedBuilder()
-        .setAuthor({ name: `Staff (Anonymous) → ${user.username}` })
+        .setAuthor({ name: t('modmail.reply.anonymous_confirm', { user: user.username }) })
         .setDescription(content)
         .setColor(Colors.LightGrey)
         .setTimestamp()
@@ -309,33 +310,33 @@ export class ModmailService {
       await channel.send({ embeds: [confirmEmbed] });
 
       this.logMessage(ticket.channel_id, '0', 'Staff (Anonymous)', content, '[]', true, true);
-      return '✅ Đã gửi tin nhắn ẩn danh.';
+      return t('modmail.ticket.anon_sent');
     } catch {
-      return '❌ Không thể gửi tin nhắn.';
+      return t('modmail.ticket.plain_failed');
     }
   }
 
   async plainAnonymousReply(channel: TextChannel, content: string): Promise<string> {
     const ticket = this.db.prepare('SELECT * FROM tickets WHERE channel_id = ? AND open = 1').get(channel.id) as TicketRow | undefined;
-    if (!ticket) return 'Channel này không phải ticket đang mở.';
+    if (!ticket) return t('modmail.ticket.not_found');
 
     const user = await this.client.users.fetch(ticket.user_id).catch(() => null);
-    if (!user) return 'Không thể tìm thấy người dùng.';
+    if (!user) return t('modmail.ticket.user_not_found');
 
     try {
       const dm = await user.createDM();
-      await dm.send(`**Staff (Anonymous):** ${content}`);
-      await channel.send(`📨 **Staff (Anonymous) → ${user.username}:** ${content}`);
+      await dm.send(t('modmail.reply.anonymous_plain_dm', { content }));
+      await channel.send(t('modmail.reply.anonymous_plain_confirm', { user: user.username, content }));
       this.logMessage(ticket.channel_id, '0', 'Staff (Anonymous)', content, '[]', true, true);
-      return '✅ Đã gửi tin nhắn ẩn danh dạng text.';
+      return t('modmail.ticket.anon_plain_sent');
     } catch {
-      return '❌ Không thể gửi tin nhắn.';
+      return t('modmail.ticket.plain_failed');
     }
   }
 
   async replyWithSnippet(channel: TextChannel, staff: GuildMember, snippetName: string): Promise<string> {
     const snippet = this.db.prepare('SELECT * FROM snippets WHERE guild_id = ? AND name = ?').get(channel.guild.id, snippetName) as SnippetRow | undefined;
-    if (!snippet) return `Không tìm thấy snippet \`${snippetName}\`.`;
+    if (!snippet) return t('modmail.snippet.not_found', { name: snippetName });
     return this.reply(channel, staff, snippet.content);
   }
 
@@ -343,35 +344,35 @@ export class ModmailService {
 
   async editReply(channel: TextChannel, messageId: string, newContent: string): Promise<string> {
     const ticket = this.db.prepare('SELECT * FROM tickets WHERE channel_id = ? AND open = 1').get(channel.id) as TicketRow | undefined;
-    if (!ticket) return 'Channel này không phải ticket đang mở.';
+    if (!ticket) return t('modmail.ticket.not_found');
 
     const user = await this.client.users.fetch(ticket.user_id).catch(() => null);
-    if (!user) return 'Không thể tìm thấy người dùng.';
+    if (!user) return t('modmail.ticket.user_not_found');
 
     try {
       const dm = await user.createDM();
       const msg = await dm.messages.fetch(messageId);
-      if (!msg) return 'Không tìm thấy tin nhắn với ID này.';
+      if (!msg) return t('modmail.ticket.edit_not_found');
 
       const embed = msg.embeds[0];
-      if (!embed) return 'Tin nhắn không có embed để sửa.';
+      if (!embed) return t('modmail.ticket.edit_no_embed');
 
-      const newEmbed = EmbedBuilder.from(embed).setDescription(newContent).setFooter({ text: 'Đã sửa' });
+      const newEmbed = EmbedBuilder.from(embed).setDescription(newContent).setFooter({ text: t('modmail.note.updated') });
       await msg.edit({ embeds: [newEmbed] });
 
       this.logMessage(ticket.channel_id, '0', 'System', `Edited message ${messageId}: ${newContent}`, '[]', true, false);
-      return '✅ Đã sửa tin nhắn.';
+      return t('modmail.ticket.edit_success');
     } catch {
-      return '❌ Không thể sửa tin nhắn.';
+      return t('modmail.ticket.edit_failed');
     }
   }
 
   async deleteReply(channel: TextChannel, messageId: string): Promise<string> {
     const ticket = this.db.prepare('SELECT * FROM tickets WHERE channel_id = ? AND open = 1').get(channel.id) as TicketRow | undefined;
-    if (!ticket) return 'Channel này không phải ticket đang mở.';
+    if (!ticket) return t('modmail.ticket.not_found');
 
     const user = await this.client.users.fetch(ticket.user_id).catch(() => null);
-    if (!user) return 'Không thể tìm thấy người dùng.';
+    if (!user) return t('modmail.ticket.user_not_found');
 
     try {
       const dm = await user.createDM();
@@ -379,9 +380,9 @@ export class ModmailService {
       if (msg) await msg.delete();
 
       this.logMessage(ticket.channel_id, '0', 'System', `Deleted message ${messageId}`, '[]', true, false);
-      return '✅ Đã xoá tin nhắn.';
+      return t('modmail.ticket.delete_success');
     } catch {
-      return '❌ Không thể xoá tin nhắn.';
+      return t('modmail.ticket.delete_failed');
     }
   }
 
@@ -389,27 +390,27 @@ export class ModmailService {
 
   async setTicketTitle(channel: TextChannel, _staff: GuildMember, title: string): Promise<string> {
     const ticket = this.db.prepare('SELECT * FROM tickets WHERE channel_id = ? AND open = 1').get(channel.id) as TicketRow | undefined;
-    if (!ticket) return 'Channel này không phải ticket đang mở.';
+    if (!ticket) return t('modmail.ticket.not_found');
 
     this.db.prepare('UPDATE tickets SET title = ? WHERE channel_id = ?').run(title, channel.id);
 
     await channel.send({
       embeds: [new EmbedBuilder()
-        .setTitle('Tiêu đề đã được cập nhật')
-        .setDescription(`"${title}"`)
+        .setTitle(t('modmail.ticket.title_updated'))
+        .setDescription(t('modmail.ticket.title_updated_desc', { title }))
         .setColor(Colors.Blue)
         .setTimestamp()],
     });
 
-    return `✅ Đã đặt tiêu đề: "${title}"`;
+    return t('modmail.ticket.set_title', { title });
   }
 
   async addUserToTicket(channel: TextChannel, target: GuildMember): Promise<string> {
     const ticket = this.db.prepare('SELECT * FROM tickets WHERE channel_id = ? AND open = 1').get(channel.id) as TicketRow | undefined;
-    if (!ticket) return 'Channel này không phải ticket đang mở.';
+    if (!ticket) return t('modmail.ticket.not_found');
 
     const added = parseIds(ticket.added_user_ids);
-    if (added.includes(target.id)) return 'Người dùng này đã được thêm.';
+    if (added.includes(target.id)) return t('modmail.ticket.already_added');
 
     added.push(target.id);
     this.db.prepare('UPDATE tickets SET added_user_ids = ? WHERE channel_id = ?').run(jsonArray(added), channel.id);
@@ -422,15 +423,15 @@ export class ModmailService {
       });
     } catch {}
 
-    return `✅ Đã thêm ${target} vào ticket.`;
+      return t('modmail.ticket.added', { user: String(target) });
   }
 
   async removeUserFromTicket(channel: TextChannel, target: GuildMember): Promise<string> {
     const ticket = this.db.prepare('SELECT * FROM tickets WHERE channel_id = ? AND open = 1').get(channel.id) as TicketRow | undefined;
-    if (!ticket) return 'Channel này không phải ticket đang mở.';
+    if (!ticket) return t('modmail.ticket.not_found');
 
     const added = parseIds(ticket.added_user_ids);
-    if (!added.includes(target.id)) return 'Người dùng này không có trong ticket.';
+    if (!added.includes(target.id)) return t('modmail.ticket.not_added');
 
     const filtered = added.filter(id => id !== target.id);
     this.db.prepare('UPDATE tickets SET added_user_ids = ? WHERE channel_id = ?').run(jsonArray(filtered), channel.id);
@@ -439,12 +440,12 @@ export class ModmailService {
       await channel.permissionOverwrites.create(target, { ViewChannel: false });
     } catch {}
 
-    return `✅ Đã xoá ${target} khỏi ticket.`;
+      return t('modmail.ticket.removed', { user: String(target) });
   }
 
   async repairTicket(channel: TextChannel): Promise<string> {
     const ticket = this.db.prepare('SELECT * FROM tickets WHERE channel_id = ?').get(channel.id) as TicketRow | undefined;
-    if (!ticket) return 'Channel này không phải ticket.';
+    if (!ticket) return t('modmail.ticket.not_ticket');
 
     const fixed: string[] = [];
 
@@ -473,8 +474,8 @@ export class ModmailService {
       }
     }
 
-    if (!fixed.length) return '✅ Ticket không cần sửa chữa.';
-    return `✅ Đã sửa: ${fixed.join(', ')}.`;
+    if (!fixed.length) return t('modmail.ticket.repair_ok');
+    return t('modmail.ticket.repaired', { things: fixed.join(', ') });
   }
 
   getTicketByChannel(channelId: string): TicketRow | undefined {
@@ -485,13 +486,13 @@ export class ModmailService {
 
   async moveTicket(channel: TextChannel, categoryId: string): Promise<string> {
     const ticket = this.db.prepare('SELECT * FROM tickets WHERE channel_id = ? AND open = 1').get(channel.id) as TicketRow | undefined;
-    if (!ticket) return 'Channel này không phải ticket đang mở.';
+    if (!ticket) return t('modmail.ticket.not_found');
 
     try {
       await channel.setParent(categoryId);
-      return '✅ Đã di chuyển ticket sang category mới.';
+      return t('modmail.ticket.move_ok');
     } catch {
-      return '❌ Không thể di chuyển ticket.';
+      return t('modmail.ticket.move_failed');
     }
   }
 
@@ -499,7 +500,7 @@ export class ModmailService {
 
   async closeTicket(channel: TextChannel, closer: GuildMember, reason: string | null, silent: boolean): Promise<string> {
     const ticket = this.db.prepare('SELECT * FROM tickets WHERE channel_id = ? AND open = 1').get(channel.id) as TicketRow | undefined;
-    if (!ticket) return 'Channel này không phải ticket đang mở.';
+    if (!ticket) return t('modmail.ticket.not_found');
 
     this.db.prepare('UPDATE tickets SET open = 0, closed_at = datetime(\'now\'), close_reason = ?, closed_by_staff_id = ? WHERE channel_id = ?').run(reason, closer.id, channel.id);
 
@@ -510,8 +511,8 @@ export class ModmailService {
           const dm = await user.createDM();
           await dm.send({
             embeds: [new EmbedBuilder()
-              .setTitle('Ticket đã đóng')
-              .setDescription(reason ?? 'Cảm ơn bạn đã liên hệ.')
+              .setTitle(t('modmail.close.user_dm_title'))
+              .setDescription(reason ?? t('modmail.close.user_dm_desc'))
               .setColor(Colors.Red)
               .setTimestamp()],
           });
@@ -521,11 +522,11 @@ export class ModmailService {
 
     await channel.send({
       embeds: [new EmbedBuilder()
-        .setTitle('Ticket đã đóng')
+        .setTitle(t('modmail.close.title'))
         .addFields(
-          { name: 'Người dùng', value: `<@${ticket.user_id}> (\`${ticket.user_id}\`)`, inline: true },
-          { name: 'Đóng bởi', value: closer.toString(), inline: true },
-          { name: 'Lý do', value: reason ?? 'Không có', inline: true },
+          { name: t('modmail.close.fields_user'), value: `<@${ticket.user_id}> (\`${ticket.user_id}\`)`, inline: true },
+          { name: t('modmail.close.fields_closed_by'), value: closer.toString(), inline: true },
+          { name: t('modmail.close.fields_reason'), value: reason ?? t('modmail.block.no_reason'), inline: true },
         )
         .setColor(Colors.Red)
         .setTimestamp()],
@@ -534,7 +535,7 @@ export class ModmailService {
     await this.sendTranscriptLog(channel.guild.id, ticket, closer, reason);
 
     await channel.delete();
-    return '✅ Đã đóng ticket.';
+    return t('modmail.close.success');
   }
 
   // ─── Block / Whitelist ──────────────────────────────────────────────────────
@@ -544,22 +545,22 @@ export class ModmailService {
   }
 
   blockUser(guildId: string, userId: string, reason: string | null, staffId: string | null): string {
-    if (this.isBlocked(guildId, userId)) return 'Người dùng này đã bị chặn rồi.';
+    if (this.isBlocked(guildId, userId)) return t('modmail.block.already');
 
     this.db.prepare('INSERT INTO blocks (guild_id, user_id, reason, blocked_at, blocked_by_staff_id) VALUES (?, ?, ?, datetime(\'now\'), ?)').run(guildId, userId, reason, staffId);
 
     const whitelistEntry = this.db.prepare('SELECT id FROM whitelist WHERE guild_id = ? AND user_id = ?').get(guildId, userId) as WhitelistRow | undefined;
     if (whitelistEntry) this.db.prepare('DELETE FROM whitelist WHERE id = ?').run(whitelistEntry.id);
 
-    return `✅ Đã chặn <@${userId}> khỏi modmail.`;
+    return t('modmail.block.blocked', { user: `<@${userId}>` });
   }
 
   unblockUser(guildId: string, userId: string): string {
     const block = this.db.prepare('SELECT id FROM blocks WHERE guild_id = ? AND user_id = ?').get(guildId, userId) as BlockRow | undefined;
-    if (!block) return 'Người dùng này không bị chặn.';
+    if (!block) return t('modmail.block.not_blocked');
 
     this.db.prepare('DELETE FROM blocks WHERE id = ?').run(block.id);
-    return `✅ Đã bỏ chặn <@${userId}>.`;
+    return t('modmail.block.unblocked', { user: `<@${userId}>` });
   }
 
   getBlockedUsers(guildId: string): BlockRow[] {
@@ -571,25 +572,25 @@ export class ModmailService {
   }
 
   whitelistUser(guildId: string, userId: string, staffId: string | null): string {
-    if (this.isWhitelisted(guildId, userId)) return 'Người dùng này đã có trong whitelist.';
+    if (this.isWhitelisted(guildId, userId)) return t('modmail.whitelist.already');
 
     this.db.prepare('INSERT INTO whitelist (guild_id, user_id, created_at, added_by_staff_id) VALUES (?, ?, datetime(\'now\'), ?)').run(guildId, userId, staffId);
 
     const block = this.db.prepare('SELECT id FROM blocks WHERE guild_id = ? AND user_id = ?').get(guildId, userId) as BlockRow | undefined;
     if (block) {
       this.db.prepare('DELETE FROM blocks WHERE id = ?').run(block.id);
-      return `✅ Đã whitelist <@${userId}> và bỏ chặn.`;
+      return t('modmail.whitelist.whitelisted', { user: `<@${userId}>` });
     }
 
-    return `✅ Đã whitelist <@${userId}>.`;
+    return t('modmail.whitelist.whitelisted_no_block', { user: `<@${userId}>` });
   }
 
   unwhitelistUser(guildId: string, userId: string): string {
     const entry = this.db.prepare('SELECT id FROM whitelist WHERE guild_id = ? AND user_id = ?').get(guildId, userId) as WhitelistRow | undefined;
-    if (!entry) return 'Người dùng này không có trong whitelist.';
+    if (!entry) return t('modmail.whitelist.not_whitelisted');
 
     this.db.prepare('DELETE FROM whitelist WHERE id = ?').run(entry.id);
-    return `✅ Đã xoá <@${userId}> khỏi whitelist.`;
+    return t('modmail.whitelist.removed', { user: `<@${userId}>` });
   }
 
   getWhitelistedUsers(guildId: string): WhitelistRow[] {
@@ -600,12 +601,12 @@ export class ModmailService {
 
   async contact(guildId: string, user: User): Promise<string> {
     const guild = this.client.guilds.cache.get(guildId);
-    if (!guild) return 'Không tìm thấy guild.';
+    if (!guild) return t('modmail.contact.guild_not_found');
 
-    if (this.isBlocked(guildId, user.id)) return 'Người dùng này đã bị chặn.';
+    if (this.isBlocked(guildId, user.id)) return t('modmail.contact.blocked');
 
     const existing = this.db.prepare('SELECT * FROM tickets WHERE user_id = ? AND open = 1').get(user.id) as TicketRow | undefined;
-    if (existing) return `Người dùng đã có ticket mở tại <#${existing.channel_id}>.`;
+    if (existing) return t('modmail.contact.existing', { channel: existing.channel_id });
 
     const restChannel = await guild.channels.create({
         name: `ticket-${user.username}-${user.id.slice(-4)}`.toLowerCase(),
@@ -622,21 +623,21 @@ export class ModmailService {
 
     await restChannel.send({
       embeds: [new EmbedBuilder()
-        .setTitle('Ticket được tạo bởi staff')
-        .setDescription(`Liên hệ ${user} (\`${user.id}\`)`)
+        .setTitle(t('modmail.ticket.staff_contact_title'))
+        .setDescription(t('modmail.ticket.staff_contact_desc', { user: String(user), id: user.id }))
         .setColor(Colors.Green)
         .setTimestamp()],
     });
 
-    return `✅ Đã tạo ticket cho ${user} tại ${restChannel}.`;
+    return t('modmail.contact.success', { user: String(user), channel: String(restChannel) });
   }
 
   async selfContact(staff: GuildMember, target: User): Promise<string> {
     const guild = this.client.guilds.cache.get(config.modmail.guildId);
-    if (!guild) return 'Không tìm thấy guild.';
+    if (!guild) return t('modmail.contact.guild_not_found');
 
     const existing = this.db.prepare('SELECT * FROM tickets WHERE user_id = ? AND open = 1').get(target.id) as TicketRow | undefined;
-    if (existing) return `Người dùng đã có ticket mở tại <#${existing.channel_id}>.`;
+    if (existing) return t('modmail.contact.existing', { channel: existing.channel_id });
 
     const restChannel = await guild.channels.create({
         name: `ticket-${target.username}-${target.id.slice(-4)}`.toLowerCase(),
@@ -653,13 +654,13 @@ export class ModmailService {
 
     await restChannel.send({
       embeds: [new EmbedBuilder()
-        .setTitle('Staff tự liên hệ')
-        .setDescription(`${staff} đã tạo ticket để liên hệ ${target}`)
+        .setTitle(t('modmail.ticket.self_contact_title'))
+        .setDescription(t('modmail.ticket.self_contact_desc', { staff: String(staff), user: String(target) }))
         .setColor(Colors.Green)
         .setTimestamp()],
     });
 
-    return `✅ Đã tạo ticket cho ${target} tại ${restChannel}.`;
+    return t('modmail.contact.self_success', { user: String(target), channel: String(restChannel) });
   }
 
   // ─── Reopen ──────────────────────────────────────────────────────────────────
@@ -669,10 +670,10 @@ export class ModmailService {
       'SELECT * FROM tickets WHERE user_id = ? AND open = 0 ORDER BY closed_at DESC LIMIT 1',
     ).get(userId) as TicketRow | undefined;
 
-    if (!latest) return 'Người dùng này không có ticket cũ.';
+    if (!latest) return t('modmail.ticket.no_old_ticket');
 
     const existing = this.db.prepare('SELECT * FROM tickets WHERE user_id = ? AND open = 1').get(userId) as TicketRow | undefined;
-    if (existing) return `Người dùng đã có ticket mở tại <#${existing.channel_id}>.`;
+    if (existing) return t('modmail.contact.existing', { channel: existing.channel_id });
 
     const restChannel = await guild.channels.create({
       name: `ticket-${latest.user_name}-${userId.slice(-4)}`.toLowerCase(),
@@ -691,37 +692,37 @@ export class ModmailService {
 
     await restChannel.send({
       embeds: [new EmbedBuilder()
-        .setTitle('Ticket mở lại')
-        .setDescription(`Ticket cũ của ${staff} đã được mở lại cho <@${userId}> (\`${userId}\`)`)
-        .addFields({ name: 'Ticket cũ', value: `#${latest.id} — đóng lúc ${latest.closed_at?.slice(0, 16).replace('T', ' ') ?? '?'}` })
+        .setTitle(t('modmail.ticket.reopened_title'))
+        .setDescription(t('modmail.ticket.reopened_desc', { staff: String(staff), user: `<@${userId}>`, id: userId }))
+        .addFields({ name: t('modmail.ticket.reopened_field_old'), value: t('modmail.ticket.reopened_old', { id: latest.id, time: latest.closed_at?.slice(0, 16).replace('T', ' ') ?? '?' }) })
         .setColor(Colors.Green)
         .setTimestamp()],
     });
 
-    return `✅ Đã mở lại ticket cho <@${userId}> tại ${restChannel}.`;
+    return t('modmail.ticket.reopened_success', { user: `<@${userId}>`, channel: String(restChannel) });
   }
 
   // ─── Notes ───────────────────────────────────────────────────────────────────
 
   async note(channel: TextChannel, staff: GuildMember, content: string): Promise<string> {
     const ticket = this.db.prepare('SELECT * FROM tickets WHERE channel_id = ?').get(channel.id) as TicketRow | undefined;
-    if (!ticket) return 'Channel này không phải ticket.';
+    if (!ticket) return t('modmail.ticket.not_ticket');
 
     await channel.send({
       embeds: [new EmbedBuilder()
-        .setAuthor({ name: `📝 Note — ${staff.displayName}`, iconURL: staff.displayAvatarURL() })
+        .setAuthor({ name: t('modmail.note.label') + ' — ' + staff.displayName, iconURL: staff.displayAvatarURL() })
         .setDescription(content)
         .setColor(Colors.DarkGrey)
         .setTimestamp()],
     });
 
       this.logMessage(ticket.channel_id, staff.id, staff.displayName, `[NOTE] ${content}`, '[]', true, false);
-    return '✅ Đã thêm note.';
+    return t('modmail.note.added');
   }
 
   async persistentNote(channel: TextChannel, staff: GuildMember, content: string): Promise<string> {
     const ticket = this.db.prepare('SELECT * FROM tickets WHERE channel_id = ?').get(channel.id) as TicketRow | undefined;
-    if (!ticket) return 'Channel này không phải ticket.';
+    if (!ticket) return t('modmail.ticket.not_ticket');
 
     const existing = this.db.prepare('SELECT * FROM persistent_notes WHERE ticket_channel_id = ?').get(channel.id) as PersistentNoteRow | undefined;
 
@@ -733,26 +734,26 @@ export class ModmailService {
 
     const msg = await channel.send({
       embeds: [new EmbedBuilder()
-        .setAuthor({ name: `📌 Persistent Note — ${staff.displayName}`, iconURL: staff.displayAvatarURL() })
+        .setAuthor({ name: t('modmail.note.persistent_label') + ' — ' + staff.displayName, iconURL: staff.displayAvatarURL() })
         .setDescription(content)
         .setColor(Colors.DarkGrey)
-        .setFooter({ text: 'Note này sẽ hiển thị lại khi có tin nhắn mới' })
+        .setFooter({ text: t('modmail.note.reply_hint') })
         .setTimestamp()],
     });
 
     if (!existing) {
-      await channel.send('💡 Persistent note đã được ghim. Dùng `/modmail note persistent` để cập nhật.');
+      await channel.send(t('modmail.note.persistent_hint'));
     }
 
     this.logMessage(ticket.channel_id, staff.id, staff.displayName, `[PERSISTENT NOTE] ${content}`, '[]', true, false);
-    return '✅ Đã thêm persistent note.';
+    return t('modmail.note.persistent_added');
   }
 
   // ─── Snooze ─────────────────────────────────────────────────────────────────
 
   async snoozeTicket(channel: TextChannel, minutes: number): Promise<string> {
     const ticket = this.db.prepare('SELECT * FROM tickets WHERE channel_id = ? AND open = 1').get(channel.id) as TicketRow | undefined;
-    if (!ticket) return 'Channel này không phải ticket đang mở.';
+    if (!ticket) return t('modmail.ticket.not_found');
 
     const snoozedUntil = new Date(Date.now() + minutes * 60_000).toISOString();
     this.db.prepare('UPDATE tickets SET snoozed_until = ? WHERE channel_id = ?').run(snoozedUntil, channel.id);
@@ -760,34 +761,34 @@ export class ModmailService {
     const unix = Math.floor(new Date(snoozedUntil).getTime() / 1000);
     await channel.send({
       embeds: [new EmbedBuilder()
-        .setTitle('Ticket tạm gác')
-        .setDescription(`Ticket sẽ tự động mở lại sau <t:${unix}:R>.`)
+        .setTitle(t('modmail.snooze.title'))
+        .setDescription(t('modmail.snooze.desc', { time: `<t:${unix}:R>` }))
         .setColor(Colors.Orange)
         .setTimestamp()],
     });
 
-    return `✅ Đã gác ticket đến ${new Date(snoozedUntil).toISOString().slice(11, 16)} UTC.`;
+    return t('modmail.snooze.success', { time: new Date(snoozedUntil).toISOString().slice(11, 16) + ' UTC' });
   }
 
   async unsnoozeTicket(channel: TextChannel): Promise<string> {
     const ticket = this.db.prepare('SELECT * FROM tickets WHERE channel_id = ? AND open = 1').get(channel.id) as TicketRow | undefined;
-    if (!ticket) return 'Channel này không phải ticket đang mở.';
+    if (!ticket) return t('modmail.ticket.not_found');
 
-    if (!ticket.snoozed_until) return 'Ticket này không đang gác.';
+    if (!ticket.snoozed_until) return t('modmail.snooze.not_snoozed');
 
     this.db.prepare('UPDATE tickets SET snoozed_until = NULL WHERE channel_id = ?').run(channel.id);
-    await channel.send('✅ Đã mở lại ticket.');
-    return '✅ Đã mở lại ticket.';
+    await channel.send(t('modmail.ticket.unsnoozed_channel'));
+    return t('modmail.snooze.unsnoozed');
   }
 
   getSnoozedTickets(guild: Guild): string {
     const snoozed = this.db.prepare('SELECT * FROM tickets WHERE open = 1 AND snoozed_until IS NOT NULL AND snoozed_until > datetime(\'now\')').all() as TicketRow[];
-    if (!snoozed.length) return 'Không có ticket nào đang gác.';
+    if (!snoozed.length) return t('modmail.snooze.none');
 
-    const lines = snoozed.map(t => {
-      const remaining = Math.round((new Date(t.snoozed_until!).getTime() - Date.now()) / 60_000);
-      const channel = guild.channels.cache.get(t.channel_id);
-      return `• ${channel ? `<#${channel.id}>` : `\`${t.channel_id}\``} — ${t.user_name} — còn ${remaining}ph`;
+    const lines = snoozed.map(tk => {
+      const remaining = Math.round((new Date(tk.snoozed_until!).getTime() - Date.now()) / 60_000);
+      const channel = guild.channels.cache.get(tk.channel_id);
+      return t('modmail.snooze.list_item', { channel: channel ? `<#${channel.id}>` : `\`${tk.channel_id}\``, user: tk.user_name, minutes: remaining });
     });
 
     return lines.join('\n');
@@ -795,7 +796,7 @@ export class ModmailService {
 
   clearSnoozedTickets(): string {
     const result = this.db.prepare('UPDATE tickets SET snoozed_until = NULL WHERE open = 1 AND snoozed_until IS NOT NULL AND snoozed_until > datetime(\'now\')').run();
-    return `✅ Đã xoá gác cho ${result.changes} ticket(s).`;
+    return t('modmail.snooze.cleared', { count: result.changes });
   }
 
   // ─── Notifications ──────────────────────────────────────────────────────────
@@ -805,49 +806,49 @@ export class ModmailService {
 
     if (existing) {
       this.db.prepare('DELETE FROM notifications WHERE id = ?').run(existing.id);
-      return '✅ Đã tắt thông báo cho ticket này.';
+      return t('modmail.notify.off');
     }
 
     this.db.prepare('INSERT INTO notifications (guild_id, user_id, ticket_channel_id) VALUES (?, ?, ?)').run(guildId, staffId, channelId);
-    return '✅ Đã bật thông báo cho ticket này.';
+    return t('modmail.notify.on');
   }
 
   // ─── Subscribe ──────────────────────────────────────────────────────────────
 
   toggleSubscribe(channelId: string, userId: string): string {
     const ticket = this.db.prepare('SELECT * FROM tickets WHERE channel_id = ?').get(channelId) as TicketRow | undefined;
-    if (!ticket) return 'Không tìm thấy ticket.';
+    if (!ticket) return t('modmail.ticket.not_found');
 
     const subs = parseIds(ticket.subscriber_ids);
     if (subs.includes(userId)) {
       const filtered = subs.filter(id => id !== userId);
       this.db.prepare('UPDATE tickets SET subscriber_ids = ? WHERE channel_id = ?').run(jsonArray(filtered), channelId);
-      return '✅ Đã huỷ đăng ký nhận thông báo.';
+      return t('modmail.subscribe.off');
     }
 
     subs.push(userId);
     this.db.prepare('UPDATE tickets SET subscriber_ids = ? WHERE channel_id = ?').run(jsonArray(subs), channelId);
-    return '✅ Đã đăng ký nhận thông báo khi người dùng trả lời.';
+    return t('modmail.subscribe.on');
   }
 
   // ─── NSFW / SFW ─────────────────────────────────────────────────────────────
 
   async setNsfw(channel: TextChannel): Promise<string> {
     const ticket = this.db.prepare('SELECT * FROM tickets WHERE channel_id = ? AND open = 1').get(channel.id) as TicketRow | undefined;
-    if (!ticket) return 'Channel này không phải ticket đang mở.';
+    if (!ticket) return t('modmail.ticket.not_found');
 
     this.db.prepare('UPDATE tickets SET is_nsfw = 1 WHERE channel_id = ?').run(channel.id);
     try { await channel.edit({ nsfw: true }); } catch {}
-    return '✅ Đã đánh dấu ticket là NSFW.';
+    return t('modmail.nsfw.set');
   }
 
   async setSfw(channel: TextChannel): Promise<string> {
     const ticket = this.db.prepare('SELECT * FROM tickets WHERE channel_id = ? AND open = 1').get(channel.id) as TicketRow | undefined;
-    if (!ticket) return 'Channel này không phải ticket đang mở.';
+    if (!ticket) return t('modmail.ticket.not_found');
 
     this.db.prepare('UPDATE tickets SET is_nsfw = 0 WHERE channel_id = ?').run(channel.id);
     try { await channel.edit({ nsfw: false }); } catch {}
-    return '✅ Đã đánh dấu ticket là SFW.';
+    return t('modmail.nsfw.unset');
   }
 
   // ─── Links ──────────────────────────────────────────────────────────────────
@@ -866,13 +867,13 @@ export class ModmailService {
     const cfg = this.getGuildConfig(guildId);
 
     if (!userId) {
-      if (cfg.disable_all_tickets === 1) return 'Modmail đang tắt hoàn toàn.';
-      if (cfg.disable_new_tickets === 1) return 'Không thể tạo ticket mới.';
-      return 'Modmail đang bật.';
+      if (cfg.disable_all_tickets === 1) return t('modmail.enable.off_all');
+      if (cfg.disable_new_tickets === 1) return t('modmail.enable.off_new');
+      return t('modmail.enable.on');
     }
 
-    if (parseIds(cfg.disabled_user_ids).includes(userId)) return 'Người dùng này đã bị tắt modmail.';
-    return 'Người dùng này có thể dùng modmail.';
+    if (parseIds(cfg.disabled_user_ids).includes(userId)) return t('modmail.enable.user_off');
+    return t('modmail.enable.user_on');
   }
 
   enableModmail(guildId: string, userId?: string): string {
@@ -880,14 +881,14 @@ export class ModmailService {
 
     if (!userId) {
       this.db.prepare('UPDATE guild_configs SET disable_all_tickets = 0, disable_new_tickets = 0 WHERE guild_id = ?').run(guildId);
-      return '✅ Đã bật modmail.';
+      return t('modmail.enable.enabled');
     }
 
     const disabled = parseIds(cfg.disabled_user_ids).filter(id => id !== userId);
     this.db.prepare('UPDATE guild_configs SET disabled_user_ids = ? WHERE guild_id = ?').run(jsonArray(disabled), guildId);
     this.db.prepare('UPDATE tickets SET disabled = 0 WHERE user_id = ? AND open = 1').run(userId);
 
-    return `✅ Đã bật modmail cho <@${userId}>.`;
+    return t('modmail.enable.user_enabled', { user: `<@${userId}>` });
   }
 
   disableModmail(guildId: string, disableNew: boolean, disableAll: boolean, userId?: string): string {
@@ -898,12 +899,12 @@ export class ModmailService {
       if (!disabled.includes(userId)) disabled.push(userId);
       this.db.prepare('UPDATE guild_configs SET disabled_user_ids = ? WHERE guild_id = ?').run(jsonArray(disabled), guildId);
       this.db.prepare('UPDATE tickets SET disabled = 1 WHERE user_id = ? AND open = 1').run(userId);
-      return `✅ Đã tắt modmail cho <@${userId}>.`;
+      return t('modmail.enable.user_disabled', { user: `<@${userId}>` });
     }
 
     if (disableAll) this.db.prepare('UPDATE guild_configs SET disable_all_tickets = 1 WHERE guild_id = ?').run(guildId);
     if (disableNew) this.db.prepare('UPDATE guild_configs SET disable_new_tickets = 1 WHERE guild_id = ?').run(guildId);
-    return '✅ Đã tắt modmail.';
+    return t('modmail.enable.disabled');
   }
 
   // ─── Log Channel ────────────────────────────────────────────────────────────
@@ -911,10 +912,10 @@ export class ModmailService {
   setLogChannel(guildId: string, channelId: string | null): string {
     if (channelId) {
       this.db.prepare('UPDATE guild_configs SET log_channel_id = ? WHERE guild_id = ?').run(channelId, guildId);
-      return `✅ Đã set log channel thành <#${channelId}>.`;
+      return t('modmail.log_channel.set', { channel: `<#${channelId}>` });
     }
     this.db.prepare('UPDATE guild_configs SET log_channel_id = NULL WHERE guild_id = ?').run(guildId);
-    return '✅ Đã xoá log channel.';
+    return t('modmail.log_channel.removed');
   }
 
   getLogChannel(guildId: string): string | null {
@@ -937,14 +938,14 @@ export class ModmailService {
     const duration = ticket.created_at ? Math.round((Date.now() - new Date(ticket.created_at).getTime()) / 3600000) + 'h' : '?';
 
     const embed = new EmbedBuilder()
-      .setTitle('Ticket Closed')
+      .setTitle(t('modmail.close.log_title'))
       .setColor(Colors.Red)
       .addFields(
-        { name: 'User', value: `${userMention} (\`${ticket.user_id}\`)`, inline: true },
-        { name: 'Closed by', value: closer.toString(), inline: true },
-        { name: 'Duration', value: duration, inline: true },
-        { name: 'Messages', value: `${messageCount}`, inline: true },
-        { name: 'Reason', value: reason || 'None', inline: false },
+        { name: t('modmail.close.fields_user'), value: `${userMention} (\`${ticket.user_id}\`)`, inline: true },
+        { name: t('modmail.close.fields_closed_by'), value: closer.toString(), inline: true },
+        { name: t('modmail.close.fields_duration'), value: duration, inline: true },
+        { name: t('modmail.close.fields_messages'), value: `${messageCount}`, inline: true },
+        { name: t('modmail.close.fields_reason'), value: reason || t('modmail.block.no_reason'), inline: false },
       )
       .setTimestamp();
 
@@ -956,10 +957,10 @@ export class ModmailService {
   setAlertRole(guildId: string, roleId: string | null): string {
     if (roleId) {
       this.db.prepare('UPDATE guild_configs SET alert_role_id = ? WHERE guild_id = ?').run(roleId, guildId);
-      return `✅ Đã set alert role thành <@&${roleId}>.`;
+      return t('modmail.alert_role.set', { role: `<@&${roleId}>` });
     }
     this.db.prepare('UPDATE guild_configs SET alert_role_id = NULL WHERE guild_id = ?').run(guildId);
-    return '✅ Đã xoá alert role.';
+    return t('modmail.alert_role.removed');
   }
 
   getAlertRole(guildId: string): string | null {
@@ -972,18 +973,18 @@ export class ModmailService {
   addStaffRole(guildId: string, roleId: string): string {
     const cfg = this.getGuildConfig(guildId);
     const roles = parseIds(cfg.staff_role_ids);
-    if (roles.includes(roleId)) return 'Role này đã có trong danh sách.';
+    if (roles.includes(roleId)) return t('modmail.staff_role.already');
     roles.push(roleId);
     this.db.prepare('UPDATE guild_configs SET staff_role_ids = ? WHERE guild_id = ?').run(jsonArray(roles), guildId);
-    return `✅ Đã thêm <@&${roleId}> vào staff roles.`;
+    return t('modmail.staff_role.added', { role: `<@&${roleId}>` });
   }
 
   removeStaffRole(guildId: string, roleId: string): string {
     const cfg = this.getGuildConfig(guildId);
     const roles = parseIds(cfg.staff_role_ids).filter(id => id !== roleId);
-    if (roles.length === parseIds(cfg.staff_role_ids).length) return 'Role này không có trong danh sách.';
+    if (roles.length === parseIds(cfg.staff_role_ids).length) return t('modmail.staff_role.not_found');
     this.db.prepare('UPDATE guild_configs SET staff_role_ids = ? WHERE guild_id = ?').run(jsonArray(roles), guildId);
-    return `✅ Đã xoá <@&${roleId}> khỏi staff roles.`;
+    return t('modmail.staff_role.removed', { role: `<@&${roleId}>` });
   }
 
   getStaffRoles(guildId: string): string[] {
@@ -1003,19 +1004,19 @@ export class ModmailService {
   addCategory(guildId: string, name: string, parentId: string | null): string {
     const cfg = this.getGuildConfig(guildId);
     const cats = JSON.parse(cfg.categories) as { name: string; parentId: string | null }[];
-    if (cats.some(c => c.name === name)) return `Category \`${name}\` đã tồn tại.`;
+    if (cats.some(c => c.name === name)) return t('modmail.category.exists', { name });
     cats.push({ name, parentId });
     this.db.prepare('UPDATE guild_configs SET categories = ? WHERE guild_id = ?').run(JSON.stringify(cats), guildId);
-    return `✅ Đã thêm category \`${name}\`.`;
+    return t('modmail.category.added', { name });
   }
 
   removeCategory(guildId: string, name: string): string {
     const cfg = this.getGuildConfig(guildId);
     const cats = JSON.parse(cfg.categories) as { name: string; parentId: string | null }[];
     const filtered = cats.filter(c => c.name !== name);
-    if (filtered.length === cats.length) return `Không tìm thấy category \`${name}\`.`;
+    if (filtered.length === cats.length) return t('modmail.category.not_found', { name });
     this.db.prepare('UPDATE guild_configs SET categories = ? WHERE guild_id = ?').run(JSON.stringify(filtered), guildId);
-    return `✅ Đã xoá category \`${name}\`.`;
+    return t('modmail.category.removed', { name });
   }
 
   getCategories(guildId: string): { name: string; parentId: string | null }[] {
@@ -1028,25 +1029,25 @@ export class ModmailService {
   setGreeting(guildId: string, message: string | null): string {
     if (message) {
       this.db.prepare('UPDATE guild_configs SET greeting_message = ?, greeting_enabled = 1 WHERE guild_id = ?').run(message, guildId);
-      return '✅ Đã bật greeting message.';
+      return t('modmail.greeting.enabled');
     }
     this.db.prepare('UPDATE guild_configs SET greeting_message = NULL, greeting_enabled = 0 WHERE guild_id = ?').run(guildId);
-    return '✅ Đã tắt greeting message.';
+    return t('modmail.greeting.disabled');
   }
 
   // ─── Logs ───────────────────────────────────────────────────────────────────
 
   getLogsByUser(guild: Guild, userId: string): string {
     const tickets = this.db.prepare('SELECT * FROM tickets WHERE user_id = ? ORDER BY created_at DESC').all(userId) as TicketRow[];
-    if (!tickets.length) return 'Người dùng này chưa có ticket nào.';
+    if (!tickets.length) return t('modmail.logs.no_user');
 
-    const lines = tickets.map(t => {
-      const status = t.open ? '🟢 Đang mở' : '🔴 Đã đóng';
-      const closedBy = t.closed_by_staff_id ? ` bởi <@${t.closed_by_staff_id}>` : '';
-      const reason = t.close_reason ? ` — ${t.close_reason}` : '';
-      const subject = t.title ? ` **${t.title}**` : '';
-      const created = t.created_at.slice(0, 16).replace('T', ' ');
-      const snoozed = t.snoozed_until && new Date(t.snoozed_until) > new Date() ? ' ⏸️' : '';
+    const lines = tickets.map(tk => {
+      const status = tk.open ? t('modmail.logs.status_open') : t('modmail.logs.status_closed');
+      const closedBy = tk.closed_by_staff_id ? ` ${t('modmail.logs.by')} <@${tk.closed_by_staff_id}>` : '';
+      const reason = tk.close_reason ? t('modmail.logs.reason', { reason: tk.close_reason }) : '';
+      const subject = tk.title ? ` **${tk.title}**` : '';
+      const created = tk.created_at.slice(0, 16).replace('T', ' ');
+      const snoozed = tk.snoozed_until && new Date(tk.snoozed_until) > new Date() ? ' ⏸️' : '';
       return `\`${created}\` ${status}${snoozed}${subject}${closedBy}${reason}`;
     });
 
@@ -1055,11 +1056,11 @@ export class ModmailService {
 
   getLogsClosedBy(guildId: string, staffId: string): string {
     const tickets = this.db.prepare('SELECT * FROM tickets WHERE closed_by_staff_id = ? ORDER BY closed_at DESC').all(staffId) as TicketRow[];
-    if (!tickets.length) return 'Staff này chưa đóng ticket nào.';
+    if (!tickets.length) return t('modmail.logs.no_staff');
 
-    const lines = tickets.map(t => {
-      const closedAt = t.closed_at ? t.closed_at.slice(0, 16).replace('T', ' ') : '?';
-      return `• <@${t.user_id}> — ${t.close_reason ?? 'Không có lý do'} — ${closedAt}`;
+    const lines = tickets.map(tk => {
+      const closedAt = tk.closed_at ? tk.closed_at.slice(0, 16).replace('T', ' ') : '?';
+      return t('modmail.logs.entry', { userId: tk.user_id, reason: tk.close_reason ?? t('modmail.block.no_reason'), closedAt });
     });
 
     return lines.slice(0, 20).join('\n');
@@ -1073,7 +1074,7 @@ export class ModmailService {
       t.user_name.toLowerCase().includes(lower),
     ).sort((a, b) => b.created_at.localeCompare(a.created_at));
 
-    if (!tickets.length) return `Không tìm thấy ticket nào với từ khoá "${keyword}".`;
+    if (!tickets.length) return t('modmail.logs.no_keyword', { keyword });
 
     const lines = tickets.slice(0, 20).map(t =>
       `• <@${t.user_id}> — ${t.user_name} — ${t.created_at.slice(0, 16).replace('T', ' ')}`,
@@ -1083,7 +1084,7 @@ export class ModmailService {
 
   getLogsResponded(channelId: string): string {
     const log = this.db.prepare('SELECT 1 FROM message_logs WHERE ticket_channel_id = ? AND is_staff = 1 LIMIT 1').get(channelId) as MessageLogRow | undefined;
-    return log ? '✅ Staff đã trả lời trong ticket này.' : '❌ Chưa có staff nào trả lời.';
+    return log ? t('modmail.logs.responded_yes') : t('modmail.logs.responded_no');
   }
 
   searchLogs(keyword: string): string {
@@ -1093,7 +1094,7 @@ export class ModmailService {
       .sort((a, b) => b.timestamp.localeCompare(a.timestamp))
       .slice(0, 20);
 
-    if (!logs.length) return `Không tìm thấy log nào với từ khoá "${keyword}".`;
+    if (!logs.length) return t('modmail.logs.no_search', { keyword });
 
     const lines = logs.map(l => {
       const time = l.timestamp.slice(5, 16).replace('T', ' ');
@@ -1110,27 +1111,27 @@ export class ModmailService {
 
     if (existing) {
       this.db.prepare('UPDATE snippets SET content = ? WHERE id = ?').run(content, existing.id);
-      return `✅ Đã cập nhật snippet \`${name}\`.`;
+      return t('modmail.snippet.updated', { name });
     }
 
     this.db.prepare('INSERT INTO snippets (guild_id, name, content) VALUES (?, ?, ?)').run(guildId, name, content);
-    return `✅ Đã tạo snippet \`${name}\`.`;
+    return t('modmail.snippet.created', { name });
   }
 
   editSnippet(guildId: string, name: string, newContent: string): string {
     const snippet = this.db.prepare('SELECT id FROM snippets WHERE guild_id = ? AND name = ?').get(guildId, name) as SnippetRow | undefined;
-    if (!snippet) return `Không tìm thấy snippet \`${name}\`.`;
+    if (!snippet) return t('modmail.snippet.not_found', { name });
 
     this.db.prepare('UPDATE snippets SET content = ? WHERE id = ?').run(newContent, snippet.id);
-    return `✅ Đã cập nhật snippet \`${name}\`.`;
+    return t('modmail.snippet.updated', { name });
   }
 
   deleteSnippet(guildId: string, name: string): string {
     const snippet = this.db.prepare('SELECT id FROM snippets WHERE guild_id = ? AND name = ?').get(guildId, name) as SnippetRow | undefined;
-    if (!snippet) return `Không tìm thấy snippet \`${name}\`.`;
+    if (!snippet) return t('modmail.snippet.not_found', { name });
 
     this.db.prepare('DELETE FROM snippets WHERE id = ?').run(snippet.id);
-    return `✅ Đã xoá snippet \`${name}\`.`;
+    return t('modmail.snippet.deleted', { name });
   }
 
   getSnippetRaw(guildId: string, name: string): string | null {

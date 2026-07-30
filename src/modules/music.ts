@@ -8,6 +8,7 @@ import {
 import { container } from 'tsyringe';
 import { MusicService, type MusicResult } from '../services/music.js';
 import type { Command } from '../types.js';
+import { t } from '../locales/index.js';
 
 const musicService = container.resolve(MusicService);
 
@@ -40,38 +41,38 @@ function buildEmbed(sub: string, result: MusicResult, user: GuildMember): EmbedB
 
 const builder = new SlashCommandBuilder()
   .setName('music')
-  .setDescription('Lệnh điều khiển nhạc')
+  .setDescription(t('cmd.music.desc'))
   .addSubcommand(sub =>
     sub
       .setName('play')
-      .setDescription('Phát nhạc từ tên bài hoặc URL YouTube')
-      .addStringOption(opt => opt.setName('query').setDescription('Tên bài hát hoặc URL YouTube').setRequired(true)),
+      .setDescription(t('cmd.music.play.desc'))
+      .addStringOption(opt => opt.setName('query').setDescription(t('cmd.music.play.opt_query')).setRequired(true)),
   )
-  .addSubcommand(sub => sub.setName('skip').setDescription('Bỏ qua bài đang phát'))
-  .addSubcommand(sub => sub.setName('stop').setDescription('Dừng phát nhạc và rời voice channel'))
-  .addSubcommand(sub => sub.setName('queue').setDescription('Xem hàng đợi hiện tại'))
-  .addSubcommand(sub => sub.setName('pause').setDescription('Tạm dừng phát nhạc'))
-  .addSubcommand(sub => sub.setName('resume').setDescription('Tiếp tục phát nhạc'))
-  .addSubcommand(sub => sub.setName('nowplaying').setDescription('Xem bài đang phát'))
+  .addSubcommand(sub => sub.setName('skip').setDescription(t('cmd.music.skip.desc')))
+  .addSubcommand(sub => sub.setName('stop').setDescription(t('cmd.music.stop.desc')))
+  .addSubcommand(sub => sub.setName('queue').setDescription(t('cmd.music.queue.desc')))
+  .addSubcommand(sub => sub.setName('pause').setDescription(t('cmd.music.pause.desc')))
+  .addSubcommand(sub => sub.setName('resume').setDescription(t('cmd.music.resume.desc')))
+  .addSubcommand(sub => sub.setName('nowplaying').setDescription(t('cmd.music.nowplaying.desc')))
   .addSubcommand(sub =>
     sub
       .setName('volume')
-      .setDescription('Chỉnh âm lượng (0-200)')
-      .addNumberOption(opt => opt.setName('volume').setDescription('Âm lượng từ 0 đến 200').setRequired(true)),
+      .setDescription(t('cmd.music.volume.desc'))
+      .addNumberOption(opt => opt.setName('volume').setDescription(t('cmd.music.volume.opt_volume')).setRequired(true)),
   )
-  .addSubcommand(sub => sub.setName('shuffle').setDescription('Xáo trộn hàng đợi'))
+  .addSubcommand(sub => sub.setName('shuffle').setDescription(t('cmd.music.shuffle.desc')))
   .addSubcommand(sub =>
     sub
       .setName('loop')
-      .setDescription('Chọn chế độ lặp lại')
+      .setDescription(t('cmd.music.loop.desc'))
       .addStringOption(opt =>
         opt
           .setName('mode')
-          .setDescription('Chế độ lặp')
+          .setDescription(t('cmd.music.loop.opt_mode'))
           .addChoices(
-            { name: 'None', value: 'none' },
-            { name: 'Track', value: 'track' },
-            { name: 'Queue', value: 'queue' },
+            { name: t('cmd.music.loop.choice_off'), value: 'off' },
+            { name: t('cmd.music.loop.choice_track'), value: 'track' },
+            { name: t('cmd.music.loop.choice_queue'), value: 'queue' },
           )
           .setRequired(true),
       ),
@@ -85,7 +86,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
   const member = interaction.member as GuildMember | null;
   const voiceChannel = member?.voice.channel;
   if (!voiceChannel) {
-    await interaction.editReply('Bạn cần vào voice channel trước.');
+    await interaction.editReply(t('music.voice_required'));
     return;
   }
 
@@ -127,16 +128,16 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
         result = await musicService.shuffle(guildId);
         break;
       case 'loop': {
-        const mode = interaction.options.getString('mode', true) as 'none' | 'track' | 'queue';
+        const mode = interaction.options.getString('mode', true) as 'off' | 'track' | 'queue';
         result = await musicService.setLoop(guildId, mode);
         break;
       }
       default:
-        result = { text: 'Unknown subcommand.' };
+        result = { text: t('modmail.errors.unknown_command') };
     }
   } catch (e) {
     console.error('Music command error:', e);
-    result = { text: '❌ Lỗi khi thực hiện lệnh.' };
+    result = { text: t('errors.command_error') };
   }
 
   await interaction.editReply({ embeds: [buildEmbed(sub, result, member!)] });

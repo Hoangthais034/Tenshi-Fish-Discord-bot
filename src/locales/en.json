@@ -1,0 +1,423 @@
+{
+  "modmail": {
+    "dm": {
+      "disabled_all": "Modmail is currently disabled.",
+      "disabled_user": "You have been blocked from the support service.",
+      "blocked": "You have been blocked from the support service.",
+      "ticket_disabled": "Your ticket has been disabled from receiving messages.",
+      "snoozed": "Your ticket is currently snoozed, please wait until {time}.",
+      "new_disabled": "Cannot create new tickets at this time.",
+      "sent": "✅ Your message has been sent to the support team.",
+      "no_open_ticket": "You don't have any open ticket.",
+      "status_open": "🟢 Your ticket is open (created {time}).",
+      "status_snoozed": "⏸️ Your ticket is snoozed until {time}.",
+      "close_success": "✅ Your ticket has been closed. Thank you for contacting us!",
+      "close_title": "Ticket closed by user",
+      "close_description": "User requested to close the ticket via DM.",
+      "subscriber_notify": "📩 New message in ticket <#{channel}> ({user})",
+      "file_placeholder": "(file)"
+    },
+    "ticket": {
+      "not_found": "This channel is not an open ticket.",
+      "not_ticket": "This channel is not a ticket.",
+      "user_not_found": "Cannot find user.",
+      "reply_sent": "✅ Message sent.",
+      "reply_failed": "❌ Cannot send message. User may have disabled DMs or blocked the bot.",
+      "plain_sent": "✅ Plain text message sent.",
+      "plain_failed": "❌ Cannot send message.",
+      "anon_sent": "✅ Anonymous message sent.",
+      "anon_failed": "❌ Cannot send message.",
+      "anon_plain_sent": "✅ Anonymous plain text message sent.",
+      "edit_not_found": "Cannot find message with this ID.",
+      "edit_no_embed": "Message has no embed to edit.",
+      "edit_success": "✅ Message edited.",
+      "edit_failed": "❌ Cannot edit message.",
+      "delete_success": "✅ Message deleted.",
+      "delete_failed": "❌ Cannot delete message.",
+      "already_added": "This user has already been added.",
+      "not_added": "This user is not in the ticket.",
+      "added": "✅ Added {user} to the ticket.",
+      "removed": "✅ Removed {user} from the ticket.",
+      "repair_ok": "✅ Ticket does not need repair.",
+      "repaired": "✅ Fixed: {things}.",
+      "move_ok": "✅ Moved ticket to new category.",
+      "move_failed": "❌ Cannot move ticket.",
+      "set_title": "✅ Title set to \"{title}\".",
+      "title_updated": "Title updated",
+      "title_updated_desc": "\"{title}\"",
+      "new_ticket_title": "New Modmail",
+      "new_ticket_desc": "From {user} (`{id}`)",
+      "staff_contact_title": "Contact by staff",
+      "staff_contact_desc": "Contacting {user} (`{id}`)",
+      "self_contact_title": "Staff self-contact",
+      "self_contact_desc": "{staff} created a ticket to contact {user}",
+      "reopened_title": "Ticket reopened",
+      "reopened_desc": "Old ticket reopened by {staff} for {user}",
+      "reopened_old": "Old ticket #{id} — closed at {time}",
+      "reopened_field_old": "Old ticket",
+      "no_old_ticket": "This user has no old ticket.",
+      "reopened_success": "✅ Reopened ticket for {user} at {channel}.",
+      "already_open": "User already has an open ticket at {channel}.",
+      "unsnoozed_channel": "✅ Ticket unsnoozed."
+    },
+    "reply": {
+      "author_confirm": "You → {user}",
+      "anonymous_author": "Staff (Anonymous)",
+      "anonymous_confirm": "Staff (Anonymous) → {user}",
+      "plain_confirm": "📨 You → {user}:\n{content}",
+      "anonymous_plain_dm": "**Staff (Anonymous):** {content}",
+      "anonymous_plain_confirm": "📨 Staff (Anonymous) → {user}:\n{content}"
+    },
+    "close": {
+      "title": "Ticket closed",
+      "user_dm_title": "Ticket closed",
+      "user_dm_desc": "Thank you for contacting us.",
+      "fields_user": "User",
+      "fields_closed_by": "Closed by",
+      "fields_reason": "Reason",
+      "fields_duration": "Duration",
+      "fields_messages": "Messages",
+      "closed_reason": "Closed by user via DM",
+      "log_title": "Ticket Closed",
+      "success": "✅ Ticket closed."
+    },
+    "note": {
+      "added": "✅ Note added.",
+      "persistent_added": "✅ Persistent note added.",
+      "label": "Note",
+      "persistent_label": "Persistent Note",
+      "persistent_hint": "Persistent note is set. Use `/modmail note persistent` to update it.",
+      "updated": "Note updated",
+      "reply_hint": "This note will reappear when there are new messages."
+    },
+    "snooze": {
+      "title": "Ticket snoozed",
+      "desc": "Ticket will auto-reopen {time}.",
+      "success": "✅ Snoozed ticket until {time}.",
+      "not_snoozed": "This ticket is not snoozed.",
+      "unsnoozed": "✅ Ticket unsnoozed.",
+      "none": "No tickets are snoozed.",
+      "cleared": "✅ Cleared snooze for {count} ticket(s).",
+      "list_item": "• {channel} — {user} — {minutes}min left"
+    },
+    "block": {
+      "already": "This user is already blocked.",
+      "blocked": "✅ Blocked {user} from modmail.",
+      "not_blocked": "This user is not blocked.",
+      "unblocked": "✅ Unblocked {user}.",
+      "list_empty": "No blocked users.",
+      "list_title": "Block list ({count})",
+      "no_reason": "No reason",
+      "by": "by"
+    },
+    "whitelist": {
+      "already": "This user is already whitelisted.",
+      "whitelisted": "✅ Whitelisted {user} and unblocked.",
+      "whitelisted_no_block": "✅ Whitelisted {user}.",
+      "not_whitelisted": "This user is not whitelisted.",
+      "removed": "✅ Removed {user} from whitelist."
+    },
+    "contact": {
+      "blocked": "This user is blocked.",
+      "existing": "User already has an open ticket at {channel}.",
+      "success": "✅ Created ticket for {user} at {channel}.",
+      "self_success": "✅ Created ticket for {user} at {channel}.",
+      "guild_not_found": "Guild not found."
+    },
+    "enable": {
+      "off_all": "Modmail is completely disabled.",
+      "off_new": "Cannot create new tickets.",
+      "on": "Modmail is enabled.",
+      "user_off": "This user has modmail disabled.",
+      "user_on": "This user can use modmail.",
+      "enabled": "✅ Modmail enabled.",
+      "user_enabled": "✅ Modmail enabled for {user}.",
+      "disabled": "✅ Modmail disabled.",
+      "user_disabled": "✅ Modmail disabled for {user}."
+    },
+    "notify": {
+      "off": "✅ Notifications turned off for this ticket.",
+      "on": "✅ Notifications turned on for this ticket."
+    },
+    "subscribe": {
+      "off": "✅ Unsubscribed from notifications.",
+      "on": "✅ Subscribed to user reply notifications."
+    },
+    "nsfw": {
+      "set": "✅ Marked ticket as NSFW.",
+      "unset": "✅ Marked ticket as SFW."
+    },
+    "links": {
+      "message": "Message link",
+      "log": "Log link"
+    },
+    "log_channel": {
+      "set": "✅ Log channel set to {channel}.",
+      "removed": "✅ Log channel removed."
+    },
+    "alert_role": {
+      "set": "✅ Alert role set to {role}.",
+      "removed": "✅ Alert role removed."
+    },
+    "staff_role": {
+      "added": "✅ Added {role} to staff roles.",
+      "removed": "✅ Removed {role} from staff roles.",
+      "already": "This role is already in the list.",
+      "not_found": "This role is not in the list.",
+      "list_empty": "No staff roles configured.",
+      "list_header": "Staff roles:"
+    },
+    "category": {
+      "exists": "Category `{name}` already exists.",
+      "added": "✅ Added category `{name}`.",
+      "not_found": "Category `{name}` not found.",
+      "removed": "✅ Removed category `{name}`.",
+      "list_empty": "No categories configured.",
+      "list_header": "Categories:"
+    },
+    "snippet": {
+      "not_found": "Snippet `{name}` not found.",
+      "created": "✅ Created snippet `{name}`.",
+      "updated": "✅ Updated snippet `{name}`.",
+      "deleted": "✅ Deleted snippet `{name}`.",
+      "list_title": "Snippets ({count})",
+      "list_empty": "No snippets yet."
+    },
+    "logs": {
+      "no_user": "This user has no tickets.",
+      "no_staff": "This staff hasn't closed any tickets.",
+      "no_keyword": "No tickets found for keyword \"{keyword}\".",
+      "responded_yes": "✅ Staff has replied in this ticket.",
+      "responded_no": "❌ No staff has replied yet.",
+      "no_search": "No logs found for keyword \"{keyword}\".",
+      "status_open": "🟢 Open",
+      "status_closed": "🔴 Closed",
+      "by": "by",
+      "reason": "— {reason}",
+      "entry": "• <@{userId}> — {reason} — {closedAt}"
+    },
+    "greeting": {
+      "enabled": "✅ Greeting message enabled.",
+      "disabled": "✅ Greeting message disabled."
+    },
+    "errors": {
+      "guild_not_found": "Guild not found.",
+      "channel_not_ticket": "This channel is not a ticket.",
+      "unknown_command": "Unknown command.",
+      "unknown": "❌ An error occurred while processing the command.",
+    "text_only": "This command can only be used in text channels.",
+    "member_not_found": "Cannot identify user.",
+    "member_not_in_guild": "Could not find this user in the guild.",
+    "role_required": "Please select a role.",
+    "name_required": "Please enter a category name.",
+    "channel_required": "Please select a channel."
+    },
+    "admin": {}
+  },
+  "music": {
+    "voice_required": "You need to join a voice channel first.",
+    "no_player": "Cannot connect to voice channel.",
+    "no_voice": "Bot is not in any voice channel.",
+    "nothing_playing": "No track is currently playing.",
+    "search_error": "Error loading track: `{query}`.",
+    "no_results": "No results found for `{query}`.",
+    "playlist_empty": "Playlist is empty: **{name}**.",
+    "playlist_enqueued": "Added playlist **{name}** ({count} tracks) to the queue.",
+    "playlist_playing": "Now playing playlist **{name}** ({count} tracks).",
+    "track_enqueued": "Added to queue: **{title}**",
+    "track_playing": "Now playing: **{title}**",
+    "skipped": "Skipped the current track.",
+    "stopped": "Stopped and left the voice channel.",
+    "already_paused": "Already paused.",
+    "paused": "Paused.",
+    "not_paused": "Not in paused state.",
+    "resumed": "Resumed.",
+    "volume_set": "Volume set to {volume}%.",
+    "shuffled": "Shuffled the queue.",
+    "loop_mode_track": "current track",
+    "loop_mode_queue": "entire queue",
+    "loop_mode_none": "off",
+    "loop_set": "Loop mode set to {mode}.",
+    "nowplaying": "{state} **{title}** — {author}\n`{progress}`",
+    "queue_empty": "Queue is empty.",
+    "queue_current": "▶️ **{title}** — {author}",
+    "queue_more": "  ... and {count} more tracks"
+  },
+  "honeypot": {
+    "skipped_title": "Honeypot skipped",
+    "skipped_desc": "{user} triggered honeypot but is admin/owner.",
+    "triggered_title": "Honeypot triggered",
+    "error_title": "Honeypot error",
+    "field_user": "User",
+    "field_action": "Action",
+    "field_channel": "Channel",
+    "field_error": "Error",
+    "no_experiments": "No experiments enabled.",
+    "disabled": "✅ Honeypot disabled.",
+    "messages_updated": "✅ Messages updated.",
+    "already_trap": "This channel is already a trap.",
+    "not_trap": "This channel is not a trap.",
+    "experiment_toggle": "✅ Experiment `{experiment}` {status}.\nCurrent: {experiments}",
+    "enabled": "enabled",
+    "disabled_label": "disabled",
+    "stats_status": "Status",
+    "stats_trap_count": "Trap channels",
+    "stats_trigger_total": "Total triggers",
+    "stats_traps": "Traps",
+    "stats_experiments": "Experiments",
+    "stats_log": "Log channel",
+    "stats_no_traps": "None",
+    "trigger_count": "**{count}** times",
+    "setup_done": "✅ Setup complete: trap = {channel}, log = {logChannel}, action = {action}.",
+    "trap_added": "✅ Added {channel} as trap channel.",
+    "trap_removed": "✅ Removed {channel} from trap channels.",
+    "stats_title": "🍯 Honeypot Stats"
+  },
+  "errors": {
+    "command_error": "❌ An error occurred while executing the command."
+  },
+  "help": {
+    "title": "Command List",
+    "music_name": "🎵 Music",
+    "music": "`/music play <query>` — Play music\n`/music skip` — Skip track\n`/music stop` — Stop + leave voice\n`/music pause` — Pause\n`/music resume` — Resume\n`/music queue` — View queue\n`/music nowplaying` — Now playing\n`/music volume <0-200>` — Volume\n`/music shuffle` — Shuffle\n`/music loop <mode>` — Loop",
+    "modmail_reply_name": "📬 Modmail — Reply",
+    "modmail_reply": "`/modmail reply <msg>` — Reply (embed)\n`/modmail preply <msg>` — Reply (text)\n`/modmail areply <msg>` — Anonymous (embed)\n`/modmail pareply <msg>` — Anonymous (text)\n`/modmail edit <id> <new>` — Edit message\n`/modmail delete <id>` — Delete message\n`/modmail note <msg> [persistent]` — Internal note\n`/modmail close [reason] [silent]` — Close ticket\n`/modmail move <category>` — Move ticket",
+    "modmail_ticket_name": "📬 Modmail — Ticket",
+    "modmail_ticket": "`/modmail ticket title <title>` — Set title\n`/modmail ticket adduser <user>` — Add user\n`/modmail ticket removeuser <user>` — Remove user\n`/modmail ticket repair` — Fix webhook/permissions\n`/modmail ticket snooze [min]` — Snooze ticket\n`/modmail ticket unsnooze` — Unsnooze\n`/modmail ticket snoozed` — List snoozed\n`/modmail ticket clearsnoozed` — Clear all snoozed\n`/modmail ticket reopen <user>` — Reopen old ticket\n`/modmail ticket nsfw` — Mark NSFW\n`/modmail ticket sfw` — Mark SFW\n`/modmail ticket notify` — Toggle notifications\n`/modmail ticket subscribe` — DM on user reply\n`/modmail ticket msglink <id>` — Message link\n`/modmail ticket loglink` — Ticket channel link",
+    "modmail_snippet_name": "📬 Modmail — Snippet",
+    "modmail_snippet": "`/modmail snippet send <name>` — Send snippet\n`/modmail snippet raw <name>` — View raw content\n`/modmail snippet add <name> <content>` — Add\n`/modmail snippet edit <name> <content>` — Edit\n`/modmail snippet remove <name>` — Delete\n`/modmail snippet list` — List all",
+    "modmail_logs_name": "📬 Modmail — Logs",
+    "modmail_logs": "`/modmail logs user <user>` — User history\n`/modmail logs closed-by <staff>` — Closed by staff\n`/modmail logs key <keyword>` — Search by keyword\n`/modmail logs responded` — Staff replied?\n`/modmail logs search <keyword>` — Search content",
+    "modmail_admin_name": "📬 Modmail — Admin",
+    "modmail_admin": "`/modmail admin block <user> [reason]` — Block user\n`/modmail admin unblock <user>` — Unblock\n`/modmail admin blocked` — Block list\n`/modmail admin whitelist <user> [add|remove]` — Whitelist\n`/modmail admin contact <user>` — Contact user\n`/modmail admin selfcontact <user>` — Contact (show name)\n`/modmail admin enable [user]` — Enable modmail\n`/modmail admin disable [mode] [user]` — Disable modmail\n`/modmail admin isenable [user]` — Check status\n`/modmail admin setup-log [channel]` — Set log channel\n`/modmail admin alert-role [role]` — Set alert role\n`/modmail admin greeting [msg]` — Set greeting\n`/modmail admin staff-role add|remove|list` — Staff roles\n`/modmail admin category add|remove|list` — Categories",
+    "honeypot_name": "🍯 Honeypot",
+    "honeypot": "`/honeypot setup` — Configure\n`/honeypot add-trap <channel>` — Add trap\n`/honeypot remove-trap <channel>` — Remove trap\n`/honeypot disable` — Disable\n`/honeypot messages` — Set DM & warning\n`/honeypot experiment` — Toggle experiment\n`/honeypot stats` — Statistics"
+  },
+  "cmd": {
+    "music": {
+      "desc": "Music commands",
+      "play": {
+        "desc": "Play music from name or YouTube URL",
+        "opt_query": "Song name or YouTube URL"
+      },
+      "skip": { "desc": "Skip current track" },
+      "stop": { "desc": "Stop playback and leave voice channel" },
+      "queue": { "desc": "View current queue" },
+      "pause": { "desc": "Pause playback" },
+      "resume": { "desc": "Resume playback" },
+      "nowplaying": { "desc": "View current track" },
+      "volume": {
+        "desc": "Set volume (0-200)",
+        "opt_volume": "Volume from 0 to 200"
+      },
+      "shuffle": { "desc": "Shuffle queue" },
+      "loop": {
+        "desc": "Set loop mode",
+        "opt_mode": "Loop mode",
+        "choice_off": "Off",
+        "choice_track": "Track",
+        "choice_queue": "Queue"
+      }
+    },
+    "honeypot": {
+      "desc": "Configure spam trap bot",
+      "setup": {
+        "desc": "Set up trap channel, log channel and action",
+        "opt_trap_channel": "Channel to use as trap",
+        "opt_log_channel": "Channel to log triggers",
+        "opt_action": "Action on trigger",
+        "choice_kick": "Kick",
+        "choice_ban": "Ban",
+        "choice_softban": "Softban"
+      },
+      "disable": { "desc": "Disable honeypot for this server" },
+      "messages": {
+        "desc": "Customize DM and warning messages",
+        "opt_dm_message": "DM message sent to user on trigger (empty = default)",
+        "opt_warning_message": "Warning message in trap channel (empty = default)"
+      },
+      "experiment": {
+        "desc": "Toggle experiment for honeypot",
+        "opt_experiment": "Experiment to toggle",
+        "opt_enabled": "Enable or disable",
+        "choice_timeout_first": "Timeout First",
+        "choice_no_dm": "No DM",
+        "choice_no_warning_msg": "No Warning Message",
+        "choice_random_channel_name": "Random Channel Name"
+      },
+      "add_trap": {
+        "desc": "Add new trap channel",
+        "opt_channel": "New trap channel"
+      },
+      "remove_trap": {
+        "desc": "Remove trap channel",
+        "opt_channel": "Channel to remove from trap"
+      },
+      "stats": { "desc": "View honeypot statistics" }
+    },
+    "modmail": {
+      "desc": "Mail",
+      "reply": { "desc": "Reply to ticket (embed)", "opt_message": "Message content" },
+      "preply": { "desc": "Reply to ticket (plain text, no embed)", "opt_message": "Message content" },
+      "areply": { "desc": "Anonymous reply (embed)", "opt_message": "Message content" },
+      "pareply": { "desc": "Anonymous reply (plain text)", "opt_message": "Message content" },
+      "close": { "desc": "Close current ticket", "opt_reason": "Close reason", "opt_silent": "Don't send notification" },
+      "edit": { "desc": "Edit a sent reply", "opt_message_id": "Message ID (from footer)", "opt_new_content": "New content" },
+      "delete": { "desc": "Delete a sent reply", "opt_message_id": "Message ID (from footer)" },
+      "move": { "desc": "Move ticket to another category", "opt_category": "New category" },
+      "note": { "desc": "Add internal note", "opt_message": "Note content", "opt_persistent": "Pin permanently" },
+      "snippet": {
+        "desc": "Manage saved replies",
+        "send": { "desc": "Send snippet to ticket", "opt_name": "Snippet name" },
+        "raw": { "desc": "View raw snippet content", "opt_name": "Snippet name" },
+        "add": { "desc": "Add new snippet", "opt_name": "Snippet name", "opt_content": "Content" },
+        "edit": { "desc": "Edit snippet", "opt_name": "Snippet name", "opt_content": "New content" },
+        "remove": { "desc": "Delete snippet", "opt_name": "Snippet name" },
+        "list": { "desc": "List all snippets" }
+      },
+      "logs": {
+        "desc": "View logs",
+        "user": { "desc": "View ticket history of a user", "opt_user": "User" },
+        "closed_by": { "desc": "Find tickets closed by a staff member", "opt_staff": "Closing staff" },
+        "key": { "desc": "Find tickets by keyword", "opt_keyword": "Keyword" },
+        "responded": { "desc": "Check if staff has replied" },
+        "search": { "desc": "Search log content", "opt_keyword": "Keyword" }
+      },
+      "admin": {
+        "desc": "Modmail administration",
+        "block": { "desc": "Block user from modmail", "opt_user": "User", "opt_reason": "Reason" },
+        "unblock": { "desc": "Unblock user", "opt_user": "User" },
+        "blocked": { "desc": "List blocked users" },
+        "whitelist": { "desc": "Add/remove whitelist", "opt_user": "User", "opt_action": "Add or remove", "choice_add": "Add", "choice_remove": "Remove" },
+        "contact": { "desc": "Create proactive ticket", "opt_user": "User" },
+        "selfcontact": { "desc": "Create proactive ticket (show staff name)", "opt_user": "User" },
+        "enable": { "desc": "Enable modmail", "opt_user": "User (empty = enable all)" },
+        "disable": { "desc": "Disable modmail", "opt_mode": "Mode", "choice_new": "New tickets only", "choice_all": "All tickets", "choice_user": "By user", "opt_user": "User (with mode=user)" },
+        "isenable": { "desc": "Check modmail status", "opt_user": "User (empty = check all)" },
+        "setup_log": { "desc": "Set ticket log channel", "opt_channel": "Log channel (empty = remove)" },
+        "alert_role": { "desc": "Set alert role for new tickets", "opt_role": "Role (empty = remove)" },
+        "greeting": { "desc": "Set greeting message", "opt_message": "Content (empty = disable)" },
+        "staff_role": { "desc": "Manage staff roles", "opt_action": "add/remove/list", "choice_add": "Add", "choice_remove": "Remove", "choice_list": "List", "opt_role": "Role (with action add/remove)" },
+      "category": { "desc": "Manage ticket categories", "opt_action": "add/remove/list", "choice_add": "Add", "choice_remove": "Remove", "choice_list": "List", "opt_name": "Category name (for add/remove)", "opt_parent": "Discord category (for add)" }
+    },
+    "ticket": {
+      "desc": "Manage ticket",
+      "title": { "desc": "Set ticket title", "opt_title": "New title" },
+      "adduser": { "desc": "Add user to ticket", "opt_user": "User" },
+      "removeuser": { "desc": "Remove user from ticket", "opt_user": "User" },
+      "repair": { "desc": "Repair ticket (webhook, permissions)" },
+      "snooze": { "desc": "Snooze ticket", "opt_minutes": "Minutes" },
+      "unsnooze": { "desc": "Unsnooze ticket" },
+      "snoozed": { "desc": "List snoozed tickets" },
+      "clearsnoozed": { "desc": "Clear all snoozed tickets" },
+      "nsfw": { "desc": "Mark as NSFW" },
+      "sfw": { "desc": "Mark as SFW" },
+      "notify": { "desc": "Toggle reply notifications" },
+      "subscribe": { "desc": "Receive DM when user replies" },
+      "msglink": { "desc": "Link to reply message", "opt_message_id": "Message ID (from footer)" },
+      "loglink": { "desc": "Link to ticket channel" },
+      "reopen": { "desc": "Reopen user's old ticket", "opt_user": "User" }
+    }
+  }
+}
+}

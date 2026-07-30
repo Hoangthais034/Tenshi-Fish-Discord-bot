@@ -12,6 +12,7 @@ import {
 import { container } from 'tsyringe';
 import { ModmailService } from '../services/modmail.js';
 import type { Command } from '../types.js';
+import { t } from '../locales/index.js';
 
 const modmail = container.resolve(ModmailService);
 
@@ -21,185 +22,196 @@ function isTextChannel(channel: GuildTextBasedChannel | null): channel is TextCh
 
 const data = new SlashCommandBuilder()
   .setName('modmail')
-  .setDescription('Quản lý ticket hỗ trợ')
+  .setDescription(t('cmd.modmail.desc'))
 
   // ─── Top-level commands ─────────────────────────────────────────────────
   .addSubcommand(sub =>
-    sub.setName('reply').setDescription('Trả lời ticket (embed)')
-      .addStringOption(opt => opt.setName('message').setDescription('Nội dung tin nhắn').setRequired(true)))
+    sub.setName('reply').setDescription(t('cmd.modmail.reply.desc'))
+      .addStringOption(opt => opt.setName('message').setDescription(t('cmd.modmail.reply.opt_message')).setRequired(true)))
   .addSubcommand(sub =>
-    sub.setName('preply').setDescription('Trả lời dạng text (không embed)')
-      .addStringOption(opt => opt.setName('message').setDescription('Nội dung tin nhắn').setRequired(true)))
+    sub.setName('preply').setDescription(t('cmd.modmail.preply.desc'))
+      .addStringOption(opt => opt.setName('message').setDescription(t('cmd.modmail.preply.opt_message')).setRequired(true)))
   .addSubcommand(sub =>
-    sub.setName('areply').setDescription('Trả lời ẩn danh (embed)')
-      .addStringOption(opt => opt.setName('message').setDescription('Nội dung tin nhắn').setRequired(true)))
+    sub.setName('areply').setDescription(t('cmd.modmail.areply.desc'))
+      .addStringOption(opt => opt.setName('message').setDescription(t('cmd.modmail.areply.opt_message')).setRequired(true)))
   .addSubcommand(sub =>
-    sub.setName('pareply').setDescription('Trả lời ẩn danh dạng text')
-      .addStringOption(opt => opt.setName('message').setDescription('Nội dung tin nhắn').setRequired(true)))
+    sub.setName('pareply').setDescription(t('cmd.modmail.pareply.desc'))
+      .addStringOption(opt => opt.setName('message').setDescription(t('cmd.modmail.pareply.opt_message')).setRequired(true)))
   .addSubcommand(sub =>
-    sub.setName('close').setDescription('Đóng ticket hiện tại')
-      .addStringOption(opt => opt.setName('reason').setDescription('Lý do đóng'))
-      .addBooleanOption(opt => opt.setName('silent').setDescription('Không gửi thông báo')))
+    sub.setName('close').setDescription(t('cmd.modmail.close.desc'))
+      .addStringOption(opt => opt.setName('reason').setDescription(t('cmd.modmail.close.opt_reason')))
+      .addBooleanOption(opt => opt.setName('silent').setDescription(t('cmd.modmail.close.opt_silent'))))
   .addSubcommand(sub =>
-    sub.setName('edit').setDescription('Sửa tin nhắn reply đã gửi')
-      .addStringOption(opt => opt.setName('message-id').setDescription('ID tin nhắn (lấy từ footer)').setRequired(true))
-      .addStringOption(opt => opt.setName('new-content').setDescription('Nội dung mới').setRequired(true)))
+    sub.setName('edit').setDescription(t('cmd.modmail.edit.desc'))
+      .addStringOption(opt => opt.setName('message-id').setDescription(t('cmd.modmail.edit.opt_message_id')).setRequired(true))
+      .addStringOption(opt => opt.setName('new-content').setDescription(t('cmd.modmail.edit.opt_new_content')).setRequired(true)))
   .addSubcommand(sub =>
-    sub.setName('delete').setDescription('Xoá tin nhắn reply đã gửi')
-      .addStringOption(opt => opt.setName('message-id').setDescription('ID tin nhắn (lấy từ footer)').setRequired(true)))
+    sub.setName('delete').setDescription(t('cmd.modmail.delete.desc'))
+      .addStringOption(opt => opt.setName('message-id').setDescription(t('cmd.modmail.delete.opt_message_id')).setRequired(true)))
   .addSubcommand(sub =>
-    sub.setName('move').setDescription('Di chuyển ticket sang category khác')
-      .addChannelOption(opt => opt.setName('category').setDescription('Category mới').setRequired(true)))
+    sub.setName('move').setDescription(t('cmd.modmail.move.desc'))
+      .addChannelOption(opt => opt.setName('category').setDescription(t('cmd.modmail.move.opt_category')).setRequired(true)))
   .addSubcommand(sub =>
-    sub.setName('note').setDescription('Thêm ghi chú nội bộ')
-      .addStringOption(opt => opt.setName('message').setDescription('Nội dung ghi chú').setRequired(true))
-      .addBooleanOption(opt => opt.setName('persistent').setDescription('Ghim vĩnh viễn')))
+    sub.setName('note').setDescription(t('cmd.modmail.note.desc'))
+      .addStringOption(opt => opt.setName('message').setDescription(t('cmd.modmail.note.opt_message')).setRequired(true))
+      .addBooleanOption(opt => opt.setName('persistent').setDescription(t('cmd.modmail.note.opt_persistent'))))
 
   // ─── Snippet group ──────────────────────────────────────────────────────
   .addSubcommandGroup(group =>
-    group.setName('snippet').setDescription('Quản lý câu trả lời mẫu')
+    group.setName('snippet').setDescription(t('cmd.modmail.snippet.desc'))
       .addSubcommand(sub =>
-        sub.setName('send').setDescription('Gửi snippet vào ticket')
-          .addStringOption(opt => opt.setName('name').setDescription('Tên snippet').setRequired(true).setAutocomplete(true)))
+        sub.setName('send').setDescription(t('cmd.modmail.snippet.send.desc'))
+          .addStringOption(opt => opt.setName('name').setDescription(t('cmd.modmail.snippet.send.opt_name')).setRequired(true).setAutocomplete(true)))
       .addSubcommand(sub =>
-        sub.setName('raw').setDescription('Xem nội dung gốc')
-          .addStringOption(opt => opt.setName('name').setDescription('Tên snippet').setRequired(true).setAutocomplete(true)))
+        sub.setName('raw').setDescription(t('cmd.modmail.snippet.raw.desc'))
+          .addStringOption(opt => opt.setName('name').setDescription(t('cmd.modmail.snippet.raw.opt_name')).setRequired(true).setAutocomplete(true)))
       .addSubcommand(sub =>
-        sub.setName('add').setDescription('Thêm snippet mới')
-          .addStringOption(opt => opt.setName('name').setDescription('Tên snippet').setRequired(true))
-          .addStringOption(opt => opt.setName('content').setDescription('Nội dung').setRequired(true)))
+        sub.setName('add').setDescription(t('cmd.modmail.snippet.add.desc'))
+          .addStringOption(opt => opt.setName('name').setDescription(t('cmd.modmail.snippet.add.opt_name')).setRequired(true))
+          .addStringOption(opt => opt.setName('content').setDescription(t('cmd.modmail.snippet.add.opt_content')).setRequired(true)))
       .addSubcommand(sub =>
-        sub.setName('edit').setDescription('Sửa nội dung snippet')
-          .addStringOption(opt => opt.setName('name').setDescription('Tên snippet').setRequired(true).setAutocomplete(true))
-          .addStringOption(opt => opt.setName('content').setDescription('Nội dung mới').setRequired(true)))
+        sub.setName('edit').setDescription(t('cmd.modmail.snippet.edit.desc'))
+          .addStringOption(opt => opt.setName('name').setDescription(t('cmd.modmail.snippet.edit.opt_name')).setRequired(true).setAutocomplete(true))
+          .addStringOption(opt => opt.setName('content').setDescription(t('cmd.modmail.snippet.edit.opt_content')).setRequired(true)))
       .addSubcommand(sub =>
-        sub.setName('remove').setDescription('Xoá snippet')
-          .addStringOption(opt => opt.setName('name').setDescription('Tên snippet').setRequired(true).setAutocomplete(true)))
+        sub.setName('remove').setDescription(t('cmd.modmail.snippet.remove.desc'))
+          .addStringOption(opt => opt.setName('name').setDescription(t('cmd.modmail.snippet.remove.opt_name')).setRequired(true).setAutocomplete(true)))
       .addSubcommand(sub =>
-        sub.setName('list').setDescription('Danh sách snippet')))
+        sub.setName('list').setDescription(t('cmd.modmail.snippet.list.desc'))))
 
   // ─── Logs group ─────────────────────────────────────────────────────────
   .addSubcommandGroup(group =>
-    group.setName('logs').setDescription('Tra cứu log')
+    group.setName('logs').setDescription(t('cmd.modmail.logs.desc'))
       .addSubcommand(sub =>
-        sub.setName('user').setDescription('Xem lịch sử ticket của người dùng')
-          .addUserOption(opt => opt.setName('user').setDescription('Người dùng').setRequired(true)))
+        sub.setName('user').setDescription(t('cmd.modmail.logs.user.desc'))
+          .addUserOption(opt => opt.setName('user').setDescription(t('cmd.modmail.logs.user.opt_user')).setRequired(true)))
       .addSubcommand(sub =>
-        sub.setName('closed-by').setDescription('Tìm ticket đã đóng bởi staff')
-          .addUserOption(opt => opt.setName('staff').setDescription('Staff đã đóng').setRequired(true)))
+        sub.setName('closed-by').setDescription(t('cmd.modmail.logs.closed_by.desc'))
+          .addUserOption(opt => opt.setName('staff').setDescription(t('cmd.modmail.logs.closed_by.opt_staff')).setRequired(true)))
       .addSubcommand(sub =>
-        sub.setName('key').setDescription('Tìm ticket theo từ khoá')
-          .addStringOption(opt => opt.setName('keyword').setDescription('Từ khoá').setRequired(true)))
+        sub.setName('key').setDescription(t('cmd.modmail.logs.key.desc'))
+          .addStringOption(opt => opt.setName('keyword').setDescription(t('cmd.modmail.logs.key.opt_keyword')).setRequired(true)))
       .addSubcommand(sub =>
-        sub.setName('responded').setDescription('Kiểm tra staff đã trả lời chưa'))
+        sub.setName('responded').setDescription(t('cmd.modmail.logs.responded.desc')))
       .addSubcommand(sub =>
-        sub.setName('search').setDescription('Tìm kiếm nội dung log')
-          .addStringOption(opt => opt.setName('keyword').setDescription('Từ khoá').setRequired(true))))
+        sub.setName('search').setDescription(t('cmd.modmail.logs.search.desc'))
+          .addStringOption(opt => opt.setName('keyword').setDescription(t('cmd.modmail.logs.search.opt_keyword')).setRequired(true))))
 
   // ─── Admin group ────────────────────────────────────────────────────────
   .addSubcommandGroup(group =>
-    group.setName('admin').setDescription('Quản trị modmail')
+    group.setName('admin').setDescription(t('cmd.modmail.admin.desc'))
       .addSubcommand(sub =>
-        sub.setName('block').setDescription('Chặn người dùng khỏi modmail')
-          .addUserOption(opt => opt.setName('user').setDescription('Người dùng').setRequired(true))
-          .addStringOption(opt => opt.setName('reason').setDescription('Lý do')))
+        sub.setName('block').setDescription(t('cmd.modmail.admin.block.desc'))
+          .addUserOption(opt => opt.setName('user').setDescription(t('cmd.modmail.admin.block.opt_user')).setRequired(true))
+          .addStringOption(opt => opt.setName('reason').setDescription(t('cmd.modmail.admin.block.opt_reason'))))
       .addSubcommand(sub =>
-        sub.setName('unblock').setDescription('Bỏ chặn người dùng')
-          .addUserOption(opt => opt.setName('user').setDescription('Người dùng').setRequired(true)))
+        sub.setName('unblock').setDescription(t('cmd.modmail.admin.unblock.desc'))
+          .addUserOption(opt => opt.setName('user').setDescription(t('cmd.modmail.admin.unblock.opt_user')).setRequired(true)))
       .addSubcommand(sub =>
-        sub.setName('blocked').setDescription('Danh sách người dùng bị chặn'))
+        sub.setName('blocked').setDescription(t('cmd.modmail.admin.blocked.desc')))
       .addSubcommand(sub =>
-        sub.setName('whitelist').setDescription('Thêm/xoá whitelist')
-          .addUserOption(opt => opt.setName('user').setDescription('Người dùng').setRequired(true))
-          .addStringOption(opt => opt.setName('action').setDescription('add hoặc remove')
-            .addChoices({ name: 'add', value: 'add' }, { name: 'remove', value: 'remove' })))
-      .addSubcommand(sub =>
-        sub.setName('contact').setDescription('Tạo ticket chủ động')
-          .addUserOption(opt => opt.setName('user').setDescription('Người dùng').setRequired(true)))
-      .addSubcommand(sub =>
-        sub.setName('selfcontact').setDescription('Tạo ticket (hiện tên staff)')
-          .addUserOption(opt => opt.setName('user').setDescription('Người dùng').setRequired(true)))
-      .addSubcommand(sub =>
-        sub.setName('enable').setDescription('Bật modmail')
-          .addUserOption(opt => opt.setName('user').setDescription('Người dùng (bỏ trống = bật tất cả)')))
-      .addSubcommand(sub =>
-        sub.setName('disable').setDescription('Tắt modmail')
-          .addStringOption(opt => opt.setName('mode').setDescription('Chế độ')
+        sub.setName('whitelist').setDescription(t('cmd.modmail.admin.whitelist.desc'))
+          .addUserOption(opt => opt.setName('user').setDescription(t('cmd.modmail.admin.whitelist.opt_user')).setRequired(true))
+          .addStringOption(opt => opt.setName('action').setDescription(t('cmd.modmail.admin.whitelist.opt_action'))
             .addChoices(
-              { name: 'new', value: 'new' },
-              { name: 'all', value: 'all' },
-              { name: 'user', value: 'user' },
+              { name: t('cmd.modmail.admin.whitelist.choice_add'), value: 'add' },
+              { name: t('cmd.modmail.admin.whitelist.choice_remove'), value: 'remove' },
+            )))
+      .addSubcommand(sub =>
+        sub.setName('contact').setDescription(t('cmd.modmail.admin.contact.desc'))
+          .addUserOption(opt => opt.setName('user').setDescription(t('cmd.modmail.admin.contact.opt_user')).setRequired(true)))
+      .addSubcommand(sub =>
+        sub.setName('selfcontact').setDescription(t('cmd.modmail.admin.selfcontact.desc'))
+          .addUserOption(opt => opt.setName('user').setDescription(t('cmd.modmail.admin.selfcontact.opt_user')).setRequired(true)))
+      .addSubcommand(sub =>
+        sub.setName('enable').setDescription(t('cmd.modmail.admin.enable.desc'))
+          .addUserOption(opt => opt.setName('user').setDescription(t('cmd.modmail.admin.enable.opt_user'))))
+      .addSubcommand(sub =>
+        sub.setName('disable').setDescription(t('cmd.modmail.admin.disable.desc'))
+          .addStringOption(opt => opt.setName('mode').setDescription(t('cmd.modmail.admin.disable.opt_mode'))
+            .addChoices(
+              { name: t('cmd.modmail.admin.disable.choice_new'), value: 'new' },
+              { name: t('cmd.modmail.admin.disable.choice_all'), value: 'all' },
+              { name: t('cmd.modmail.admin.disable.choice_user'), value: 'user' },
             ))
-          .addUserOption(opt => opt.setName('user').setDescription('Người dùng (với mode=user)')))
+          .addUserOption(opt => opt.setName('user').setDescription(t('cmd.modmail.admin.disable.opt_user'))))
       .addSubcommand(sub =>
-        sub.setName('isenable').setDescription('Kiểm tra trạng thái modmail')
-          .addUserOption(opt => opt.setName('user').setDescription('Người dùng (bỏ trống = kiểm tra chung)')))
+        sub.setName('isenable').setDescription(t('cmd.modmail.admin.isenable.desc'))
+          .addUserOption(opt => opt.setName('user').setDescription(t('cmd.modmail.admin.isenable.opt_user'))))
       .addSubcommand(sub =>
-        sub.setName('setup-log').setDescription('Đặt channel log ticket')
-          .addChannelOption(opt => opt.setName('channel').setDescription('Channel log (bỏ trống = xoá)')))
+        sub.setName('setup-log').setDescription(t('cmd.modmail.admin.setup_log.desc'))
+          .addChannelOption(opt => opt.setName('channel').setDescription(t('cmd.modmail.admin.setup_log.opt_channel'))))
       .addSubcommand(sub =>
-        sub.setName('alert-role').setDescription('Đặt role ping khi có ticket mới')
-          .addRoleOption(opt => opt.setName('role').setDescription('Role (bỏ trống = xoá)')))
+        sub.setName('alert-role').setDescription(t('cmd.modmail.admin.alert_role.desc'))
+          .addRoleOption(opt => opt.setName('role').setDescription(t('cmd.modmail.admin.alert_role.opt_role'))))
       .addSubcommand(sub =>
-        sub.setName('greeting').setDescription('Set tin nhắn chào khi tạo ticket')
-          .addStringOption(opt => opt.setName('message').setDescription('Nội dung (bỏ trống = tắt)')))
+        sub.setName('greeting').setDescription(t('cmd.modmail.admin.greeting.desc'))
+          .addStringOption(opt => opt.setName('message').setDescription(t('cmd.modmail.admin.greeting.opt_message'))))
       .addSubcommand(sub =>
-        sub.setName('staff-role').setDescription('Quản lý staff roles')
-          .addStringOption(opt => opt.setName('action').setDescription('add/remove/list').setRequired(true)
-            .addChoices({ name: 'add', value: 'add' }, { name: 'remove', value: 'remove' }, { name: 'list', value: 'list' }))
-          .addRoleOption(opt => opt.setName('role').setDescription('Role (với action add/remove)')))
+        sub.setName('staff-role').setDescription(t('cmd.modmail.admin.staff_role.desc'))
+          .addStringOption(opt => opt.setName('action').setDescription(t('cmd.modmail.admin.staff_role.opt_action')).setRequired(true)
+            .addChoices(
+              { name: t('cmd.modmail.admin.staff_role.choice_add'), value: 'add' },
+              { name: t('cmd.modmail.admin.staff_role.choice_remove'), value: 'remove' },
+              { name: t('cmd.modmail.admin.staff_role.choice_list'), value: 'list' },
+            ))
+          .addRoleOption(opt => opt.setName('role').setDescription(t('cmd.modmail.admin.staff_role.opt_role'))))
       .addSubcommand(sub =>
-        sub.setName('category').setDescription('Quản lý category ticket')
-          .addStringOption(opt => opt.setName('action').setDescription('add/remove/list').setRequired(true)
-            .addChoices({ name: 'add', value: 'add' }, { name: 'remove', value: 'remove' }, { name: 'list', value: 'list' }))
-          .addStringOption(opt => opt.setName('name').setDescription('Tên category (với action add/remove)'))
-          .addChannelOption(opt => opt.setName('parent').setDescription('Category Discord (với action add)'))))
+        sub.setName('category').setDescription(t('cmd.modmail.admin.category.desc'))
+          .addStringOption(opt => opt.setName('action').setDescription(t('cmd.modmail.admin.category.opt_action')).setRequired(true)
+            .addChoices(
+              { name: t('cmd.modmail.admin.category.choice_add'), value: 'add' },
+              { name: t('cmd.modmail.admin.category.choice_remove'), value: 'remove' },
+              { name: t('cmd.modmail.admin.category.choice_list'), value: 'list' },
+            ))
+          .addStringOption(opt => opt.setName('name').setDescription(t('cmd.modmail.admin.category.opt_name')))
+          .addChannelOption(opt => opt.setName('parent').setDescription(t('cmd.modmail.admin.category.opt_parent')))))
 
   // ─── Ticket group ───────────────────────────────────────────────────────
   .addSubcommandGroup(group =>
-    group.setName('ticket').setDescription('Quản lý ticket')
+    group.setName('ticket').setDescription(t('cmd.modmail.ticket.desc'))
       .addSubcommand(sub =>
-        sub.setName('title').setDescription('Đặt tiêu đề ticket')
-          .addStringOption(opt => opt.setName('title').setDescription('Tiêu đề mới').setRequired(true)))
+        sub.setName('title').setDescription(t('cmd.modmail.ticket.title.desc'))
+          .addStringOption(opt => opt.setName('title').setDescription(t('cmd.modmail.ticket.title.opt_title')).setRequired(true)))
       .addSubcommand(sub =>
-        sub.setName('adduser').setDescription('Thêm người dùng vào ticket')
-          .addUserOption(opt => opt.setName('user').setDescription('Người dùng').setRequired(true)))
+        sub.setName('adduser').setDescription(t('cmd.modmail.ticket.adduser.desc'))
+          .addUserOption(opt => opt.setName('user').setDescription(t('cmd.modmail.ticket.adduser.opt_user')).setRequired(true)))
       .addSubcommand(sub =>
-        sub.setName('removeuser').setDescription('Xoá người dùng khỏi ticket')
-          .addUserOption(opt => opt.setName('user').setDescription('Người dùng').setRequired(true)))
+        sub.setName('removeuser').setDescription(t('cmd.modmail.ticket.removeuser.desc'))
+          .addUserOption(opt => opt.setName('user').setDescription(t('cmd.modmail.ticket.removeuser.opt_user')).setRequired(true)))
       .addSubcommand(sub =>
-        sub.setName('repair').setDescription('Sửa ticket (webhook, permissions)'))
+        sub.setName('repair').setDescription(t('cmd.modmail.ticket.repair.desc')))
       .addSubcommand(sub =>
-        sub.setName('snooze').setDescription('Tạm gác ticket')
-          .addIntegerOption(opt => opt.setName('minutes').setDescription('Số phút')))
+        sub.setName('snooze').setDescription(t('cmd.modmail.ticket.snooze.desc'))
+          .addIntegerOption(opt => opt.setName('minutes').setDescription(t('cmd.modmail.ticket.snooze.opt_minutes'))))
       .addSubcommand(sub =>
-        sub.setName('unsnooze').setDescription('Mở lại ticket'))
+        sub.setName('unsnooze').setDescription(t('cmd.modmail.ticket.unsnooze.desc')))
       .addSubcommand(sub =>
-        sub.setName('snoozed').setDescription('Danh sách ticket đang gác'))
+        sub.setName('snoozed').setDescription(t('cmd.modmail.ticket.snoozed.desc')))
       .addSubcommand(sub =>
-        sub.setName('clearsnoozed').setDescription('Xoá gác tất cả ticket'))
+        sub.setName('clearsnoozed').setDescription(t('cmd.modmail.ticket.clearsnoozed.desc')))
       .addSubcommand(sub =>
-        sub.setName('nsfw').setDescription('Đánh dấu NSFW'))
+        sub.setName('nsfw').setDescription(t('cmd.modmail.ticket.nsfw.desc')))
       .addSubcommand(sub =>
-        sub.setName('sfw').setDescription('Đánh dấu SFW'))
+        sub.setName('sfw').setDescription(t('cmd.modmail.ticket.sfw.desc')))
       .addSubcommand(sub =>
-        sub.setName('notify').setDescription('Bật/tắt thông báo reply'))
+        sub.setName('notify').setDescription(t('cmd.modmail.ticket.notify.desc')))
       .addSubcommand(sub =>
-        sub.setName('subscribe').setDescription('Nhận DM khi user trả lời'))
+        sub.setName('subscribe').setDescription(t('cmd.modmail.ticket.subscribe.desc')))
       .addSubcommand(sub =>
-        sub.setName('msglink').setDescription('Link tới tin nhắn reply')
-          .addStringOption(opt => opt.setName('message-id').setDescription('ID tin nhắn (từ footer)').setRequired(true)))
+        sub.setName('msglink').setDescription(t('cmd.modmail.ticket.msglink.desc'))
+          .addStringOption(opt => opt.setName('message-id').setDescription(t('cmd.modmail.ticket.msglink.opt_message_id')).setRequired(true)))
       .addSubcommand(sub =>
-        sub.setName('loglink').setDescription('Link tới channel ticket'))
+        sub.setName('loglink').setDescription(t('cmd.modmail.ticket.loglink.desc')))
       .addSubcommand(sub =>
-        sub.setName('reopen').setDescription('Mở lại ticket cũ của user')
-          .addUserOption(opt => opt.setName('user').setDescription('Người dùng').setRequired(true))))
+        sub.setName('reopen').setDescription(t('cmd.modmail.ticket.reopen.desc'))
+          .addUserOption(opt => opt.setName('user').setDescription(t('cmd.modmail.ticket.reopen.opt_user')).setRequired(true))))
   .setDefaultMemberPermissions(0) as unknown as SlashCommandBuilder;
 
 async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
   const channel = interaction.channel as GuildTextBasedChannel | null;
   if (!isTextChannel(channel)) {
-    await interaction.reply({ content: 'Lệnh này chỉ dùng được trong text channel.', flags: MessageFlags.Ephemeral });
+    await interaction.reply({ content: t('modmail.errors.text_only'), flags: MessageFlags.Ephemeral });
     return;
   }
 
@@ -213,11 +225,11 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
     if (!group) {
       switch (sub) {
         case 'reply':
-          if (!member) { result = 'Không thể xác định người dùng.'; break; }
+          if (!member) { result = t('modmail.errors.member_not_found'); break; }
           result = await modmail.reply(channel, member, interaction.options.getString('message', true));
           break;
         case 'preply':
-          if (!member) { result = 'Không thể xác định người dùng.'; break; }
+          if (!member) { result = t('modmail.errors.member_not_found'); break; }
           result = await modmail.plainReply(channel, member, interaction.options.getString('message', true));
           break;
         case 'areply':
@@ -227,7 +239,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
           result = await modmail.plainAnonymousReply(channel, interaction.options.getString('message', true));
           break;
         case 'close':
-          if (!member) { result = 'Không thể xác định người dùng.'; break; }
+          if (!member) { result = t('modmail.errors.member_not_found'); break; }
           result = await modmail.closeTicket(channel, member, interaction.options.getString('reason'), interaction.options.getBoolean('silent') ?? false);
           break;
         case 'edit':
@@ -242,7 +254,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
           break;
         }
         case 'note':
-          if (!member) { result = 'Không thể xác định người dùng.'; break; }
+          if (!member) { result = t('modmail.errors.member_not_found'); break; }
           if (interaction.options.getBoolean('persistent') ?? false) {
             result = await modmail.persistentNote(channel, member, interaction.options.getString('message', true));
           } else {
@@ -250,16 +262,16 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
           }
           break;
         default:
-          result = 'Unknown command.';
+          result = t('modmail.errors.unknown_command');
       }
     } else if (group === 'snippet') {
       switch (sub) {
         case 'send':
-          if (!member) { result = 'Không thể xác định người dùng.'; break; }
+          if (!member) { result = t('modmail.errors.member_not_found'); break; }
           result = await modmail.replyWithSnippet(channel, member, interaction.options.getString('name', true));
           break;
         case 'raw':
-          result = modmail.getSnippetRaw(interaction.guildId!, interaction.options.getString('name', true)) ?? `Không tìm thấy snippet.`;
+          result = modmail.getSnippetRaw(interaction.guildId!, interaction.options.getString('name', true)) ?? t('modmail.snippet.not_found', { name: interaction.options.getString('name', true) });
           break;
         case 'add':
           result = modmail.createSnippet(interaction.guildId!, interaction.options.getString('name', true), interaction.options.getString('content', true));
@@ -273,10 +285,10 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
         case 'list':
           const snippets = modmail.getSnippets(interaction.guildId!);
           if (!snippets.length) {
-            result = 'Chưa có snippet nào.';
+            result = t('modmail.snippet.list_empty');
           } else {
             const desc = snippets.map(s => `\`${s.name}\``).join('\n');
-            await interaction.reply({ embeds: [new EmbedBuilder().setTitle(`Snippets (${snippets.length})`).setDescription(desc).setColor(Colors.Blue)], flags: MessageFlags.Ephemeral });
+            await interaction.reply({ embeds: [new EmbedBuilder().setTitle(t('modmail.snippet.list_title', { count: snippets.length })).setDescription(desc).setColor(Colors.Blue)], flags: MessageFlags.Ephemeral });
             return;
           }
           break;
@@ -314,10 +326,10 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
         case 'blocked': {
           const blocked = modmail.getBlockedUsers(interaction.guildId!);
           if (!blocked.length) {
-            result = 'Không có người dùng nào bị chặn.';
+            result = t('modmail.block.list_empty');
           } else {
-            const lines = blocked.map(b => `<@${b.user_id}> — ${b.reason ?? 'Không có lý do'} (bởi <@${b.blocked_by_staff_id}>)`);
-            await interaction.reply({ embeds: [new EmbedBuilder().setTitle(`Danh sách chặn (${blocked.length})`).setDescription(lines.join('\n')).setColor(Colors.Red)], flags: MessageFlags.Ephemeral });
+            const lines = blocked.map(b => `<@${b.user_id}> — ${b.reason ?? t('modmail.block.no_reason')} (${t('modmail.block.by')} <@${b.blocked_by_staff_id}>)`);
+            await interaction.reply({ embeds: [new EmbedBuilder().setTitle(t('modmail.block.list_title', { count: blocked.length })).setDescription(lines.join('\n')).setColor(Colors.Red)], flags: MessageFlags.Ephemeral });
             return;
           }
           break;
@@ -334,7 +346,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
           result = await modmail.contact(interaction.guildId!, interaction.options.getUser('user', true));
           break;
         case 'selfcontact':
-          if (!member) { result = 'Không thể xác định người dùng.'; break; }
+          if (!member) { result = t('modmail.errors.member_not_found'); break; }
           result = await modmail.selfContact(member, interaction.options.getUser('user', true));
           break;
         case 'enable':
@@ -373,9 +385,9 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
           const role = interaction.options.getRole('role');
           if (action === 'list') {
             const roles = modmail.getStaffRoles(interaction.guildId!);
-            result = roles.length ? roles.map(r => `<@&${r}>`).join('\n') : 'Chưa có staff role nào.';
+            result = roles.length ? roles.map(r => `<@&${r}>`).join('\n') : t('modmail.staff_role.list_empty');
           } else {
-            if (!role) { result = 'Vui lòng chọn role.'; break; }
+            if (!role) { result = t('modmail.admin.role_required'); break; }
             result = action === 'add'
               ? modmail.addStaffRole(interaction.guildId!, role.id)
               : modmail.removeStaffRole(interaction.guildId!, role.id);
@@ -386,10 +398,10 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
           const action = interaction.options.getString('action', true);
           if (action === 'list') {
             const cats = modmail.getCategories(interaction.guildId!);
-            result = cats.length ? cats.map(c => `\`${c.name}\``).join('\n') : 'Chưa có category nào.';
+            result = cats.length ? cats.map(c => `\`${c.name}\``).join('\n') : t('modmail.category.list_empty');
           } else {
             const name = interaction.options.getString('name');
-            if (!name) { result = 'Vui lòng nhập tên category.'; break; }
+            if (!name) { result = t('modmail.admin.name_required'); break; }
             result = action === 'add'
               ? modmail.addCategory(interaction.guildId!, name, interaction.options.getChannel('parent')?.id ?? null)
               : modmail.removeCategory(interaction.guildId!, name);
@@ -400,18 +412,18 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
     } else if (group === 'ticket') {
       switch (sub) {
         case 'title':
-          if (!member) { result = 'Không thể xác định người dùng.'; break; }
+          if (!member) { result = t('modmail.errors.member_not_found'); break; }
           result = await modmail.setTicketTitle(channel, member, interaction.options.getString('title', true));
           break;
         case 'adduser': {
           const target = interaction.options.getMember('user');
-          if (!target) { result = 'Không tìm thấy người dùng này trong guild.'; break; }
+          if (!target) { result = t('modmail.errors.member_not_in_guild'); break; }
           result = await modmail.addUserToTicket(channel, target as GuildMember);
           break;
         }
         case 'removeuser': {
           const target = interaction.options.getMember('user');
-          if (!target) { result = 'Không tìm thấy người dùng này trong guild.'; break; }
+          if (!target) { result = t('modmail.errors.member_not_in_guild'); break; }
           result = await modmail.removeUserFromTicket(channel, target as GuildMember);
           break;
         }
@@ -449,14 +461,14 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
           result = modmail.getLogLink(interaction.guildId!, channel.id);
           break;
         case 'reopen':
-          if (!member) { result = 'Không thể xác định người dùng.'; break; }
+          if (!member) { result = t('modmail.errors.member_not_found'); break; }
           result = await modmail.reopenTicket(interaction.guild!, member, interaction.options.getUser('user', true).id);
           break;
       }
     }
   } catch (e) {
     console.error('Modmail command error:', e);
-    result = '❌ Lỗi khi thực hiện lệnh.';
+    result = t('modmail.errors.unknown');
   }
 
   if (result) {

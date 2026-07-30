@@ -18,4 +18,6 @@ export const config = {
     guildId: process.env.MODMAIL_GUILD_ID ?? '',
     categoryId: process.env.MODMAIL_CATEGORY_ID ?? '0',
   },
+
+  locale: process.env.LOCALE ?? 'en',
 };

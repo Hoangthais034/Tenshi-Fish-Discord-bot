@@ -10,44 +10,47 @@ import {
 import { container } from 'tsyringe';
 import { HoneypotService } from '../services/honeypot.js';
 import type { Command } from '../types.js';
+import { t } from '../locales/index.js';
 
 const honeypot = container.resolve(HoneypotService);
 
 const data = new SlashCommandBuilder()
   .setName('honeypot')
-  .setDescription('Cấu hình bot bẫy spam')
+  .setDescription(t('cmd.honeypot.desc'))
   .addSubcommand(sub =>
-    sub.setName('setup').setDescription('Thiết lập channel bẫy, channel log và action')
-      .addChannelOption(opt => opt.setName('trap-channel').setDescription('Channel dùng làm bẫy').setRequired(true))
-      .addChannelOption(opt => opt.setName('log-channel').setDescription('Channel để log trigger').setRequired(true))
-      .addStringOption(opt => opt.setName('action').setDescription('Hành động khi trigger')
+    sub.setName('setup').setDescription(t('cmd.honeypot.setup.desc'))
+      .addChannelOption(opt => opt.setName('trap-channel').setDescription(t('cmd.honeypot.setup.opt_trap_channel')).setRequired(true))
+      .addChannelOption(opt => opt.setName('log-channel').setDescription(t('cmd.honeypot.setup.opt_log_channel')).setRequired(true))
+      .addStringOption(opt => opt.setName('action').setDescription(t('cmd.honeypot.setup.opt_action'))
         .addChoices(
-          { name: 'Kick', value: 'Kick' },
-          { name: 'Ban', value: 'Ban' },
-          { name: 'Softban', value: 'Softban' },
+          { name: t('cmd.honeypot.setup.choice_kick'), value: 'Kick' },
+          { name: t('cmd.honeypot.setup.choice_ban'), value: 'Ban' },
+          { name: t('cmd.honeypot.setup.choice_softban'), value: 'Softban' },
         )))
   .addSubcommand(sub =>
-    sub.setName('disable').setDescription('Tắt honeypot cho server này'))
+    sub.setName('disable').setDescription(t('cmd.honeypot.disable.desc')))
   .addSubcommand(sub =>
-    sub.setName('messages').setDescription('Tùy chỉnh tin nhắn DM và warning')
-      .addStringOption(opt => opt.setName('dm-message').setDescription('Tin nhắn DM gửi tới user khi trigger (để trống = mặc định)'))
-      .addStringOption(opt => opt.setName('warning-message').setDescription('Tin nhắn warning trong trap channel (để trống = mặc định)')))
+    sub.setName('messages').setDescription(t('cmd.honeypot.messages.desc'))
+      .addStringOption(opt => opt.setName('dm-message').setDescription(t('cmd.honeypot.messages.opt_dm_message')))
+      .addStringOption(opt => opt.setName('warning-message').setDescription(t('cmd.honeypot.messages.opt_warning_message'))))
   .addSubcommand(sub =>
-    sub.setName('experiment').setDescription('Bật/tắt experiment cho honeypot')
-      .addStringOption(opt => opt.setName('experiment').setDescription('Experiment cần bật/tắt').setRequired(true)
+    sub.setName('experiment').setDescription(t('cmd.honeypot.experiment.desc'))
+      .addStringOption(opt => opt.setName('experiment').setDescription(t('cmd.honeypot.experiment.opt_experiment')).setRequired(true)
         .addChoices(
-          { name: 'TimeoutFirst', value: 'TimeoutFirst' },
-          { name: 'NoDm', value: 'NoDm' },
-          { name: 'NoWarningMsg', value: 'NoWarningMsg' },
-          { name: 'RandomChannelName', value: 'RandomChannelName' },
+          { name: t('cmd.honeypot.experiment.choice_timeout_first'), value: 'TimeoutFirst' },
+          { name: t('cmd.honeypot.experiment.choice_no_dm'), value: 'NoDm' },
+          { name: t('cmd.honeypot.experiment.choice_no_warning_msg'), value: 'NoWarningMsg' },
+          { name: t('cmd.honeypot.experiment.choice_random_channel_name'), value: 'RandomChannelName' },
         ))
-      .addBooleanOption(opt => opt.setName('enabled').setDescription('Bật hay tắt')))
+      .addBooleanOption(opt => opt.setName('enabled').setDescription(t('cmd.honeypot.experiment.opt_enabled'))))
   .addSubcommand(sub =>
-    sub.setName('add-trap').setDescription('Thêm channel bẫy mới')
-      .addChannelOption(opt => opt.setName('channel').setDescription('Channel bẫy mới').setRequired(true)))
+    sub.setName('add-trap').setDescription(t('cmd.honeypot.add_trap.desc'))
+      .addChannelOption(opt => opt.setName('channel').setDescription(t('cmd.honeypot.add_trap.opt_channel')).setRequired(true)))
   .addSubcommand(sub =>
-    sub.setName('remove-trap').setDescription('Xóa channel bẫy')
-      .addChannelOption(opt => opt.setName('channel').setDescription('Channel cần xóa khỏi trap').setRequired(true)))
+    sub.setName('remove-trap').setDescription(t('cmd.honeypot.remove_trap.desc'))
+      .addChannelOption(opt => opt.setName('channel').setDescription(t('cmd.honeypot.remove_trap.opt_channel')).setRequired(true)))
+  .addSubcommand(sub =>
+    sub.setName('stats').setDescription(t('cmd.honeypot.stats.desc')))
   .setDefaultMemberPermissions(0) as unknown as SlashCommandBuilder;
 
 const EXPERIMENT_FLAGS: Record<string, number> = {
@@ -79,14 +82,14 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
         }
 
         honeypot.save(settings as any);
-        await interaction.reply({ content: `✅ Đã thiết lập: trap = ${trapChannel}, log = ${logChannel}, action = ${action}.`, flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: t('honeypot.setup_done', { channel: String(trapChannel), logChannel: String(logChannel), action }), flags: MessageFlags.Ephemeral });
         break;
       }
 
       case 'disable':
         settings.action = 'Disabled';
         honeypot.save(settings as any);
-        await interaction.reply({ content: '✅ Đã tắt honeypot.', flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: t('honeypot.disabled'), flags: MessageFlags.Ephemeral });
         break;
 
       case 'messages': {
@@ -95,7 +98,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
         if (dmMessage) settings.dm_message = dmMessage;
         if (warningMessage) settings.warning_message = warningMessage;
         honeypot.save(settings as any);
-        await interaction.reply({ content: '✅ Đã cập nhật tin nhắn.', flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: t('honeypot.messages_updated'), flags: MessageFlags.Ephemeral });
         break;
       }
 
@@ -109,14 +112,14 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
 
         honeypot.save(settings as any);
         const status = honeypot.getExperimentStatus(settings.experiments);
-        await interaction.reply({ content: `✅ Experiment \`${experiment}\` ${enabled ? 'bật' : 'tắt'}.\nHiện tại: ${status}`, flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: t('honeypot.experiment_toggle', { experiment, status: enabled ? t('honeypot.enabled') : t('honeypot.disabled_label'), experiments: status }), flags: MessageFlags.Ephemeral });
         break;
       }
 
       case 'add-trap': {
         const channel = interaction.options.getChannel('channel', true) as TextChannel;
         if (settings.trapChannels.some(t => t.channelId === channel.id)) {
-          await interaction.reply({ content: 'Channel này đã là trap rồi.', flags: MessageFlags.Ephemeral });
+          await interaction.reply({ content: t('honeypot.already_trap'), flags: MessageFlags.Ephemeral });
           return;
         }
 
@@ -124,7 +127,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
         settings.trapChannels.push(info);
         await honeypot.postWarningMessage(channel, settings as any, info);
         honeypot.save(settings as any);
-        await interaction.reply({ content: `✅ Đã thêm ${channel} làm trap channel.`, flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: t('honeypot.trap_added', { channel: String(channel) }), flags: MessageFlags.Ephemeral });
         break;
       }
 
@@ -133,17 +136,37 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
         const before = settings.trapChannels.length;
         settings.trapChannels = settings.trapChannels.filter(t => t.channelId !== channel.id);
         if (settings.trapChannels.length === before) {
-          await interaction.reply({ content: 'Channel này không phải trap.', flags: MessageFlags.Ephemeral });
+          await interaction.reply({ content: t('honeypot.not_trap'), flags: MessageFlags.Ephemeral });
         } else {
           honeypot.save(settings as any);
-          await interaction.reply({ content: `✅ Đã xóa ${channel} khỏi trap channel.`, flags: MessageFlags.Ephemeral });
+          await interaction.reply({ content: t('honeypot.trap_removed', { channel: String(channel) }), flags: MessageFlags.Ephemeral });
         }
+        break;
+      }
+
+      case 'stats': {
+        const totalTriggers = settings.trapChannels.reduce((s, t) => s + t.triggerCount, 0);
+        const trapList = settings.trapChannels.map(tr => `<#${tr.channelId}> — ${t('honeypot.trigger_count', { count: tr.triggerCount })}`).join('\n') || t('honeypot.stats_no_traps');
+        const embed = new EmbedBuilder()
+          .setTitle(t('honeypot.stats_title'))
+          .setColor(Colors.Blue)
+          .addFields(
+            { name: t('honeypot.stats_status'), value: settings.action, inline: true },
+            { name: t('honeypot.stats_trap_count'), value: String(settings.trapChannels.length), inline: true },
+            { name: t('honeypot.stats_trigger_total'), value: String(totalTriggers), inline: true },
+            { name: t('honeypot.stats_traps'), value: trapList },
+            { name: t('honeypot.stats_experiments'), value: honeypot.getExperimentStatus(settings.experiments) },
+          );
+        if (settings.log_channel_id) {
+          embed.addFields({ name: t('honeypot.stats_log'), value: `<#${settings.log_channel_id}>` });
+        }
+        await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
         break;
       }
     }
   } catch (e) {
     console.error('Honeypot command error:', e);
-    await interaction.reply({ content: '❌ Lỗi khi thực hiện lệnh.', flags: MessageFlags.Ephemeral });
+    await interaction.reply({ content: t('errors.command_error'), flags: MessageFlags.Ephemeral });
   }
 }
 

@@ -12,6 +12,7 @@ import {
 import { getDb } from '../database/init.js';
 import type { HoneypotGuildRow } from '../database/types.js';
 import Database from 'better-sqlite3';
+import { t } from '../locales/index.js';
 
 type Db = Database.Database;
 
@@ -163,9 +164,9 @@ export class HoneypotService {
 
     await log.send({
       embeds: [new EmbedBuilder()
-        .setTitle('Honeypot skipped')
+        .setTitle(t('honeypot.skipped_title'))
         .setColor(Colors.Orange)
-        .setDescription(`${user} triggered honeypot but is admin/owner.`)
+        .setDescription(t('honeypot.skipped_desc', { user: String(user) }))
         .setTimestamp()],
     });
   }
@@ -211,15 +212,15 @@ export class HoneypotService {
     if (!log) return;
 
     const embed = new EmbedBuilder()
-      .setTitle(error ? 'Honeypot error' : 'Honeypot triggered')
+      .setTitle(error ? t('honeypot.error_title') : t('honeypot.triggered_title'))
       .setColor(error ? Colors.Orange : Colors.Red)
       .addFields(
-        { name: 'User', value: `${user} (\`${user.id}\`)`, inline: true },
-        { name: 'Action', value: settings.action, inline: true },
-        { name: 'Channel', value: channel.toString(), inline: true },
+        { name: t('honeypot.field_user'), value: `${user} (\`${user.id}\`)`, inline: true },
+        { name: t('honeypot.field_action'), value: settings.action, inline: true },
+        { name: t('honeypot.field_channel'), value: channel.toString(), inline: true },
       );
 
-    if (error) embed.addFields({ name: 'Error', value: error });
+    if (error) embed.addFields({ name: t('honeypot.field_error'), value: error });
 
     embed.setTimestamp();
     await log.send({ embeds: [embed] });
@@ -240,7 +241,7 @@ export class HoneypotService {
   }
 
   getExperimentStatus(experiments: number): string {
-    if (experiments === 0) return 'Không có experiment nào được bật.';
+    if (experiments === 0) return t('honeypot.no_experiments');
 
     const list: string[] = [];
     if (hasExperiment(experiments, EXPERIMENT_FLAGS.TimeoutFirst)) list.push('TimeoutFirst');
