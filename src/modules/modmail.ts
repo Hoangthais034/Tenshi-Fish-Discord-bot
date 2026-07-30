@@ -142,7 +142,18 @@ const data = new SlashCommandBuilder()
           .addRoleOption(opt => opt.setName('role').setDescription('Role (bỏ trống = xoá)')))
       .addSubcommand(sub =>
         sub.setName('greeting').setDescription('Set tin nhắn chào khi tạo ticket')
-          .addStringOption(opt => opt.setName('message').setDescription('Nội dung (bỏ trống = tắt)'))))
+          .addStringOption(opt => opt.setName('message').setDescription('Nội dung (bỏ trống = tắt)')))
+      .addSubcommand(sub =>
+        sub.setName('staff-role').setDescription('Quản lý staff roles')
+          .addStringOption(opt => opt.setName('action').setDescription('add/remove/list').setRequired(true)
+            .addChoices({ name: 'add', value: 'add' }, { name: 'remove', value: 'remove' }, { name: 'list', value: 'list' }))
+          .addRoleOption(opt => opt.setName('role').setDescription('Role (với action add/remove)')))
+      .addSubcommand(sub =>
+        sub.setName('category').setDescription('Quản lý category ticket')
+          .addStringOption(opt => opt.setName('action').setDescription('add/remove/list').setRequired(true)
+            .addChoices({ name: 'add', value: 'add' }, { name: 'remove', value: 'remove' }, { name: 'list', value: 'list' }))
+          .addStringOption(opt => opt.setName('name').setDescription('Tên category (với action add/remove)'))
+          .addChannelOption(opt => opt.setName('parent').setDescription('Category Discord (với action add)'))))
 
   // ─── Ticket group ───────────────────────────────────────────────────────
   .addSubcommandGroup(group =>
@@ -179,7 +190,10 @@ const data = new SlashCommandBuilder()
         sub.setName('msglink').setDescription('Link tới tin nhắn reply')
           .addStringOption(opt => opt.setName('message-id').setDescription('ID tin nhắn (từ footer)').setRequired(true)))
       .addSubcommand(sub =>
-        sub.setName('loglink').setDescription('Link tới channel ticket')))
+        sub.setName('loglink').setDescription('Link tới channel ticket'))
+      .addSubcommand(sub =>
+        sub.setName('reopen').setDescription('Mở lại ticket cũ của user')
+          .addUserOption(opt => opt.setName('user').setDescription('Người dùng').setRequired(true))))
   .setDefaultMemberPermissions(0) as unknown as SlashCommandBuilder;
 
 async function execute(interaction: ChatInputCommandInteraction): Promise<void> {
@@ -354,6 +368,34 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
           result = modmail.setGreeting(interaction.guildId!, msg ?? null);
           break;
         }
+        case 'staff-role': {
+          const action = interaction.options.getString('action', true);
+          const role = interaction.options.getRole('role');
+          if (action === 'list') {
+            const roles = modmail.getStaffRoles(interaction.guildId!);
+            result = roles.length ? roles.map(r => `<@&${r}>`).join('\n') : 'Chưa có staff role nào.';
+          } else {
+            if (!role) { result = 'Vui lòng chọn role.'; break; }
+            result = action === 'add'
+              ? modmail.addStaffRole(interaction.guildId!, role.id)
+              : modmail.removeStaffRole(interaction.guildId!, role.id);
+          }
+          break;
+        }
+        case 'category': {
+          const action = interaction.options.getString('action', true);
+          if (action === 'list') {
+            const cats = modmail.getCategories(interaction.guildId!);
+            result = cats.length ? cats.map(c => `\`${c.name}\``).join('\n') : 'Chưa có category nào.';
+          } else {
+            const name = interaction.options.getString('name');
+            if (!name) { result = 'Vui lòng nhập tên category.'; break; }
+            result = action === 'add'
+              ? modmail.addCategory(interaction.guildId!, name, interaction.options.getChannel('parent')?.id ?? null)
+              : modmail.removeCategory(interaction.guildId!, name);
+          }
+          break;
+        }
       }
     } else if (group === 'ticket') {
       switch (sub) {
@@ -405,6 +447,10 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
           break;
         case 'loglink':
           result = modmail.getLogLink(interaction.guildId!, channel.id);
+          break;
+        case 'reopen':
+          if (!member) { result = 'Không thể xác định người dùng.'; break; }
+          result = await modmail.reopenTicket(interaction.guild!, member, interaction.options.getUser('user', true).id);
           break;
       }
     }

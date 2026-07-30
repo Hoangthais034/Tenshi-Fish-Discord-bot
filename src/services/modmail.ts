@@ -626,7 +626,46 @@ export class ModmailService {
     return `✅ Đã tạo ticket cho ${target} tại ${restChannel}.`;
   }
 
-  // ─── Note ───────────────────────────────────────────────────────────────────
+  // ─── Reopen ──────────────────────────────────────────────────────────────────
+
+  async reopenTicket(guild: Guild, staff: GuildMember, userId: string): Promise<string> {
+    const latest = this.db.prepare(
+      'SELECT * FROM tickets WHERE user_id = ? AND open = 0 ORDER BY closed_at DESC LIMIT 1',
+    ).get(userId) as TicketRow | undefined;
+
+    if (!latest) return 'Người dùng này không có ticket cũ.';
+
+    const existing = this.db.prepare('SELECT * FROM tickets WHERE user_id = ? AND open = 1').get(userId) as TicketRow | undefined;
+    if (existing) return `Người dùng đã có ticket mở tại <#${existing.channel_id}>.`;
+
+    const restChannel = await guild.channels.create({
+      name: `ticket-${latest.user_name}`.toLowerCase(),
+      type: ChannelType.GuildText,
+      parent: config.modmail.categoryId !== '0' ? config.modmail.categoryId : undefined,
+    });
+
+    this.db.prepare(
+      'INSERT INTO tickets (channel_id, user_id, user_name, open, created_at, parent_ticket_id) VALUES (?, ?, ?, 1, datetime(\'now\'), ?)',
+    ).run(restChannel.id, userId, latest.user_name, latest.id);
+
+    try {
+      const webhook = await restChannel.createWebhook({ name: 'Modmail Forwarder' });
+      this.db.prepare('UPDATE tickets SET webhook_id = ?, webhook_token = ? WHERE channel_id = ?').run(webhook.id, webhook.token, restChannel.id);
+    } catch {}
+
+    await restChannel.send({
+      embeds: [new EmbedBuilder()
+        .setTitle('Ticket mở lại')
+        .setDescription(`Ticket cũ của ${staff} đã được mở lại cho <@${userId}> (\`${userId}\`)`)
+        .addFields({ name: 'Ticket cũ', value: `#${latest.id} — đóng lúc ${latest.closed_at?.slice(0, 16).replace('T', ' ') ?? '?'}` })
+        .setColor(Colors.Green)
+        .setTimestamp()],
+    });
+
+    return `✅ Đã mở lại ticket cho <@${userId}> tại ${restChannel}.`;
+  }
+
+  // ─── Notes ───────────────────────────────────────────────────────────────────
 
   async note(channel: TextChannel, staff: GuildMember, content: string): Promise<string> {
     const ticket = this.db.prepare('SELECT * FROM tickets WHERE channel_id = ?').get(channel.id) as TicketRow | undefined;
@@ -890,6 +929,62 @@ export class ModmailService {
   getAlertRole(guildId: string): string | null {
     const cfg = this.getGuildConfig(guildId);
     return cfg.alert_role_id;
+  }
+
+  // ─── Staff Roles ──────────────────────────────────────────────────────────────
+
+  addStaffRole(guildId: string, roleId: string): string {
+    const cfg = this.getGuildConfig(guildId);
+    const roles = parseIds(cfg.staff_role_ids);
+    if (roles.includes(roleId)) return 'Role này đã có trong danh sách.';
+    roles.push(roleId);
+    this.db.prepare('UPDATE guild_configs SET staff_role_ids = ? WHERE guild_id = ?').run(jsonArray(roles), guildId);
+    return `✅ Đã thêm <@&${roleId}> vào staff roles.`;
+  }
+
+  removeStaffRole(guildId: string, roleId: string): string {
+    const cfg = this.getGuildConfig(guildId);
+    const roles = parseIds(cfg.staff_role_ids).filter(id => id !== roleId);
+    if (roles.length === parseIds(cfg.staff_role_ids).length) return 'Role này không có trong danh sách.';
+    this.db.prepare('UPDATE guild_configs SET staff_role_ids = ? WHERE guild_id = ?').run(jsonArray(roles), guildId);
+    return `✅ Đã xoá <@&${roleId}> khỏi staff roles.`;
+  }
+
+  getStaffRoles(guildId: string): string[] {
+    const cfg = this.getGuildConfig(guildId);
+    return parseIds(cfg.staff_role_ids);
+  }
+
+  isStaff(guildId: string, member: GuildMember): boolean {
+    const cfg = this.getGuildConfig(guildId);
+    const roles = parseIds(cfg.staff_role_ids);
+    if (!roles.length) return true;
+    return member.roles.cache.some(r => roles.includes(r.id));
+  }
+
+  // ─── Categories ──────────────────────────────────────────────────────────────
+
+  addCategory(guildId: string, name: string, parentId: string | null): string {
+    const cfg = this.getGuildConfig(guildId);
+    const cats = JSON.parse(cfg.categories) as { name: string; parentId: string | null }[];
+    if (cats.some(c => c.name === name)) return `Category \`${name}\` đã tồn tại.`;
+    cats.push({ name, parentId });
+    this.db.prepare('UPDATE guild_configs SET categories = ? WHERE guild_id = ?').run(JSON.stringify(cats), guildId);
+    return `✅ Đã thêm category \`${name}\`.`;
+  }
+
+  removeCategory(guildId: string, name: string): string {
+    const cfg = this.getGuildConfig(guildId);
+    const cats = JSON.parse(cfg.categories) as { name: string; parentId: string | null }[];
+    const filtered = cats.filter(c => c.name !== name);
+    if (filtered.length === cats.length) return `Không tìm thấy category \`${name}\`.`;
+    this.db.prepare('UPDATE guild_configs SET categories = ? WHERE guild_id = ?').run(JSON.stringify(filtered), guildId);
+    return `✅ Đã xoá category \`${name}\`.`;
+  }
+
+  getCategories(guildId: string): { name: string; parentId: string | null }[] {
+    const cfg = this.getGuildConfig(guildId);
+    return JSON.parse(cfg.categories);
   }
 
   // ─── Greeting ────────────────────────────────────────────────────────────────
