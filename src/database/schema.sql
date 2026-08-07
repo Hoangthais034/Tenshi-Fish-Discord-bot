@@ -101,7 +101,6 @@ CREATE TABLE IF NOT EXISTS honeypot_guilds (
 
 CREATE INDEX IF NOT EXISTS idx_tickets_user_id ON tickets(user_id);
 CREATE INDEX IF NOT EXISTS idx_tickets_channel_id ON tickets(channel_id);
-CREATE INDEX IF NOT EXISTS idx_tickets_guild_id ON tickets(guild_id);
 CREATE INDEX IF NOT EXISTS idx_blocks_guild_user ON blocks(guild_id, user_id);
 CREATE INDEX IF NOT EXISTS idx_message_logs_channel ON message_logs(ticket_channel_id);
 CREATE INDEX IF NOT EXISTS idx_snippets_guild ON snippets(guild_id);
