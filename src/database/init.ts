@@ -3,11 +3,44 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// Columns added to tables after their initial CREATE TABLE. schema.sql's
+// `CREATE TABLE IF NOT EXISTS` never retrofits these onto pre-existing databases,
+// so every column added over time must also be listed here to reach old DBs.
+const COLUMN_MIGRATIONS: { table: string; column: string; ddl: string }[] = [
+  { table: 'tickets', column: 'closed_at', ddl: 'TEXT' },
+  { table: 'tickets', column: 'snoozed_until', ddl: 'TEXT' },
+  { table: 'tickets', column: 'title', ddl: 'TEXT' },
+  { table: 'tickets', column: 'close_reason', ddl: 'TEXT' },
+  { table: 'tickets', column: 'closed_by_staff_id', ddl: 'TEXT' },
+  { table: 'tickets', column: 'is_nsfw', ddl: 'INTEGER NOT NULL DEFAULT 0' },
+  { table: 'tickets', column: 'disabled', ddl: 'INTEGER NOT NULL DEFAULT 0' },
+  { table: 'tickets', column: 'added_user_ids', ddl: "TEXT NOT NULL DEFAULT '[]'" },
+  { table: 'tickets', column: 'subscriber_ids', ddl: "TEXT NOT NULL DEFAULT '[]'" },
+  { table: 'tickets', column: 'webhook_id', ddl: 'TEXT' },
+  { table: 'tickets', column: 'webhook_token', ddl: 'TEXT' },
+  { table: 'tickets', column: 'parent_ticket_id', ddl: 'INTEGER' },
+  { table: 'tickets', column: 'category', ddl: 'TEXT' },
+  { table: 'tickets', column: 'guild_id', ddl: 'TEXT' },
+  { table: 'message_logs', column: 'attachment_urls', ddl: "TEXT NOT NULL DEFAULT '[]'" },
+  { table: 'message_logs', column: 'is_staff', ddl: 'INTEGER NOT NULL DEFAULT 0' },
+  { table: 'message_logs', column: 'anonymous', ddl: 'INTEGER NOT NULL DEFAULT 0' },
+  { table: 'guild_configs', column: 'disable_new_tickets', ddl: 'INTEGER NOT NULL DEFAULT 0' },
+  { table: 'guild_configs', column: 'disable_all_tickets', ddl: 'INTEGER NOT NULL DEFAULT 0' },
+  { table: 'guild_configs', column: 'disabled_user_ids', ddl: "TEXT NOT NULL DEFAULT '[]'" },
+  { table: 'guild_configs', column: 'log_channel_id', ddl: 'TEXT' },
+  { table: 'guild_configs', column: 'alert_role_id', ddl: 'TEXT' },
+  { table: 'guild_configs', column: 'staff_role_ids', ddl: "TEXT NOT NULL DEFAULT '[]'" },
+  { table: 'guild_configs', column: 'greeting_message', ddl: 'TEXT' },
+  { table: 'guild_configs', column: 'greeting_enabled', ddl: 'INTEGER NOT NULL DEFAULT 0' },
+  { table: 'guild_configs', column: 'categories', ddl: "TEXT NOT NULL DEFAULT '[]'" },
+];
+
 function migrate(database: Database.Database): void {
-  try {
-    database.exec('ALTER TABLE tickets ADD COLUMN guild_id TEXT');
-  } catch {
-    // Column already exists.
+  for (const { table, column, ddl } of COLUMN_MIGRATIONS) {
+    const existingColumns = (database.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[]).map(c => c.name);
+    if (!existingColumns.includes(column)) {
+      database.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${ddl}`);
+    }
   }
 
   database.exec('CREATE INDEX IF NOT EXISTS idx_tickets_guild_id ON tickets(guild_id)');
