@@ -43,7 +43,8 @@ services:
       - LAVALINK_HOST=lavalink
       - LAVALINK_PORT=2333
       - LAVALINK_PASSWORD=${LAVALINK_PASSWORD:?err}
-      - MODMAIL_GUILD_ID=${MODMAIL_GUILD_ID:?err}
+      - MODMAIL_GUILD_IDS=${MODMAIL_GUILD_IDS:-}
+      - MODMAIL_GUILD_ID=${MODMAIL_GUILD_ID:-}
       - MODMAIL_CATEGORY_ID=${MODMAIL_CATEGORY_ID:-0}
       - DATA_PATH=/data/bot-data.db
     volumes:
