@@ -48,7 +48,7 @@ services:
       - MODMAIL_CATEGORY_ID=${MODMAIL_CATEGORY_ID:-0}
       - DATA_PATH=/data/bot-data.db
     volumes:
-      - bot-data:/data
+      - ./.data:/data
     networks:
       - botnet
     logging:
@@ -62,5 +62,4 @@ networks:
     driver: bridge
 
 volumes:
-  bot-data:
   lavalink-logs:
