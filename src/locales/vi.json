@@ -257,6 +257,8 @@
     "field_action": "Action",
     "field_channel": "Channel",
     "field_error": "Error",
+    "dm_skipped": "Bạn đã kích hoạt honeypot ở {guild}, nhưng không có hành động nào được thực hiện vì bạn có quyền quản trị (admin/owner).",
+    "dm_action_failed": "Bạn đã kích hoạt honeypot ở {guild}. Bot đã cố {action} bạn nhưng thất bại: {reason}",
     "no_experiments": "Không có experiment nào được bật.",
     "disabled": "✅ Đã tắt honeypot.",
     "messages_updated": "✅ Đã cập nhật tin nhắn.",

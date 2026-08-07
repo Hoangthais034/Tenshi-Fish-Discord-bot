@@ -114,6 +114,9 @@ export class HoneypotService {
 
     if (this.shouldSkipUser(member)) {
       await this.notifyAdminSkip(channel as TextChannel, member, settings);
+      if (!hasExperiment(settings.experiments, EXPERIMENT_FLAGS.NoDm)) {
+        await this.notifySkippedDm(member, message.guild.name);
+      }
       return;
     }
 
@@ -124,16 +127,16 @@ export class HoneypotService {
         await this.tryTimeout(member);
       }
 
-      if (!hasExperiment(settings.experiments, EXPERIMENT_FLAGS.NoDm)) {
-        await this.trySendDm(member, message.guild.name, settings);
-      }
-
       if (settings.action === 'Ban') {
         await message.guild.members.ban(member, { deleteMessageSeconds: 86400, reason: 'Honeypot triggered' });
       } else if (settings.action === 'Softban') {
         await this.softban(message.guild, member);
       } else {
         await member.kick('Honeypot triggered');
+      }
+
+      if (!hasExperiment(settings.experiments, EXPERIMENT_FLAGS.NoDm)) {
+        await this.trySendDm(member, message.guild.name, settings);
       }
 
       trap.triggerCount++;
@@ -149,6 +152,9 @@ export class HoneypotService {
     } catch (e: any) {
       console.error('Honeypot error:', e);
       await this.logTrigger(channel as TextChannel, member, settings, e.message);
+      if (!hasExperiment(settings.experiments, EXPERIMENT_FLAGS.NoDm)) {
+        await this.notifyActionFailedDm(member, message.guild.name, settings, e.message);
+      }
     }
   }
 
@@ -182,6 +188,20 @@ export class HoneypotService {
       const dm = await user.createDM();
       const msg = settings.dm_message ?? `You triggered the honeypot in ${guildName} and have been ${settings.action}.`;
       await dm.send(msg);
+    } catch {}
+  }
+
+  private async notifySkippedDm(user: GuildMember, guildName: string): Promise<void> {
+    try {
+      const dm = await user.createDM();
+      await dm.send(t('honeypot.dm_skipped', { guild: guildName }));
+    } catch {}
+  }
+
+  private async notifyActionFailedDm(user: GuildMember, guildName: string, settings: HoneypotGuildRow, reason: string): Promise<void> {
+    try {
+      const dm = await user.createDM();
+      await dm.send(t('honeypot.dm_action_failed', { guild: guildName, action: settings.action, reason }));
     } catch {}
   }
 

@@ -256,6 +256,8 @@
     "field_action": "Action",
     "field_channel": "Channel",
     "field_error": "Error",
+    "dm_skipped": "You triggered the honeypot in {guild}, but no action was taken because you have elevated permissions (admin/owner).",
+    "dm_action_failed": "You triggered the honeypot in {guild}. The bot tried to {action} you but it failed: {reason}",
     "no_experiments": "No experiments enabled.",
     "disabled": "✅ Honeypot disabled.",
     "messages_updated": "✅ Messages updated.",
