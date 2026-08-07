@@ -187,21 +187,39 @@ export class HoneypotService {
     try {
       const dm = await user.createDM();
       const msg = settings.dm_message ?? `You triggered the honeypot in ${guildName} and have been ${settings.action}.`;
-      await dm.send(msg);
+      await dm.send({
+        embeds: [new EmbedBuilder()
+          .setTitle(t('honeypot.triggered_title'))
+          .setDescription(msg)
+          .setColor(Colors.Red)
+          .setTimestamp()],
+      });
     } catch {}
   }
 
   private async notifySkippedDm(user: GuildMember, guildName: string): Promise<void> {
     try {
       const dm = await user.createDM();
-      await dm.send(t('honeypot.dm_skipped', { guild: guildName }));
+      await dm.send({
+        embeds: [new EmbedBuilder()
+          .setTitle(t('honeypot.skipped_title'))
+          .setDescription(t('honeypot.dm_skipped', { guild: guildName }))
+          .setColor(Colors.Orange)
+          .setTimestamp()],
+      });
     } catch {}
   }
 
   private async notifyActionFailedDm(user: GuildMember, guildName: string, settings: HoneypotGuildRow, reason: string): Promise<void> {
     try {
       const dm = await user.createDM();
-      await dm.send(t('honeypot.dm_action_failed', { guild: guildName, action: settings.action, reason }));
+      await dm.send({
+        embeds: [new EmbedBuilder()
+          .setTitle(t('honeypot.error_title'))
+          .setDescription(t('honeypot.dm_action_failed', { guild: guildName, action: settings.action, reason }))
+          .setColor(Colors.Orange)
+          .setTimestamp()],
+      });
     } catch {}
   }
 
