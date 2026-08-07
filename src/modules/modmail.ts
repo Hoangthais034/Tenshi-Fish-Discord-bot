@@ -238,10 +238,14 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
         case 'pareply':
           result = await modmail.plainAnonymousReply(channel, interaction.options.getString('message', true));
           break;
-        case 'close':
+        case 'close': {
           if (!member) { result = t('modmail.errors.member_not_found'); break; }
-          result = await modmail.closeTicket(channel, member, interaction.options.getString('reason'), interaction.options.getBoolean('silent') ?? false);
-          break;
+          // Reply before the ticket channel is deleted — replying afterward
+          // throws DiscordAPIError 10003 "Unknown Channel".
+          await interaction.reply({ content: t('modmail.close.success'), flags: MessageFlags.Ephemeral }).catch(() => {});
+          await modmail.closeTicket(channel, member, interaction.options.getString('reason'), interaction.options.getBoolean('silent') ?? false);
+          return;
+        }
         case 'edit':
           result = await modmail.editReply(channel, interaction.options.getString('message-id', true), interaction.options.getString('new-content', true));
           break;
