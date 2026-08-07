@@ -3,6 +3,23 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+function migrate(database: Database.Database): void {
+  try {
+    database.exec('ALTER TABLE tickets ADD COLUMN guild_id TEXT');
+  } catch {
+    // Column already exists.
+  }
+
+  const fallbackGuildId = (process.env.MODMAIL_GUILD_IDS ?? process.env.MODMAIL_GUILD_ID ?? '')
+    .split(',')
+    .map(id => id.trim())
+    .filter(Boolean)[0];
+
+  if (fallbackGuildId) {
+    database.prepare('UPDATE tickets SET guild_id = ? WHERE guild_id IS NULL').run(fallbackGuildId);
+  }
+}
+
 let db: Database.Database | null = null;
 
 function getSchemaPath(): string {
@@ -33,6 +50,7 @@ export function getDb(dbPath?: string): Database.Database {
 
   const schema = readFileSync(getSchemaPath(), 'utf-8');
   db.exec(schema);
+  migrate(db);
 
   return db;
 }

@@ -15,7 +15,11 @@
       "close_title": "Ticket đã đóng bởi người dùng",
       "close_description": "Người dùng đã yêu cầu đóng ticket từ DM.",
       "subscriber_notify": "📩 Tin nhắn mới trong ticket <#{channel}> ({user})",
-      "file_placeholder": "(file)"
+      "file_placeholder": "(file)",
+      "no_mutual_guild": "Bạn phải là thành viên của một server có hỗ trợ modmail để liên hệ với đội ngũ hỗ trợ.",
+      "select_guild_prompt": "Bạn là thành viên của nhiều server có hỗ trợ modmail. Hãy trả lời bằng số thứ tự server bạn muốn liên hệ:\n{list}",
+      "select_guild_invalid": "Lựa chọn không hợp lệ. Vui lòng trả lời bằng một số trong danh sách trên.",
+      "guild_unavailable": "Server của ticket này hiện không khả dụng. Vui lòng thử lại sau."
     },
     "ticket": {
       "not_found": "Channel này không phải ticket đang mở.",

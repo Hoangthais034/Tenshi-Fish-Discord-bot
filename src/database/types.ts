@@ -18,6 +18,7 @@ export interface TicketRow {
   webhook_token: string | null;
   parent_ticket_id: number | null;
   category: string | null;
+  guild_id: string | null;
 }
 
 export interface BlockRow {

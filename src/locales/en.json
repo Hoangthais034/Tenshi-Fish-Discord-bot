@@ -15,7 +15,11 @@
       "close_title": "Ticket closed by user",
       "close_description": "User requested to close the ticket via DM.",
       "subscriber_notify": "📩 New message in ticket <#{channel}> ({user})",
-      "file_placeholder": "(file)"
+      "file_placeholder": "(file)",
+      "no_mutual_guild": "You must be a member of a server that has modmail support to contact staff.",
+      "select_guild_prompt": "You're a member of multiple servers with modmail support. Reply with the number of the server you want to contact:\n{list}",
+      "select_guild_invalid": "Invalid choice. Please reply with a number from the list above.",
+      "guild_unavailable": "The server for your ticket is currently unavailable. Please try again later."
     },
     "ticket": {
       "not_found": "This channel is not an open ticket.",

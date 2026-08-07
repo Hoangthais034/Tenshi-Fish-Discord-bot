@@ -347,7 +347,7 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
           break;
         case 'selfcontact':
           if (!member) { result = t('modmail.errors.member_not_found'); break; }
-          result = await modmail.selfContact(member, interaction.options.getUser('user', true));
+          result = await modmail.selfContact(interaction.guildId!, member, interaction.options.getUser('user', true));
           break;
         case 'enable':
           result = modmail.enableModmail(interaction.guildId!, interaction.options.getUser('user')?.id);

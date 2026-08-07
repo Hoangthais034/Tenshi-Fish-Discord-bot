@@ -36,7 +36,7 @@ docker compose up -d
 | `LAVALINK_HOST` | | `localhost` | Lavalink hostname |
 | `LAVALINK_PORT` | | `2333` | Lavalink port |
 | `LAVALINK_PASSWORD` | ✅ | `youshallnotpass` | Lavalink server password |
-| `MODMAIL_GUILD_ID` | ✅ | — | Guild ID for modmail tickets |
+| `MODMAIL_GUILD_IDS` | ✅ | — | Comma-separated guild IDs for modmail tickets (multiple servers supported); `MODMAIL_GUILD_ID` still works as a single-value legacy fallback |
 | `MODMAIL_CATEGORY_ID` | | `0` | Discord category for ticket channels |
 | `LOCALE` | | `en` | Language: `en` or `vi` |
 

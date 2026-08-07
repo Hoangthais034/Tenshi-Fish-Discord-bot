@@ -31,9 +31,18 @@ function jsonArray(arr: string[]): string {
   return JSON.stringify(arr);
 }
 
+interface PendingGuildChoice {
+  guildIds: string[];
+  message: Message;
+  timeout: ReturnType<typeof setTimeout>;
+}
+
+const GUILD_CHOICE_TIMEOUT_MS = 5 * 60 * 1000;
+
 @injectable()
 export class ModmailService {
   private db: Db;
+  private pendingGuildChoice = new Map<string, PendingGuildChoice>();
 
   constructor(@inject(Client) private readonly client: Client) {
     this.db = getDb();
@@ -50,19 +59,82 @@ export class ModmailService {
 
   // ─── DM Handler ──────────────────────────────────────────────────────────────
 
+  /** Finds every configured modmail guild the given user is currently a member of. */
+  private async findMutualModmailGuilds(userId: string): Promise<Guild[]> {
+    const matches: Guild[] = [];
+    for (const guildId of config.modmail.guildIds) {
+      const guild = this.client.guilds.cache.get(guildId);
+      if (!guild) continue;
+      const member = guild.members.cache.get(userId) ?? await guild.members.fetch(userId).catch(() => null);
+      if (member) matches.push(guild);
+    }
+    return matches;
+  }
+
   private async handleIncomingDm(message: Message): Promise<void> {
     const dmChannel = message.channel as DMChannel;
+    const authorId = message.author.id;
 
-    const guild = this.client.guilds.cache.get(config.modmail.guildId);
-    if (!guild) return;
+    const pending = this.pendingGuildChoice.get(authorId);
+    if (pending) {
+      const choice = Number.parseInt(message.content.trim(), 10);
+      if (!Number.isInteger(choice) || choice < 1 || choice > pending.guildIds.length) {
+        await dmChannel.send(t('modmail.dm.select_guild_invalid')).catch(() => {});
+        return;
+      }
 
-    const cfg = this.getGuildConfig(config.modmail.guildId);
+      clearTimeout(pending.timeout);
+      this.pendingGuildChoice.delete(authorId);
+
+      const chosenGuild = this.client.guilds.cache.get(pending.guildIds[choice - 1]);
+      if (!chosenGuild) {
+        await dmChannel.send(t('modmail.dm.guild_unavailable')).catch(() => {});
+        return;
+      }
+
+      await this.processDm(chosenGuild, pending.message, dmChannel);
+      return;
+    }
+
+    const existingTicket = this.db.prepare('SELECT * FROM tickets WHERE user_id = ? AND open = 1').get(authorId) as TicketRow | undefined;
+
+    let guild: Guild;
+    if (existingTicket) {
+      const ticketGuild = existingTicket.guild_id ? this.client.guilds.cache.get(existingTicket.guild_id) : undefined;
+      if (!ticketGuild) {
+        await dmChannel.send(t('modmail.dm.guild_unavailable')).catch(() => {});
+        return;
+      }
+      guild = ticketGuild;
+    } else {
+      const matches = await this.findMutualModmailGuilds(authorId);
+      if (matches.length === 0) {
+        await dmChannel.send(t('modmail.dm.no_mutual_guild')).catch(() => {});
+        return;
+      }
+
+      if (matches.length > 1) {
+        const list = matches.map((g, i) => `${i + 1}. ${g.name}`).join('\n');
+        await dmChannel.send(t('modmail.dm.select_guild_prompt', { list })).catch(() => {});
+        const timeout = setTimeout(() => this.pendingGuildChoice.delete(authorId), GUILD_CHOICE_TIMEOUT_MS);
+        this.pendingGuildChoice.set(authorId, { guildIds: matches.map(g => g.id), message, timeout });
+        return;
+      }
+
+      guild = matches[0];
+    }
+
+    await this.processDm(guild, message, dmChannel);
+  }
+
+  private async processDm(guild: Guild, message: Message, dmChannel: DMChannel): Promise<void> {
+    const cfg = this.getGuildConfig(guild.id);
     if (cfg.disable_all_tickets === 1 || parseIds(cfg.disabled_user_ids).includes(message.author.id)) {
       await dmChannel.send(t('modmail.dm.disabled_all')).catch(() => {});
       return;
     }
 
-    if (this.isBlocked(config.modmail.guildId, message.author.id)) {
+    if (this.isBlocked(guild.id, message.author.id)) {
       await dmChannel.send(t('modmail.dm.blocked')).catch(() => {});
       return;
     }
@@ -135,10 +207,10 @@ export class ModmailService {
 
       channel = restChannel;
       const insert = this.db.prepare(
-        `INSERT INTO tickets (channel_id, user_id, user_name, open, created_at) VALUES (?, ?, ?, 1, datetime('now'))`,
+        `INSERT INTO tickets (channel_id, user_id, user_name, open, created_at, guild_id) VALUES (?, ?, ?, 1, datetime('now'), ?)`,
       );
-      const result = insert.run(channel.id, message.author.id, message.author.username);
-      ticket = { id: Number(result.lastInsertRowid), channel_id: channel.id, user_id: message.author.id, user_name: message.author.username, open: 1, created_at: new Date().toISOString(), closed_at: null, snoozed_until: null, title: null, close_reason: null, closed_by_staff_id: null, is_nsfw: 0, disabled: 0, added_user_ids: '[]', subscriber_ids: '[]', webhook_id: null, webhook_token: null, parent_ticket_id: null, category: null };
+      const result = insert.run(channel.id, message.author.id, message.author.username, guild.id);
+      ticket = { id: Number(result.lastInsertRowid), channel_id: channel.id, user_id: message.author.id, user_name: message.author.username, open: 1, created_at: new Date().toISOString(), closed_at: null, snoozed_until: null, title: null, close_reason: null, closed_by_staff_id: null, is_nsfw: 0, disabled: 0, added_user_ids: '[]', subscriber_ids: '[]', webhook_id: null, webhook_token: null, parent_ticket_id: null, category: null, guild_id: guild.id };
 
       try {
         const webhook = await restChannel.createWebhook({ name: 'Modmail Forwarder' });
@@ -614,7 +686,7 @@ export class ModmailService {
       parent: config.modmail.categoryId !== '0' ? config.modmail.categoryId : undefined,
     });
 
-    this.db.prepare('INSERT INTO tickets (channel_id, user_id, user_name, open, created_at) VALUES (?, ?, ?, 1, datetime(\'now\'))').run(restChannel.id, user.id, user.username);
+    this.db.prepare('INSERT INTO tickets (channel_id, user_id, user_name, open, created_at, guild_id) VALUES (?, ?, ?, 1, datetime(\'now\'), ?)').run(restChannel.id, user.id, user.username, guildId);
 
     try {
       const webhook = await restChannel.createWebhook({ name: 'Modmail Forwarder' });
@@ -632,8 +704,8 @@ export class ModmailService {
     return t('modmail.contact.success', { user: String(user), channel: String(restChannel) });
   }
 
-  async selfContact(staff: GuildMember, target: User): Promise<string> {
-    const guild = this.client.guilds.cache.get(config.modmail.guildId);
+  async selfContact(guildId: string, staff: GuildMember, target: User): Promise<string> {
+    const guild = this.client.guilds.cache.get(guildId);
     if (!guild) return t('modmail.contact.guild_not_found');
 
     const existing = this.db.prepare('SELECT * FROM tickets WHERE user_id = ? AND open = 1').get(target.id) as TicketRow | undefined;
@@ -645,7 +717,7 @@ export class ModmailService {
       parent: config.modmail.categoryId !== '0' ? config.modmail.categoryId : undefined,
     });
 
-    this.db.prepare('INSERT INTO tickets (channel_id, user_id, user_name, open, created_at) VALUES (?, ?, ?, 1, datetime(\'now\'))').run(restChannel.id, target.id, target.username);
+    this.db.prepare('INSERT INTO tickets (channel_id, user_id, user_name, open, created_at, guild_id) VALUES (?, ?, ?, 1, datetime(\'now\'), ?)').run(restChannel.id, target.id, target.username, guildId);
 
     try {
       const webhook = await restChannel.createWebhook({ name: 'Modmail Forwarder' });
@@ -682,8 +754,8 @@ export class ModmailService {
     });
 
     this.db.prepare(
-      'INSERT INTO tickets (channel_id, user_id, user_name, open, created_at, parent_ticket_id) VALUES (?, ?, ?, 1, datetime(\'now\'), ?)',
-    ).run(restChannel.id, userId, latest.user_name, latest.id);
+      'INSERT INTO tickets (channel_id, user_id, user_name, open, created_at, parent_ticket_id, guild_id) VALUES (?, ?, ?, 1, datetime(\'now\'), ?, ?)',
+    ).run(restChannel.id, userId, latest.user_name, latest.id, guild.id);
 
     try {
       const webhook = await restChannel.createWebhook({ name: 'Modmail Forwarder' });
