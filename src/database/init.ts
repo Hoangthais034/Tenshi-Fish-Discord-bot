@@ -12,7 +12,7 @@ function migrate(database: Database.Database): void {
 
   database.exec('CREATE INDEX IF NOT EXISTS idx_tickets_guild_id ON tickets(guild_id)');
 
-  const fallbackGuildId = (process.env.MODMAIL_GUILD_IDS ?? process.env.MODMAIL_GUILD_ID ?? '')
+  const fallbackGuildId = (process.env.MODMAIL_GUILD_IDS || process.env.MODMAIL_GUILD_ID || '')
     .split(',')
     .map(id => id.trim())
     .filter(Boolean)[0];

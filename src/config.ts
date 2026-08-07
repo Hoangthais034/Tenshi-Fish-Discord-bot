@@ -15,7 +15,7 @@ export const config = {
   },
 
   modmail: {
-    guildIds: (process.env.MODMAIL_GUILD_IDS ?? process.env.MODMAIL_GUILD_ID ?? '')
+    guildIds: (process.env.MODMAIL_GUILD_IDS || process.env.MODMAIL_GUILD_ID || '')
       .split(',')
       .map(id => id.trim())
       .filter(Boolean),
