@@ -4,7 +4,10 @@ export const config = {
   discord: {
     token: process.env.DISCORD_TOKEN!,
     ownerId: process.env.DISCORD_OWNER_ID ?? '0',
-    devGuildId: process.env.DISCORD_DEV_GUILD_ID ?? '0',
+    devGuildIds: (process.env.DISCORD_DEV_GUILD_ID || '')
+      .split(',')
+      .map(id => id.trim())
+      .filter(Boolean),
   },
 
   lavalink: {

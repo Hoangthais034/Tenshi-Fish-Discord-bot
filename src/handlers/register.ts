@@ -8,11 +8,13 @@ export async function registerCommands(commands: Command[], clientId: string): P
   const body: RESTPostAPIApplicationCommandsJSONBody[] = commands.map(c => c.data.toJSON());
 
   try {
-    if (config.discord.devGuildId !== '0') {
-      await rest.put(
-        Routes.applicationGuildCommands(clientId, config.discord.devGuildId),
-        { body },
-      );
+    if (config.discord.devGuildIds.length > 0) {
+      for (const guildId of config.discord.devGuildIds) {
+        await rest.put(
+          Routes.applicationGuildCommands(clientId, guildId),
+          { body },
+        );
+      }
     } else {
       await rest.put(
         Routes.applicationCommands(clientId),

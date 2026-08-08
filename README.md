@@ -32,7 +32,7 @@ docker compose up -d
 |---|---|---|---|
 | `DISCORD_TOKEN` | ✅ | — | Discord bot token |
 | `DISCORD_OWNER_ID` | | `0` | Owner Discord user ID |
-| `DISCORD_DEV_GUILD_ID` | | `0` | Dev guild for slash command sync |
+| `DISCORD_DEV_GUILD_ID` | | `0` | Comma-separated dev guild IDs for slash command sync (empty registers commands globally) |
 | `LAVALINK_HOST` | | `localhost` | Lavalink hostname |
 | `LAVALINK_PORT` | | `2333` | Lavalink port |
 | `LAVALINK_PASSWORD` | ✅ | `youshallnotpass` | Lavalink server password |
