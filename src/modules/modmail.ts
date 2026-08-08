@@ -8,6 +8,7 @@ import {
   EmbedBuilder,
   Colors,
   MessageFlags,
+  ChannelType,
 } from 'discord.js';
 import { container } from 'tsyringe';
 import { ModmailService } from '../services/modmail.js';
@@ -144,6 +145,9 @@ const data = new SlashCommandBuilder()
       .addSubcommand(sub =>
         sub.setName('alert-role').setDescription(t('cmd.modmail.admin.alert_role.desc'))
           .addRoleOption(opt => opt.setName('role').setDescription(t('cmd.modmail.admin.alert_role.opt_role'))))
+      .addSubcommand(sub =>
+        sub.setName('setup-category').setDescription(t('cmd.modmail.admin.setup_category.desc'))
+          .addChannelOption(opt => opt.setName('category').setDescription(t('cmd.modmail.admin.setup_category.opt_category')).addChannelTypes(ChannelType.GuildCategory)))
       .addSubcommand(sub =>
         sub.setName('greeting').setDescription(t('cmd.modmail.admin.greeting.desc'))
           .addStringOption(opt => opt.setName('message').setDescription(t('cmd.modmail.admin.greeting.opt_message'))))
@@ -377,6 +381,11 @@ async function execute(interaction: ChatInputCommandInteraction): Promise<void> 
         case 'alert-role': {
           const role = interaction.options.getRole('role');
           result = modmail.setAlertRole(interaction.guildId!, role?.id ?? null);
+          break;
+        }
+        case 'setup-category': {
+          const category = interaction.options.getChannel('category');
+          result = modmail.setDefaultCategory(interaction.guildId!, category?.id ?? null);
           break;
         }
         case 'greeting': {

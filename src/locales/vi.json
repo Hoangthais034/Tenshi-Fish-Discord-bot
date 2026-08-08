@@ -163,6 +163,10 @@
       "set": "✅ Đã set alert role thành {role}.",
       "removed": "✅ Đã xoá alert role."
     },
+    "default_category": {
+      "set": "✅ Ticket mới sẽ được tạo trong {category}.",
+      "removed": "✅ Đã xoá category mặc định của ticket."
+    },
     "staff_role": {
       "added": "✅ Đã thêm {role} vào staff roles.",
       "removed": "✅ Đã xoá {role} khỏi staff roles.",
@@ -410,7 +414,8 @@
         "alert_role": { "desc": "Đặt role ping khi có ticket mới", "opt_role": "Role (bỏ trống = xoá)" },
         "greeting": { "desc": "Set tin nhắn chào khi tạo ticket", "opt_message": "Nội dung (bỏ trống = tắt)" },
         "staff_role": { "desc": "Quản lý staff roles", "opt_action": "add/remove/list", "choice_add": "Thêm", "choice_remove": "Xoá", "choice_list": "Danh sách", "opt_role": "Role (với action add/remove)" },
-      "category": { "desc": "Quản lý category ticket", "opt_action": "add/remove/list", "choice_add": "Thêm", "choice_remove": "Xoá", "choice_list": "Danh sách", "opt_name": "Tên category (với action add/remove)", "opt_parent": "Category Discord (với action add)" }
+      "category": { "desc": "Quản lý category ticket", "opt_action": "add/remove/list", "choice_add": "Thêm", "choice_remove": "Xoá", "choice_list": "Danh sách", "opt_name": "Tên category (với action add/remove)", "opt_parent": "Category Discord (với action add)" },
+        "setup_category": { "desc": "Đặt category chứa kênh ticket mới của server này", "opt_category": "Category Discord (bỏ trống = xoá)" }
     },
     "ticket": {
       "desc": "Quản lý ticket",

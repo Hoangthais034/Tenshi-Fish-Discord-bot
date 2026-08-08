@@ -69,7 +69,8 @@ CREATE TABLE IF NOT EXISTS guild_configs (
   staff_role_ids TEXT NOT NULL DEFAULT '[]',
   greeting_message TEXT,
   greeting_enabled INTEGER NOT NULL DEFAULT 0,
-  categories TEXT NOT NULL DEFAULT '[]'
+  categories TEXT NOT NULL DEFAULT '[]',
+  default_category_id TEXT
 );
 
 CREATE TABLE IF NOT EXISTS notifications (

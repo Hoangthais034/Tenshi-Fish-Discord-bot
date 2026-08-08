@@ -69,6 +69,7 @@ export interface GuildConfigRow {
   greeting_message: string | null;
   greeting_enabled: number;
   categories: string;
+  default_category_id: string | null;
 }
 
 export interface NotificationRow {

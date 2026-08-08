@@ -202,7 +202,7 @@ export class ModmailService {
       const restChannel = await guild.channels.create({
         name: `ticket-${message.author.username}-${message.author.id.slice(-4)}`.toLowerCase(),
         type: ChannelType.GuildText,
-        parent: config.modmail.categoryId !== '0' ? config.modmail.categoryId : undefined,
+        parent: this.getDefaultCategory(guild.id) ?? undefined,
       });
 
       channel = restChannel;
@@ -683,7 +683,7 @@ export class ModmailService {
     const restChannel = await guild.channels.create({
         name: `ticket-${user.username}-${user.id.slice(-4)}`.toLowerCase(),
       type: ChannelType.GuildText,
-      parent: config.modmail.categoryId !== '0' ? config.modmail.categoryId : undefined,
+      parent: this.getDefaultCategory(guildId) ?? undefined,
     });
 
     this.db.prepare('INSERT INTO tickets (channel_id, user_id, user_name, open, created_at, guild_id) VALUES (?, ?, ?, 1, datetime(\'now\'), ?)').run(restChannel.id, user.id, user.username, guildId);
@@ -714,7 +714,7 @@ export class ModmailService {
     const restChannel = await guild.channels.create({
         name: `ticket-${target.username}-${target.id.slice(-4)}`.toLowerCase(),
       type: ChannelType.GuildText,
-      parent: config.modmail.categoryId !== '0' ? config.modmail.categoryId : undefined,
+      parent: this.getDefaultCategory(guildId) ?? undefined,
     });
 
     this.db.prepare('INSERT INTO tickets (channel_id, user_id, user_name, open, created_at, guild_id) VALUES (?, ?, ?, 1, datetime(\'now\'), ?)').run(restChannel.id, target.id, target.username, guildId);
@@ -750,7 +750,7 @@ export class ModmailService {
     const restChannel = await guild.channels.create({
       name: `ticket-${latest.user_name}-${userId.slice(-4)}`.toLowerCase(),
       type: ChannelType.GuildText,
-      parent: config.modmail.categoryId !== '0' ? config.modmail.categoryId : undefined,
+      parent: this.getDefaultCategory(guild.id) ?? undefined,
     });
 
     this.db.prepare(
@@ -993,6 +993,24 @@ export class ModmailService {
   getLogChannel(guildId: string): string | null {
     const cfg = this.getGuildConfig(guildId);
     return cfg.log_channel_id;
+  }
+
+  // ─── Default Ticket Category ────────────────────────────────────────────────
+
+  setDefaultCategory(guildId: string, categoryId: string | null): string {
+    if (categoryId) {
+      this.db.prepare('UPDATE guild_configs SET default_category_id = ? WHERE guild_id = ?').run(categoryId, guildId);
+      return t('modmail.default_category.set', { category: `<#${categoryId}>` });
+    }
+    this.db.prepare('UPDATE guild_configs SET default_category_id = NULL WHERE guild_id = ?').run(guildId);
+    return t('modmail.default_category.removed');
+  }
+
+  /** Category to place new ticket channels under for this guild, falling back to the legacy single-guild env var. */
+  getDefaultCategory(guildId: string): string | null {
+    const cfg = this.getGuildConfig(guildId);
+    if (cfg.default_category_id) return cfg.default_category_id;
+    return config.modmail.categoryId !== '0' ? config.modmail.categoryId : null;
   }
 
   async sendTranscriptLog(guildId: string, ticket: TicketRow, closer: GuildMember, reason: string | null): Promise<void> {

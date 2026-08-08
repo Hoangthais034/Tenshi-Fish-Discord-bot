@@ -33,6 +33,7 @@ const COLUMN_MIGRATIONS: { table: string; column: string; ddl: string }[] = [
   { table: 'guild_configs', column: 'greeting_message', ddl: 'TEXT' },
   { table: 'guild_configs', column: 'greeting_enabled', ddl: 'INTEGER NOT NULL DEFAULT 0' },
   { table: 'guild_configs', column: 'categories', ddl: "TEXT NOT NULL DEFAULT '[]'" },
+  { table: 'guild_configs', column: 'default_category_id', ddl: 'TEXT' },
 ];
 
 function migrate(database: Database.Database): void {

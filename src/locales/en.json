@@ -163,6 +163,10 @@
       "set": "✅ Alert role set to {role}.",
       "removed": "✅ Alert role removed."
     },
+    "default_category": {
+      "set": "✅ New tickets will be created under {category}.",
+      "removed": "✅ Default ticket category removed."
+    },
     "staff_role": {
       "added": "✅ Added {role} to staff roles.",
       "removed": "✅ Removed {role} from staff roles.",
@@ -404,7 +408,8 @@
         "alert_role": { "desc": "Set alert role for new tickets", "opt_role": "Role (empty = remove)" },
         "greeting": { "desc": "Set greeting message", "opt_message": "Content (empty = disable)" },
         "staff_role": { "desc": "Manage staff roles", "opt_action": "add/remove/list", "choice_add": "Add", "choice_remove": "Remove", "choice_list": "List", "opt_role": "Role (with action add/remove)" },
-      "category": { "desc": "Manage ticket categories", "opt_action": "add/remove/list", "choice_add": "Add", "choice_remove": "Remove", "choice_list": "List", "opt_name": "Category name (for add/remove)", "opt_parent": "Discord category (for add)" }
+      "category": { "desc": "Manage ticket categories", "opt_action": "add/remove/list", "choice_add": "Add", "choice_remove": "Remove", "choice_list": "List", "opt_name": "Category name (for add/remove)", "opt_parent": "Discord category (for add)" },
+        "setup_category": { "desc": "Set the category new ticket channels are created under", "opt_category": "Discord category (empty = remove)" }
     },
     "ticket": {
       "desc": "Manage ticket",
