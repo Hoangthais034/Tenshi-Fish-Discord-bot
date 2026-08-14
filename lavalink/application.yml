@@ -22,6 +22,18 @@ lavalink:
 
 plugins:
   path: /opt/Lavalink/plugins
+  youtube:
+    enabled: true
+    clients:
+      - MUSIC
+      - WEB
+      - WEBEMBEDDED
+      - MWEB
+      - TVHTML5_SIMPLY
+      - ANDROID_VR
+    oauth:
+      enabled: true
+      refreshToken: "${YOUTUBE_OAUTH_REFRESH_TOKEN:}"
 
 metrics:
   prometheus:
