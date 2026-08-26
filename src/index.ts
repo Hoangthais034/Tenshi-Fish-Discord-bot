@@ -6,6 +6,7 @@ import { MusicService } from './services/music.js';
 import { ModmailService } from './services/modmail.js';
 import { HoneypotService } from './services/honeypot.js';
 import { HoneypotHostedService } from './services/honeypot-hosted.js';
+import { TouchGrassSchedulerService } from './services/touch-grass-scheduler.js';
 import type { Command } from './types.js';
 
 async function main(): Promise<void> {
@@ -22,6 +23,9 @@ async function main(): Promise<void> {
 
   const honeypotMod = await import('./modules/honeypot.js');
   commands.push(...honeypotMod.commands);
+
+  const touchGrass = await import('./modules/touch-grass.js');
+  commands.push(...touchGrass.commands);
 
   loadCommandMap(commands);
 
@@ -44,6 +48,9 @@ async function main(): Promise<void> {
     const honeypotHosted = container.resolve(HoneypotHostedService);
     honeypotHosted.start();
 
+    const touchGrassScheduler = container.resolve(TouchGrassSchedulerService);
+    touchGrassScheduler.start();
+
     console.log(`Logged in as ${client.user!.tag}`);
     await registerCommands(commands, client.user!.id);
   });
@@ -57,6 +64,23 @@ async function main(): Promise<void> {
     }
     if (interaction.isChatInputCommand()) {
       await handleInteraction(interaction);
+      return;
+    }
+    if (interaction.isModalSubmit() && touchGrass.isTouchGrassModal(interaction.customId)) {
+      await touchGrass.modalSubmit(interaction).catch(e => console.error('Touch-grass modal error:', e));
+      return;
+    }
+    if (interaction.isButton() && touchGrass.isTouchGrassButton(interaction.customId)) {
+      await touchGrass.button(interaction).catch(e => console.error('Touch-grass button error:', e));
+      return;
+    }
+    if (interaction.isStringSelectMenu() && touchGrass.isTouchGrassStringSelect(interaction.customId)) {
+      await touchGrass.stringSelect(interaction).catch(e => console.error('Touch-grass select error:', e));
+      return;
+    }
+    if (interaction.isChannelSelectMenu() && touchGrass.isTouchGrassChannelSelect(interaction.customId)) {
+      await touchGrass.channelSelect(interaction).catch(e => console.error('Touch-grass select error:', e));
+      return;
     }
   });
 

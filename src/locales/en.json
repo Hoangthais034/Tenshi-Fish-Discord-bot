@@ -286,6 +286,98 @@
   "errors": {
     "command_error": "❌ An error occurred while executing the command."
   },
+  "touchgrass": {
+    "errors": {
+      "guild_only": "❌ This command can only be used in a server.",
+      "event_not_found": "❌ This event no longer exists.",
+      "not_owner": "❌ Only the event owner (or a moderator) can do this.",
+      "thread_unavailable": "❌ That channel/thread is no longer available.",
+      "channel_unavailable": "❌ Couldn't post in the original channel anymore.",
+      "cooldown_30m": "⏳ You're creating events too fast. Try again in {minutes} minute(s).",
+      "daily_limit": "⏳ You've hit today's event limit (10/day). Try again in about {hours} hour(s).",
+      "active_limit": "❌ You already have the max number of active events ({limit}). Close or cancel one first.",
+      "invalid_date": "❌ Invalid date. Use the format `DD/MM/YYYY HH:mm` (e.g. `30/08/2026 14:00`) and pick a time in the future.",
+      "slow_down": "🌱 Slow down a bit and try again in a few seconds.",
+      "vote_cooldown": "🌱 You're voting too fast, try again in a few seconds.",
+      "no_notify_level": "❌ Pick a notification level first.",
+      "no_mention_permission": "❌ You need the \"Mention Everyone\" permission to use @here/@everyone."
+    },
+    "modal": {
+      "title": "🌱 Create a Touch Grass Event",
+      "edit_title": "✏️ Edit Touch Grass Event",
+      "location_label": "Location",
+      "location_placeholder": "Google Maps link or any URL",
+      "date_label": "Date (DD/MM/YYYY HH:mm)",
+      "date_placeholder": "e.g. 30/08/2026 14:00",
+      "description_label": "Description",
+      "description_placeholder": "What's the plan?"
+    },
+    "embed": {
+      "title": "TOUCH GRASS",
+      "location": "📍 Location",
+      "location_link": "Open location",
+      "date": "📅 Date",
+      "description": "📝 Description",
+      "creator": "👤 Created by",
+      "votes": "👥 {count} people voted",
+      "vote_breakdown": "👍 {going}   🤔 {maybe}   ❌ {cant_go}",
+      "thread": "🧵 Ping thread"
+    },
+    "status": {
+      "closed": "🔒 This event has been closed by its owner.",
+      "cancelled": "🗑️ This event was cancelled.",
+      "expired": "🔒 This event has ended."
+    },
+    "button": {
+      "going": "Going",
+      "maybe": "Maybe",
+      "cant_go": "Can't go",
+      "edit": "Edit",
+      "close": "Close",
+      "cancel": "Cancel",
+      "announce": "Announce",
+      "retry": "Try again"
+    },
+    "preview": {
+      "title": "Event preview",
+      "tz_placeholder": "Timezone the date/time above is in (default: Vietnam)",
+      "reminder_24h": "24h reminder",
+      "reminder_1h": "1h reminder",
+      "reminder_15m": "15m reminder",
+      "create": "Create event",
+      "cancel": "Discard",
+      "created": "✅ Event **{id}** created!",
+      "discarded": "❌ Discarded.",
+      "duplicate_title": "⚠️ Similar event found",
+      "duplicate_value": "You already have an active event at this location/time: **{id}**\n{link}"
+    },
+    "edit": {
+      "success": "✅ Event updated."
+    },
+    "announce": {
+      "title": "📢 Send announcement",
+      "desc": "Configure how to announce event **{id}**, then hit Send.",
+      "current_level": "Notification",
+      "current_thread": "Thread",
+      "level_placeholder": "Choose a notification level",
+      "level_none": "No notification",
+      "level_participants": "Mention participants",
+      "level_here": "@here",
+      "level_everyone": "@everyone",
+      "level_unset": "Not chosen yet",
+      "thread_placeholder": "Pick a thread to post in (optional)",
+      "thread_unset": "Origin channel",
+      "send": "Send",
+      "sent": "✅ Announcement sent in {channel}.",
+      "no_participants": "(no one has voted going yet)",
+      "message": "🔔 **Touch Grass — {id}** {mentions}\n📍 {location}\n📅 {date}"
+    },
+    "reminder": {
+      "24h": "🌱 **Reminder** — event **{id}** is tomorrow! {mentions}\n📍 {location}",
+      "1h": "🌱 **Reminder** — event **{id}** starts in 1 hour! {mentions}\n📍 {location}",
+      "15m": "🌱 **Reminder** — event **{id}** starts in 15 minutes! {mentions}\n📍 {location}"
+    }
+  },
   "help": {
     "title": "Command List",
     "music_name": "🎵 Music",
@@ -364,6 +456,9 @@
         "opt_channel": "Channel to remove from trap"
       },
       "stats": { "desc": "View honeypot statistics" }
+    },
+    "touchgrass": {
+      "desc": "Create a touch grass event"
     },
     "modmail": {
       "desc": "Mail",

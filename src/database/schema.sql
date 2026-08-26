@@ -100,9 +100,45 @@ CREATE TABLE IF NOT EXISTS honeypot_guilds (
   warning_message TEXT
 );
 
+CREATE TABLE IF NOT EXISTS touch_grass_events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  public_id TEXT NOT NULL UNIQUE,
+  guild_id TEXT NOT NULL,
+  channel_id TEXT NOT NULL,
+  message_id TEXT,
+  thread_id TEXT,
+  creator_id TEXT NOT NULL,
+  location TEXT NOT NULL,
+  description TEXT NOT NULL,
+  event_at TEXT NOT NULL,
+  event_tz TEXT NOT NULL DEFAULT 'Asia/Ho_Chi_Minh',
+  event_date_raw TEXT NOT NULL DEFAULT '',
+  status TEXT NOT NULL DEFAULT 'DRAFT',
+  notify_level TEXT,
+  reminder_24h INTEGER NOT NULL DEFAULT 1,
+  reminder_1h INTEGER NOT NULL DEFAULT 1,
+  reminder_15m INTEGER NOT NULL DEFAULT 0,
+  reminder_24h_sent INTEGER NOT NULL DEFAULT 0,
+  reminder_1h_sent INTEGER NOT NULL DEFAULT 0,
+  reminder_15m_sent INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS touch_grass_votes (
+  event_id INTEGER NOT NULL,
+  user_id TEXT NOT NULL,
+  vote TEXT NOT NULL,
+  voted_at TEXT NOT NULL DEFAULT (datetime('now')),
+  PRIMARY KEY (event_id, user_id)
+);
+
 CREATE INDEX IF NOT EXISTS idx_tickets_user_id ON tickets(user_id);
 CREATE INDEX IF NOT EXISTS idx_tickets_channel_id ON tickets(channel_id);
 CREATE INDEX IF NOT EXISTS idx_blocks_guild_user ON blocks(guild_id, user_id);
 CREATE INDEX IF NOT EXISTS idx_message_logs_channel ON message_logs(ticket_channel_id);
 CREATE INDEX IF NOT EXISTS idx_snippets_guild ON snippets(guild_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_channel ON notifications(ticket_channel_id);
+CREATE INDEX IF NOT EXISTS idx_tg_events_creator ON touch_grass_events(creator_id, status);
+CREATE INDEX IF NOT EXISTS idx_tg_events_status_at ON touch_grass_events(status, event_at);
+CREATE INDEX IF NOT EXISTS idx_tg_events_message ON touch_grass_events(message_id);
+CREATE INDEX IF NOT EXISTS idx_tg_votes_event ON touch_grass_votes(event_id);

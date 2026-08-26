@@ -287,6 +287,98 @@
   "errors": {
     "command_error": "❌ Lỗi khi thực hiện lệnh."
   },
+  "touchgrass": {
+    "errors": {
+      "guild_only": "❌ Lệnh này chỉ dùng được trong server.",
+      "event_not_found": "❌ Sự kiện này không còn tồn tại.",
+      "not_owner": "❌ Chỉ chủ sự kiện (hoặc mod) mới thao tác được.",
+      "thread_unavailable": "❌ Channel/thread đó không còn khả dụng.",
+      "channel_unavailable": "❌ Không thể đăng lại vào channel gốc.",
+      "cooldown_30m": "⏳ Bạn đang tạo event quá nhanh. Thử lại sau {minutes} phút.",
+      "daily_limit": "⏳ Bạn đã đạt giới hạn event hôm nay (10/ngày). Thử lại sau khoảng {hours} giờ.",
+      "active_limit": "❌ Bạn đã có tối đa số event đang active ({limit}). Hãy đóng hoặc huỷ bớt.",
+      "invalid_date": "❌ Ngày không hợp lệ. Dùng định dạng `DD/MM/YYYY HH:mm` (vd: `30/08/2026 14:00`) và chọn thời điểm trong tương lai.",
+      "slow_down": "🌱 Chậm lại chút rồi thử lại sau vài giây.",
+      "vote_cooldown": "🌱 Bạn đang vote quá nhanh, thử lại sau vài giây.",
+      "no_notify_level": "❌ Hãy chọn mức thông báo trước.",
+      "no_mention_permission": "❌ Bạn cần quyền \"Mention Everyone\" để dùng @here/@everyone."
+    },
+    "modal": {
+      "title": "🌱 Tạo sự kiện chạm cỏ",
+      "edit_title": "✏️ Sửa sự kiện chạm cỏ",
+      "location_label": "Địa điểm",
+      "location_placeholder": "Link Google Maps hoặc URL bất kỳ",
+      "date_label": "Ngày (DD/MM/YYYY HH:mm)",
+      "date_placeholder": "vd: 30/08/2026 14:00",
+      "description_label": "Mô tả",
+      "description_placeholder": "Kế hoạch thế nào?"
+    },
+    "embed": {
+      "title": "TOUCH GRASS",
+      "location": "📍 Địa điểm",
+      "location_link": "Xem địa điểm",
+      "date": "📅 Ngày",
+      "description": "📝 Mô tả",
+      "creator": "👤 Người tạo",
+      "votes": "👥 {count} người đã vote",
+      "vote_breakdown": "👍 {going}   🤔 {maybe}   ❌ {cant_go}",
+      "thread": "🧵 Thread ping"
+    },
+    "status": {
+      "closed": "🔒 Sự kiện đã được chủ đóng lại.",
+      "cancelled": "🗑️ Sự kiện đã bị huỷ.",
+      "expired": "🔒 Sự kiện đã kết thúc."
+    },
+    "button": {
+      "going": "Đi",
+      "maybe": "Có thể",
+      "cant_go": "Không đi",
+      "edit": "Sửa",
+      "close": "Đóng",
+      "cancel": "Huỷ",
+      "announce": "Thông báo",
+      "retry": "Nhập lại"
+    },
+    "preview": {
+      "title": "Xem trước sự kiện",
+      "tz_placeholder": "Múi giờ của ngày/giờ ở trên (mặc định: Việt Nam)",
+      "reminder_24h": "Nhắc trước 24h",
+      "reminder_1h": "Nhắc trước 1h",
+      "reminder_15m": "Nhắc trước 15p",
+      "create": "Tạo event",
+      "cancel": "Huỷ",
+      "created": "✅ Đã tạo event **{id}**!",
+      "discarded": "❌ Đã huỷ.",
+      "duplicate_title": "⚠️ Có event tương tự",
+      "duplicate_value": "Bạn đã có event đang active cùng địa điểm/thời gian: **{id}**\n{link}"
+    },
+    "edit": {
+      "success": "✅ Đã cập nhật event."
+    },
+    "announce": {
+      "title": "📢 Gửi thông báo",
+      "desc": "Cấu hình cách thông báo cho event **{id}**, rồi bấm Gửi.",
+      "current_level": "Mức thông báo",
+      "current_thread": "Thread",
+      "level_placeholder": "Chọn mức thông báo",
+      "level_none": "Không thông báo",
+      "level_participants": "Mention người tham gia",
+      "level_here": "@here",
+      "level_everyone": "@everyone",
+      "level_unset": "Chưa chọn",
+      "thread_placeholder": "Chọn thread để đăng (không bắt buộc)",
+      "thread_unset": "Channel gốc",
+      "send": "Gửi",
+      "sent": "✅ Đã gửi thông báo trong {channel}.",
+      "no_participants": "(chưa có ai vote đi)",
+      "message": "🔔 **Touch Grass — {id}** {mentions}\n📍 {location}\n📅 {date}"
+    },
+    "reminder": {
+      "24h": "🌱 **Nhắc lịch** — event **{id}** diễn ra vào ngày mai! {mentions}\n📍 {location}",
+      "1h": "🌱 **Nhắc lịch** — event **{id}** bắt đầu sau 1 tiếng nữa! {mentions}\n📍 {location}",
+      "15m": "🌱 **Nhắc lịch** — event **{id}** bắt đầu sau 15 phút nữa! {mentions}\n📍 {location}"
+    }
+  },
   "cmd": {
     "help": {
       "desc": "Xem danh sách lệnh của bot"
@@ -370,6 +462,9 @@
         "opt_channel": "Channel cần xóa khỏi trap"
       },
       "stats": { "desc": "Xem thống kê honeypot" }
+    },
+    "touchgrass": {
+      "desc": "Tạo sự kiện chạm cỏ"
     },
     "modmail": {
       "desc": "Quản lý ticket hỗ trợ",

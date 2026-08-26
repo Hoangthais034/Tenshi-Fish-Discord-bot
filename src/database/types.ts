@@ -99,5 +99,40 @@ export interface HoneypotGuildRow {
   warning_message: string | null;
 }
 
+export type TouchGrassStatus = 'DRAFT' | 'ACTIVE' | 'CLOSED' | 'CANCELLED' | 'EXPIRED';
+export type TouchGrassNotifyLevel = 'none' | 'participants' | 'here' | 'everyone';
+export type TouchGrassVoteValue = 'going' | 'maybe' | 'cant_go';
+
+export interface TouchGrassEventRow {
+  id: number;
+  public_id: string;
+  guild_id: string;
+  channel_id: string;
+  message_id: string | null;
+  thread_id: string | null;
+  creator_id: string;
+  location: string;
+  description: string;
+  event_at: string;
+  event_tz: string;
+  event_date_raw: string;
+  status: TouchGrassStatus;
+  notify_level: TouchGrassNotifyLevel | null;
+  reminder_24h: number;
+  reminder_1h: number;
+  reminder_15m: number;
+  reminder_24h_sent: number;
+  reminder_1h_sent: number;
+  reminder_15m_sent: number;
+  created_at: string;
+}
+
+export interface TouchGrassVoteRow {
+  event_id: number;
+  user_id: string;
+  vote: TouchGrassVoteValue;
+  voted_at: string;
+}
+
 export type Action = 'Kick' | 'Ban' | 'Softban';
 export type LoopMode = 'none' | 'track' | 'queue';

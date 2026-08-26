@@ -19,3 +19,14 @@ export function getRemaining(key: string): number {
 export function clearCooldown(key: string): void {
   cooldowns.delete(key);
 }
+
+const hits = new Map<string, number[]>();
+
+/** Sliding-window flood check: records a hit for `key` and reports whether more than `max` hits landed within the trailing `windowMs`. */
+export function checkRateLimit(key: string, max: number, windowMs: number): boolean {
+  const now = Date.now();
+  const recent = (hits.get(key) ?? []).filter(t => now - t < windowMs);
+  recent.push(now);
+  hits.set(key, recent);
+  return recent.length > max;
+}
