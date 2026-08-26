@@ -108,6 +108,7 @@ CREATE TABLE IF NOT EXISTS touch_grass_events (
   message_id TEXT,
   thread_id TEXT,
   creator_id TEXT NOT NULL,
+  name TEXT NOT NULL DEFAULT '',
   location TEXT NOT NULL,
   description TEXT NOT NULL,
   event_at TEXT NOT NULL,

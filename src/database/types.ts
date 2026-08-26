@@ -111,6 +111,7 @@ export interface TouchGrassEventRow {
   message_id: string | null;
   thread_id: string | null;
   creator_id: string;
+  name: string;
   location: string;
   description: string;
   event_at: string;

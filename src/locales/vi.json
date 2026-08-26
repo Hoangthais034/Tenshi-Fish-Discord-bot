@@ -306,6 +306,8 @@
     "modal": {
       "title": "🌱 Tạo sự kiện chạm cỏ",
       "edit_title": "✏️ Sửa sự kiện chạm cỏ",
+      "name_label": "Tên sự kiện",
+      "name_placeholder": "vd: Leo núi cuối tuần",
       "location_label": "Địa điểm",
       "location_placeholder": "Link Google Maps hoặc URL bất kỳ",
       "date_label": "Ngày (DD/MM/YYYY HH:mm)",
@@ -314,7 +316,7 @@
       "description_placeholder": "Kế hoạch thế nào?"
     },
     "embed": {
-      "title": "TOUCH GRASS",
+      "name": "🌱 Tên",
       "location": "📍 Địa điểm",
       "location_link": "Xem địa điểm",
       "date": "📅 Ngày",

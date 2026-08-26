@@ -135,12 +135,12 @@ export class TouchGrassService {
     throw new Error('Failed to generate a unique touch-grass public id');
   }
 
-  createDraft(guildId: string, channelId: string, creatorId: string, location: string, dateRaw: string, tz: string, eventAt: Date, description: string): TouchGrassEventRow {
+  createDraft(guildId: string, channelId: string, creatorId: string, name: string, location: string, dateRaw: string, tz: string, eventAt: Date, description: string): TouchGrassEventRow {
     const publicId = this.generateUniquePublicId();
     const info = this.db.prepare(
-      `INSERT INTO touch_grass_events (public_id, guild_id, channel_id, creator_id, location, description, event_at, event_tz, event_date_raw, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'DRAFT')`,
-    ).run(publicId, guildId, channelId, creatorId, location, description, eventAt.toISOString(), tz, dateRaw);
+      `INSERT INTO touch_grass_events (public_id, guild_id, channel_id, creator_id, name, location, description, event_at, event_tz, event_date_raw, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'DRAFT')`,
+    ).run(publicId, guildId, channelId, creatorId, name, location, description, eventAt.toISOString(), tz, dateRaw);
     return this.getById(Number(info.lastInsertRowid))!;
   }
 
@@ -182,9 +182,9 @@ export class TouchGrassService {
     return this.getById(id)!;
   }
 
-  updateDetails(id: number, location: string, description: string, dateRaw: string, tz: string, eventAt: Date): TouchGrassEventRow {
-    this.db.prepare('UPDATE touch_grass_events SET location = ?, description = ?, event_at = ?, event_tz = ?, event_date_raw = ? WHERE id = ?')
-      .run(location, description, eventAt.toISOString(), tz, dateRaw, id);
+  updateDetails(id: number, name: string, location: string, description: string, dateRaw: string, tz: string, eventAt: Date): TouchGrassEventRow {
+    this.db.prepare('UPDATE touch_grass_events SET name = ?, location = ?, description = ?, event_at = ?, event_tz = ?, event_date_raw = ? WHERE id = ?')
+      .run(name, location, description, eventAt.toISOString(), tz, dateRaw, id);
     return this.getById(id)!;
   }
 

@@ -305,6 +305,8 @@
     "modal": {
       "title": "🌱 Create a Touch Grass Event",
       "edit_title": "✏️ Edit Touch Grass Event",
+      "name_label": "Event name",
+      "name_placeholder": "e.g. Weekend hike",
       "location_label": "Location",
       "location_placeholder": "Google Maps link or any URL",
       "date_label": "Date (DD/MM/YYYY HH:mm)",
@@ -313,7 +315,7 @@
       "description_placeholder": "What's the plan?"
     },
     "embed": {
-      "title": "TOUCH GRASS",
+      "name": "🌱 Name",
       "location": "📍 Location",
       "location_link": "Open location",
       "date": "📅 Date",

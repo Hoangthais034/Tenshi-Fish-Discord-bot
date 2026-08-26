@@ -122,7 +122,7 @@ export function buildEventCard(event: TouchGrassEventRow) {
     : event.location;
 
   const embed = new EmbedBuilder()
-    .setTitle(`🌱 ${t('touchgrass.embed.title')} — ${event.public_id}`)
+    .setTitle(`🌱 ${event.name} — ${event.public_id}`)
     .setColor(isActive ? Colors.Green : Colors.Grey)
     .addFields(
       { name: t('touchgrass.embed.location'), value: locationValue },
@@ -165,6 +165,7 @@ function buildPreview(draft: TouchGrassEventRow, duplicateOf: TouchGrassEventRow
     .setTitle(`🌱 ${t('touchgrass.preview.title')}`)
     .setColor(Colors.Greyple)
     .addFields(
+      { name: t('touchgrass.embed.name'), value: draft.name },
       {
         name: t('touchgrass.embed.location'),
         value: /^https?:\/\//i.test(draft.location) ? `[${t('touchgrass.embed.location_link')}](${draft.location})` : draft.location,
@@ -248,6 +249,9 @@ function buildAnnouncePanel(event: TouchGrassEventRow, allowEveryone: boolean) {
 function buildCreateModal(): ModalBuilder {
   const modal = new ModalBuilder().setCustomId(CREATE_MODAL).setTitle(t('touchgrass.modal.title'));
 
+  const nameInput = new TextInputBuilder()
+    .setCustomId('name').setLabel(t('touchgrass.modal.name_label')).setStyle(TextInputStyle.Short)
+    .setPlaceholder(t('touchgrass.modal.name_placeholder')).setRequired(true).setMaxLength(100);
   const locationInput = new TextInputBuilder()
     .setCustomId('location').setLabel(t('touchgrass.modal.location_label')).setStyle(TextInputStyle.Short)
     .setPlaceholder(t('touchgrass.modal.location_placeholder')).setRequired(true).setMaxLength(300);
@@ -259,6 +263,7 @@ function buildCreateModal(): ModalBuilder {
     .setPlaceholder(t('touchgrass.modal.description_placeholder')).setRequired(true).setMaxLength(1000);
 
   modal.addComponents(
+    new ActionRowBuilder<TextInputBuilder>().addComponents(nameInput),
     new ActionRowBuilder<TextInputBuilder>().addComponents(locationInput),
     new ActionRowBuilder<TextInputBuilder>().addComponents(dateInput),
     new ActionRowBuilder<TextInputBuilder>().addComponents(descriptionInput),
@@ -269,6 +274,9 @@ function buildCreateModal(): ModalBuilder {
 function buildEditModal(event: TouchGrassEventRow): ModalBuilder {
   const modal = new ModalBuilder().setCustomId(`${EDIT_MODAL_PREFIX}${event.id}`).setTitle(t('touchgrass.modal.edit_title'));
 
+  const nameInput = new TextInputBuilder()
+    .setCustomId('name').setLabel(t('touchgrass.modal.name_label')).setStyle(TextInputStyle.Short)
+    .setValue(event.name).setRequired(true).setMaxLength(100);
   const locationInput = new TextInputBuilder()
     .setCustomId('location').setLabel(t('touchgrass.modal.location_label')).setStyle(TextInputStyle.Short)
     .setValue(event.location).setRequired(true).setMaxLength(300);
@@ -280,6 +288,7 @@ function buildEditModal(event: TouchGrassEventRow): ModalBuilder {
     .setValue(event.description).setRequired(true).setMaxLength(1000);
 
   modal.addComponents(
+    new ActionRowBuilder<TextInputBuilder>().addComponents(nameInput),
     new ActionRowBuilder<TextInputBuilder>().addComponents(locationInput),
     new ActionRowBuilder<TextInputBuilder>().addComponents(dateInput),
     new ActionRowBuilder<TextInputBuilder>().addComponents(descriptionInput),
@@ -342,6 +351,7 @@ async function handleCreateModalSubmit(interaction: ModalSubmitInteraction): Pro
     return;
   }
 
+  const name = interaction.fields.getTextInputValue('name').trim();
   const location = interaction.fields.getTextInputValue('location').trim();
   const dateInput = interaction.fields.getTextInputValue('date').trim();
   const description = interaction.fields.getTextInputValue('description').trim();
@@ -359,7 +369,7 @@ async function handleCreateModalSubmit(interaction: ModalSubmitInteraction): Pro
     return;
   }
 
-  const draft = touchGrass.createDraft(interaction.guildId!, interaction.channelId, interaction.user.id, location, dateInput, DEFAULT_EVENT_TIMEZONE, eventAt, description);
+  const draft = touchGrass.createDraft(interaction.guildId!, interaction.channelId, interaction.user.id, name, location, dateInput, DEFAULT_EVENT_TIMEZONE, eventAt, description);
   const duplicate = touchGrass.findDuplicateActive(interaction.user.id, location, eventAt, draft.id);
 
   const { embeds, components } = buildPreview(draft, duplicate ?? null);
@@ -383,6 +393,7 @@ async function handleEditModalSubmit(interaction: ModalSubmitInteraction): Promi
     return;
   }
 
+  const name = interaction.fields.getTextInputValue('name').trim();
   const location = interaction.fields.getTextInputValue('location').trim();
   const dateInput = interaction.fields.getTextInputValue('date').trim();
   const description = interaction.fields.getTextInputValue('description').trim();
@@ -400,7 +411,7 @@ async function handleEditModalSubmit(interaction: ModalSubmitInteraction): Promi
     return;
   }
 
-  const updated = touchGrass.updateDetails(id, location, description, dateInput, event.event_tz, eventAt);
+  const updated = touchGrass.updateDetails(id, name, location, description, dateInput, event.event_tz, eventAt);
   if (interaction.guild) await refreshCard(interaction.guild, updated);
   await interaction.reply({ content: t('touchgrass.edit.success'), flags: MessageFlags.Ephemeral });
 }
