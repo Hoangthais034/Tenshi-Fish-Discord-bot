@@ -5,7 +5,7 @@ Discord bot built with discord.js v14, lavalink-client, better-sqlite3, tsyringe
 ## Features
 
 - **Modmail** — Ticket support system with reply/close/edit/delete/note/snooze/reopen, anonymous replies, snippets, logs, admin tools (block, whitelist, staff roles, categories, greeting, alert role)
-- **Music** — Play/skip/stop/queue/pause/resume/nowplaying/volume/shuffle/loop via Lavalink (SoundCloud default, YouTube requires residential proxy)
+- **Music** — Play/skip/stop/queue/pause/resume/nowplaying/volume/shuffle/loop via Lavalink (SoundCloud default; YouTube via OAuth TV client)
 - **Trap** — Honeypot/spam trap: `/trap setup`, `/trap add-trap`, `/trap remove-trap`, `/trap disable`, `/trap messages`, `/trap experiment`, `/trap stats`
 - **i18n** — Bilingual English/Vietnamese via `LOCALE` env var
 
@@ -39,12 +39,23 @@ docker compose up -d
 | `MODMAIL_GUILD_IDS` | ✅ | — | Comma-separated guild IDs for modmail tickets (multiple servers supported); `MODMAIL_GUILD_ID` still works as a single-value legacy fallback |
 | `MODMAIL_CATEGORY_ID` | | `0` | Discord category for ticket channels |
 | `LOCALE` | | `en` | Language: `en` or `vi` |
+| `YOUTUBE_OAUTH_REFRESH_TOKEN` | | — | Refresh token of a spare Google account, used by the YouTube TV client (see below) |
+| `YOUTUBE_CIPHER_PASSWORD` | | — | Shared secret between Lavalink and the `yt-cipher` container |
 
 ## Sources
 
 - **SoundCloud** (default, fallback) — works from datacenter IPs
-- **YouTube** — requires OAuth + TV client (blocked on datacenter IPs)
+- **YouTube** — OAuth through the TV client + `yt-cipher` remote decipher (anonymous requests are blocked on datacenter IPs)
 - **HTTP** — direct URL
+
+### YouTube OAuth setup
+
+1. Use a **spare** Google account, never your main one: YouTube may flag or lock it.
+2. Leave `YOUTUBE_OAUTH_REFRESH_TOKEN` empty and run `docker compose up -d --build`.
+3. Run `docker compose logs -f lavalink` and wait for `OAUTH INTEGRATION: ... go to https://www.google.com/device and enter code XXXX-XXXX`.
+4. Open that page, enter the code, and sign in with the spare account.
+5. The log then prints `OAUTH INTEGRATION: Token retrieved successfully. Store your refresh token as this can be reused. (1//...)`. Copy the `1//...` value.
+6. Put it in `.env` as `YOUTUBE_OAUTH_REFRESH_TOKEN=1//...` and run `docker compose up -d` again.
 
 ## Project Structure
 
