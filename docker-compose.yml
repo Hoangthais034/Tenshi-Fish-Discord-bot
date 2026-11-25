@@ -3,10 +3,9 @@ services:
     build:
       context: ./lavalink
       dockerfile: Dockerfile
-    container_name: lavalink
     restart: unless-stopped
-    ports:
-      - "2333:2333"
+    # No published ports: the bot reaches Lavalink over the internal network,
+    # so Lavalink is not exposed to the internet.
     environment:
       - LAVALINK_SERVER_PASSWORD=${LAVALINK_PASSWORD:?err}
       - LAVALINK_SERVER_PORT=2333
@@ -16,8 +15,10 @@ services:
       - _JAVA_OPTIONS=-Xmx256m -Xms256m
     depends_on:
       - yt-cipher
+    # application.yml is baked into the image by lavalink/Dockerfile. It is not
+    # bind-mounted because Dokploy re-clones the repo on deploy, which breaks
+    # bind mounts that point inside the repo.
     volumes:
-      - ./lavalink/application.yml:/opt/Lavalink/application.yml
       - lavalink-logs:/opt/Lavalink/logs
     healthcheck:
       test: ["CMD-SHELL", "curl -s -o /dev/null -H 'Authorization: ${LAVALINK_PASSWORD}' http://localhost:2333/version"]
@@ -37,7 +38,6 @@ services:
   # Not published to the host: only Lavalink reaches it over the internal network.
   yt-cipher:
     image: ghcr.io/kikkia/yt-cipher:master
-    container_name: yt-cipher
     restart: unless-stopped
     environment:
       - API_TOKEN=${YOUTUBE_CIPHER_PASSWORD:-}
@@ -52,8 +52,6 @@ services:
 
   bot:
     build: .
-    image: tenshi-bot
-    container_name: discord-bot
     restart: unless-stopped
     depends_on:
       lavalink:
@@ -68,9 +66,11 @@ services:
       - MODMAIL_GUILD_IDS=${MODMAIL_GUILD_IDS:-}
       - MODMAIL_GUILD_ID=${MODMAIL_GUILD_ID:-}
       - MODMAIL_CATEGORY_ID=${MODMAIL_CATEGORY_ID:-0}
+      - LOCALE=${LOCALE:-en}
       - DATA_PATH=/data/bot-data.db
+    # Named volume so the SQLite database survives redeploys (and can use Dokploy volume backups).
     volumes:
-      - ./.data:/data
+      - bot-data:/data
     networks:
       - botnet
     logging:
@@ -85,3 +85,4 @@ networks:
 
 volumes:
   lavalink-logs:
+  bot-data:
