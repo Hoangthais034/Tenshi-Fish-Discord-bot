@@ -97,6 +97,20 @@ Or manually:
 docker compose up -d --build
 ```
 
+### Dokploy
+
+The same `docker-compose.yml` runs on [Dokploy](https://dokploy.com) unchanged.
+
+1. **Create Service → Compose**, source **GitHub** (or Git), branch `master`, compose path `./docker-compose.yml`, compose type **Docker Compose** (not Stack: Stack mode can't `build`).
+2. **Environment** tab: paste the variables from `.env.example` with real values. Required: `DISCORD_TOKEN`, `LAVALINK_PASSWORD`, `MODMAIL_GUILD_IDS`. Dokploy writes them to a `.env` next to the compose file, and the compose file reads them through `${VAR}` interpolation.
+3. **Deploy**. No domain is needed: the bot only makes outbound connections, and Lavalink/yt-cipher stay on the internal network with no published ports.
+4. Get the YouTube refresh token as in [YouTube OAuth setup](#youtube-oauth-setup), reading the `lavalink` service in the **Logs** tab. Put the token in **Environment** and redeploy.
+5. Optional: enable **AutoDeploy** to redeploy on every push to `master`, and add a **Volume Backup** for the `bot-data` volume (the SQLite database).
+
+Notes:
+- Persistent data lives in named volumes (`bot-data`, `lavalink-logs`). Nothing is bind-mounted from the repo, because Dokploy re-clones the repo on deploy.
+- Moving from the old `./.data` bind mount: copy `.data/bot-data.db` into the new volume once, for example `docker run --rm -v <project>_bot-data:/data -v $PWD/.data:/old alpine sh -c 'cp /old/bot-data.db /data/ && chown $(stat -c %u:%g /data) /data/bot-data.db'`, using the real volume name from `docker volume ls`.
+
 ## Code Origins
 
 - **Modmail** — inspired by reference implementations, rewritten from scratch in TypeScript with SQLite + DI
