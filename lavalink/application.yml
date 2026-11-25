@@ -24,16 +24,28 @@ plugins:
   path: /opt/Lavalink/plugins
   youtube:
     enabled: true
+    # TV must come first: it is the only youtube-source client that supports OAuth,
+    # so it is the one that gets past "Sign in to confirm you're not a bot" on datacenter IPs.
+    # MUSIC is used for search; the rest are fallbacks for videos TV cannot play.
     clients:
+      - TV
       - MUSIC
+      - ANDROID_VR
+      - TVHTML5_SIMPLY
       - WEB
       - WEBEMBEDDED
       - MWEB
-      - TVHTML5_SIMPLY
-      - ANDROID_VR
     oauth:
       enabled: true
+      # Leave empty on first run: Lavalink logs a google.com/device code, and after you
+      # sign in it logs the refresh token to paste into YOUTUBE_OAUTH_REFRESH_TOKEN.
       refreshToken: "${YOUTUBE_OAUTH_REFRESH_TOKEN:}"
+    # Signature deciphering is offloaded to the yt-cipher container (see docker-compose.yml),
+    # which keeps up with YouTube player changes faster than plugin releases.
+    remoteCipher:
+      url: "${YOUTUBE_CIPHER_URL:http://yt-cipher:8001}"
+      password: "${YOUTUBE_CIPHER_PASSWORD:}"
+      userAgent: "tenshi-fish-bot"
 
 metrics:
   prometheus:
